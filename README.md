@@ -44,10 +44,10 @@ Remaining gate: clarify the conflicting synthetic-provenance wording and resolve
 Verification actually run: help, complete cached pinned audit, offline full recomputation/byte verification, and the unchanged `env -u PYTHONPATH .venv/bin/python smoke.py` check. The first dependency attempt (`pyarrow==23.0.1`) was unavailable in the configured package index; pinned `pyarrow==21.0.0` installed successfully.
 
 ## Future milestones
-1. Resolve the audited public candidate's provenance and annotation-quality gates; manifests remain provisional.
-2. mBERT BIO classifier.
-3. Hybrid regex + mBERT.
-4. Evaluation: entity precision/recall/F1 and character masking.
+1. **Chosen next dataset: `ai4privacy/openpii-masking-micro-100k`**, limited to EN/DE/FR/IT/ES for the planned work. The exact revision is not yet selected or pinned, and the full audit is pending. This is a dataset choice, not training authorization; no model or training work is authorized by it.
+2. Pin the exact revision, then audit the five-language subset: schema, character offsets, provenance, duplicates, and overlap with the completed Mini 10K train/dev/test manifests before freezing any new splits. Do not automatically merge related datasets. No Nemotron or 1.5M dataset adoption is selected.
+3. The Mini 10K pilot audit remains completed with its recorded results above unchanged; it is not replaced or retroactively reinterpreted by this selection.
+4. mBERT BIO classifier, hybrid regex + mBERT, and evaluation remain unimplemented and unauthorized pending the relevant gates and explicit authorization.
 
 ## Provenance
 Local source note: `/Users/necatifurkancolak/AI-Workplace/Obsidian Vaults/NecatiOS/wiki/sources/privacygate-future-project-idea.md`.
