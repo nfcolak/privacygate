@@ -7,7 +7,11 @@ __pycache__/
 *.egg-info/
 build/
 dist/
-data/
+data/*
+!data/manifests/
+data/manifests/*
+!data/manifests/*.jsonl
+!data/manifests/*.json
 models/
 results/
 .cache/

@@ -1,0 +1,9 @@
+{
+  "data/manifests/dev.jsonl": "2c79228264754922815905b3a76179c7bccd133cf4f4091de7537c7a770b9ae1",
+  "data/manifests/excluded.jsonl": "01a6b0688cbd6f5c2d4a186bccd584b8108c3f3fd7050e60367aa9544ff781bc",
+  "data/manifests/selected.jsonl": "127d3f9ded688a87c37f845d49cbad2ebae78798899cc77ae1eb4606d5a9d9c9",
+  "data/manifests/split-policy.json": "1e00a629ad509c6494ddb17f46f4adfbe1d3f1574f76136e728bb748c84e487c",
+  "data/manifests/test.jsonl": "b35fe9b3fb464381a89008e5789cbaaba7348dc4363a8d6d36b7bdeb20ffb472",
+  "data/manifests/train.jsonl": "665735fb61fff8b1ca4923f6e02f721c920013a70e5b9838b564828bd1e7ae7c",
+  "docs/data-audit/audit.json": "c85d2a0fb92f4af9abc3fdc8b83844e0c9227292d214cda8b7356ce3abccd9f0"
+}
