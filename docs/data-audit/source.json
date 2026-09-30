@@ -1,0 +1,16 @@
+{
+  "repo_id": "ai4privacy/openpii-masking-mini-10k",
+  "revision": "ad851605dfd3c1a3fefe51c8d8f1cc0e4a6853d0",
+  "downloaded_at_utc": "2026-09-30T18:34:43Z",
+  "metadata_url": "https://huggingface.co/api/datasets/ai4privacy/openpii-masking-mini-10k/revision/ad851605dfd3c1a3fefe51c8d8f1cc0e4a6853d0",
+  "metadata_revision_verified": true,
+  "license_claim": "cc-by-4.0",
+  "publisher": "AI4Privacy",
+  "card_claims_not_measurements": {"train_rows": 9000, "validation_rows": 1000, "languages": 23, "labels": 19},
+  "provenance_status": "unresolved; subset wording conflicts with upstream synthetic declaration; not proof of real PII",
+  "artifacts": [
+    {"path": "README.md", "bytes": 4485, "sha256": "7f57688657d20be0121c1ec602cac8d6ecd1b659958452d6f71df323d43b0045"},
+    {"path": "data/train-00000-of-00001.parquet", "split": "train", "bytes": 10311472, "sha256": "ba471517ab5f7802ccac010a630c4c111c6de66e509087410e70829544487467"},
+    {"path": "data/validation-00000-of-00001.parquet", "split": "validation", "bytes": 1240779, "sha256": "ec3d286fb14b5970880b5ad53aea100f601a5ef8eb6db2d5a76d7fc9a8f7dd23"}
+  ]
+}

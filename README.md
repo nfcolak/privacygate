@@ -3,7 +3,7 @@
 Research prototype (initialized from a local proposal note; see Provenance). Goal: compare regex, mBERT BIO classifier and hybrid PII detection/masking on synthetic multilingual text (EN, DE, FR, IT, ES).
 
 ## Status
-Only the **regex-only baseline** exists. mBERT, hybrid and evaluation are **not implemented**. No dataset is included; proposed dataset details have not been audited.
+Only the **regex-only baseline** exists. mBERT, hybrid and evaluation are **not implemented**. Stage 1 audited all 10,000 rows of a pinned public candidate locally and produced value-free manifests. The data is **not training-ready**: synthetic provenance and annotation-quality gates remain open. Raw artifacts are ignored, not included in Git.
 
 ## Limitations (regex-only)
 - Detects only emails and IBANs with a valid mod-97 checksum. Names, addresses, phones, etc. are **not** detected.
@@ -19,8 +19,32 @@ env -u PYTHONPATH python3 smoke.py
 ```
 Output JSON: `masked_text` and `entities` (`start`, `end` offsets into the original text, `label`). Original values are never output. Overlaps: earlier start wins, then longer span.
 
+## Stage 1 dataset audit (no model or training)
+
+From the repository/worktree root:
+
+```sh
+env -u PYTHONPATH python3 -m venv .venv
+env -u PYTHONPATH .venv/bin/python -m pip install --no-cache-dir -r docs/data-audit/requirements.txt
+env -u PYTHONPATH .venv/bin/python scripts/audit_dataset.py --help
+env -u PYTHONPATH .venv/bin/python scripts/audit_dataset.py
+env -u PYTHONPATH .venv/bin/python scripts/audit_dataset.py --offline --verify
+```
+
+The full audit downloads only missing frozen public subset artifacts from the exact revision in `docs/data-audit/source.json`, then validates their sizes and SHA256 hashes before reading every row. A cached artifact with a mismatched hash fails; it is never silently replaced. Initial metadata/Parquet inspection occurred before implementing the schema checks. No upstream corpus or tokenizer/model downloads occur.
+
+For a disconnected full re-run, use `env -u PYTHONPATH .venv/bin/python scripts/audit_dataset.py --offline`. Verification is always offline, recomputes the complete dataset and group assignments, checks row/exact/template/group disjointness and partition coverage, and byte-compares the saved JSON/manifests. A missing artifact or differing output fails. Dependencies must already be installed for offline use. Exact full-report verification uses the recorded Python 3.9.6 / PyArrow 21.0.0 environment; runtime/schema metadata can differ on another interpreter even when manifests agree.
+
+Evidence: `docs/data-audit/audit.json`, `source.json`, `output-hashes.json`, `verdict.md`, and `data/manifests/{selected,excluded,train,dev,test}.jsonl` plus `split-policy.json`. Only aggregate counts, category metadata and SHA256 IDs are committed. Raw files and the isolated environment are ignored. No entity values, rows or templates are logged or sent remotely.
+
+Measured: 10,000 rows; 4,272 EN/DE/FR/IT/ES selected; 54 quarantined for inferred token/span discrepancies; 3,377 train / 417 dev / 424 test. No observed exact/template duplicates or near matches under the disclosed lexical method. Official validation was conservatively replaced by deterministic group allocation, not treated as independently certified final data. Unsupported token-position inference remains a warning, not an automatic repair or exclusion.
+
+Remaining gate: clarify the conflicting synthetic-provenance wording and resolve semantic annotation quality / unsupported token alignment before training. Structural checks do not prove provenance, completeness, real-world independence or production privacy. No clean all-label negatives or IBAN annotations were found. No training, evaluation results or threshold tuning are included. See `docs/data-audit/verdict.md` for the seed, algorithm, limitations and per-language split counts.
+
+Verification actually run: help, complete cached pinned audit, offline full recomputation/byte verification, and the unchanged `env -u PYTHONPATH .venv/bin/python smoke.py` check. The first dependency attempt (`pyarrow==23.0.1`) was unavailable in the configured package index; pinned `pyarrow==21.0.0` installed successfully.
+
 ## Future milestones
-1. Synthetic multilingual dataset (audited).
+1. Resolve the audited public candidate's provenance and annotation-quality gates; manifests remain provisional.
 2. mBERT BIO classifier.
 3. Hybrid regex + mBERT.
 4. Evaluation: entity precision/recall/F1 and character masking.
