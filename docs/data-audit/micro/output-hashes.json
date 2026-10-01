@@ -1,0 +1,9 @@
+{
+  "data/manifests/micro/dev.jsonl": "984734b16f52cd43eb811eed38ad2e7126c15329a482ff7db07398629d977240",
+  "data/manifests/micro/excluded.jsonl": "fa85fc97dc19ac29abb3d32db6384f69dd6fbb8a059b7bc9d6a5cffab4838d31",
+  "data/manifests/micro/selected.jsonl": "c56abaeaa2ec62a7ad3f932996ef6691079fd389a398829b61d6799608ca1a28",
+  "data/manifests/micro/split-policy.json": "a7635004d65cbe167c9bc1a711ac93c2145cda4c44f32d856bb1fad5aeb546e6",
+  "data/manifests/micro/test.jsonl": "a3c116774fc972cb54fa586d54609b77a207b0485d9daa50e61bf3914133070a",
+  "data/manifests/micro/train.jsonl": "1cdc107f80481465855a2c9bf646766573b767beb93f8455a65665c961c4fdb7",
+  "docs/data-audit/micro/audit.json": "d9db2a195edbdf9b5eddc09d3e0aea7e03b8d6c472b082e921f468e4bd02b1d6"
+}

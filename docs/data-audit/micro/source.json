@@ -1,0 +1,36 @@
+{
+  "artifacts": [
+    {
+      "bytes": 3213,
+      "path": "README.md",
+      "sha256": "287e736326d7ae1069a0a623924384b5ab158eb42c81dfcf509f5b82538612fc"
+    },
+    {
+      "bytes": 292509371,
+      "path": "data/train.jsonl",
+      "sha256": "6863d8dfc499a4fcc1cca8524db867a266d923e72e764422496f3579d0cafa74",
+      "split": "train"
+    },
+    {
+      "bytes": 32576568,
+      "path": "data/validation.jsonl",
+      "sha256": "c2175f3146a8afd658f3540f3db3c8ea0fb73ab6fe206bfff1579361b1627e5b",
+      "split": "validation"
+    }
+  ],
+  "card_claims_not_measurements": {
+    "annotations": 723083,
+    "labels": 19,
+    "languages": 30,
+    "train_rows": 90000,
+    "validation_rows": 10000
+  },
+  "downloaded_at_utc": "2026-10-01",
+  "license_claim": "cc-by-4.0 (front matter: license other, license_name cc-by-4.0)",
+  "metadata_revision_verified": true,
+  "metadata_url": "https://huggingface.co/api/datasets/ai4privacy/openpii-masking-micro-100k/revision/f95b4e1539657c3d0047d9ad3f20f26675f22c7d",
+  "provenance_status": "card declares synthetic PII only; unverified publisher claim; no wording conflict inside this card",
+  "publisher": "AI4Privacy / Ai Suisse SA",
+  "repo_id": "ai4privacy/openpii-masking-micro-100k",
+  "revision": "f95b4e1539657c3d0047d9ad3f20f26675f22c7d"
+}

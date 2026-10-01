@@ -3,7 +3,7 @@
 Research prototype (initialized from a local proposal note; see Provenance). Goal: compare regex, mBERT BIO classifier and hybrid PII detection/masking on synthetic multilingual text (EN, DE, FR, IT, ES).
 
 ## Status
-Only the **regex-only baseline** exists. mBERT, hybrid and evaluation are **not implemented**. Stage 1 audited all 10,000 rows of a pinned public candidate locally and produced value-free manifests. The data is **not training-ready**: synthetic provenance and annotation-quality gates remain open. Raw artifacts are ignored, not included in Git.
+Only the **regex-only baseline** exists. mBERT, hybrid and evaluation are **not implemented**. Stage 1 audited all 10,000 rows of a pinned public candidate locally and produced value-free manifests. The data is **not training-ready**: synthetic provenance and annotation-quality gates remain open. Stage 2 audited the Micro 100K dataset (provisional manifests, also **not training-ready**). Raw artifacts are ignored, not included in Git.
 
 ## Limitations (regex-only)
 - Detects only emails and IBANs with a valid mod-97 checksum. Names, addresses, phones, etc. are **not** detected.
@@ -43,9 +43,17 @@ Remaining gate: clarify the conflicting synthetic-provenance wording and resolve
 
 Verification actually run: help, complete cached pinned audit, offline full recomputation/byte verification, and the unchanged `env -u PYTHONPATH .venv/bin/python smoke.py` check. The first dependency attempt (`pyarrow==23.0.1`) was unavailable in the configured package index; pinned `pyarrow==21.0.0` installed successfully.
 
+## Stage 2 Micro 100K audit (no model or training)
+
+```sh
+env -u PYTHONPATH .venv/bin/python scripts/audit_micro.py            # downloads pinned files if missing, hash-checked
+env -u PYTHONPATH .venv/bin/python scripts/audit_micro.py --verify   # offline recompute + byte-compare
+```
+Pinned `ai4privacy/openpii-masking-micro-100k` @ `f95b4e1539657c3d0047d9ad3f20f26675f22c7d`. Reuses Stage 1 row checks (Mini outputs unchanged, still verify byte-identical). Measured: 100,000 rows; 38,835 EN/DE/FR/IT/ES; 442 quarantined (token/BIO/label discrepancies); 317 rows overlap Mini 10K (239 train, 34 dev, 40 test, 4 quarantined; 313 exact) and are excluded from all Micro splits; provisional 30,404 train / 3,835 dev / 3,841 test. Card says synthetic only, without Mini's internal conflict, but unverified; card label list differs from data (e.g. `TIME`). Not training-ready; see `docs/data-audit/micro/verdict.md`. Evidence in `docs/data-audit/micro/` and `data/manifests/micro/`.
+
 ## Future milestones
-1. **Chosen next dataset: `ai4privacy/openpii-masking-micro-100k`**, limited to EN/DE/FR/IT/ES for the planned work. The exact revision is not yet selected or pinned, and the full audit is pending. This is a dataset choice, not training authorization; no model or training work is authorized by it.
-2. Pin the exact revision, then audit the five-language subset: schema, character offsets, provenance, duplicates, and overlap with the completed Mini 10K train/dev/test manifests before freezing any new splits. Do not automatically merge related datasets. No Nemotron or 1.5M dataset adoption is selected.
+1. **Chosen next dataset: `ai4privacy/openpii-masking-micro-100k`** (EN/DE/FR/IT/ES), pinned and audited in Stage 2 below. This is a dataset choice, not training authorization.
+2. (Done, Stage 2) Pin, audit schema/offsets/provenance/duplicates/Mini overlap. Do not automatically merge related datasets. No Nemotron or 1.5M dataset adoption is selected.
 3. The Mini 10K pilot audit remains completed with its recorded results above unchanged; it is not replaced or retroactively reinterpreted by this selection.
 4. mBERT BIO classifier, hybrid regex + mBERT, and evaluation remain unimplemented and unauthorized pending the relevant gates and explicit authorization.
 

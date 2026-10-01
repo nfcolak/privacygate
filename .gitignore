@@ -16,3 +16,7 @@ models/
 results/
 .cache/
 .pytest_cache/
+!data/manifests/micro/
+data/manifests/micro/*
+!data/manifests/micro/*.jsonl
+!data/manifests/micro/*.json
