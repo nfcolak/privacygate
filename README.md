@@ -3,7 +3,7 @@
 Research prototype (initialized from a local proposal note; see Provenance). Goal: compare regex, mBERT BIO classifier and hybrid PII detection/masking on synthetic multilingual text (EN, DE, FR, IT, ES).
 
 ## Status
-Only the **regex-only baseline** exists. mBERT, hybrid and evaluation are **not implemented**. Stage 1 audited all 10,000 rows of a pinned public candidate locally and produced value-free manifests. The data is **not training-ready**: synthetic provenance and annotation-quality gates remain open. Stage 2 audited the Micro 100K dataset (provisional manifests, also **not training-ready**). Raw artifacts are ignored, not included in Git.
+The regex-only baseline and mBERT BIO classifier are implemented; hybrid comparison remains unimplemented. Stage 1 audited all 10,000 rows of a pinned public candidate locally and produced value-free manifests. The data is **not training-ready**: synthetic provenance and annotation-quality gates remain open. Stage 2 audited the Micro 100K dataset (provisional manifests, also **not training-ready**). Raw artifacts are ignored, not included in Git.
 
 ## Limitations (regex-only)
 - Detects only emails and IBANs with a valid mod-97 checksum. Names, addresses, phones, etc. are **not** detected.
@@ -74,4 +74,4 @@ Alignment (`docs/data-audit/micro/alignment.json`): train 362 / dev 38 rows have
 
 Pilot (2,000 train rows, 1 epoch, 495 dev rows, MPS, `docs/runs/pilot/`): strict span P 0.624 / R 0.704 / F1 0.662; 0.94 steps/s (batch 16). Per-language and per-label numbers in `metrics.json`; a 1-epoch pilot on 6.5% of the data, not representative.
 
-Full run `full-1` (2 epochs, 3,754 steps, est. ~65-70 min at pilot speed) was **started detached**; its metrics are **not yet in**. Output: `results/full-1/` (log, pid, `full_exit.txt`), `models/full-1/`; metrics will land in `docs/runs/full-1/` when it finishes. The training script skips training if `models/<run>/train_info.json` exists and only re-evaluates.
+Full run `full-1` (single seed 13; 2 epochs, 3,754 steps, MPS, 5,009 s; 30,029 train rows used, 375 excluded for broken boundaries): dev strict entity-span P 0.944 / R 0.954 / F1 0.949 on 3,796 rows and 27,083 spans. Per-language F1: 0.945–0.953. Weakest labels: SURNAME 0.848, GIVENNAME 0.855, DRIVERLICENSENUM 0.905, IDCARDNUM 0.906. Dev only; test split untouched. No hybrid or regex comparison yet. Single seed; not a production privacy claim. Evidence: `docs/runs/full-1/`.
