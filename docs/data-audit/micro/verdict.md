@@ -38,3 +38,9 @@ Structural checks only; no semantic annotation quality review; lexical (not sema
 1. Explicit user approval for training. 2. Semantic annotation-quality review (sampled, human). 3. Decision on tokenizer-based alignment (needs authorized tokenizer download). 4. Confirm the provenance/attribution position and the label-taxonomy discrepancy with the publisher. 5. Final freeze of splits (currently provisional).
 
 Reproduce: `env -u PYTHONPATH .venv/bin/python scripts/audit_micro.py [--offline] | --verify`.
+
+## Stage 3: mBERT tokenizer alignment (added 2026-10-01)
+Tokenizer `google-bert/bert-base-multilingual-cased` @ `3f076fdb1ab68d5b2880cb87a0886f315b8146f8` (fast, offset mapping), run over the provisional Micro train/dev manifests by `scripts/check_alignment.py`; aggregates in `alignment.json`. Scheme: every wordpiece overlapping a span is labelled, first = `B-`, later = `I-`; special tokens ignored. Rows longer than 512 wordpieces use sliding windows (stride 128), none dropped.
+- train (30,404 rows, 219,446 spans): 364 spans with a boundary inside a wordpiece in 362 rows; 0 spans lost; 13 rows > 512 wordpieces; [UNK] rate 1.03% (31,795 / 3,097,209).
+- dev (3,835 rows, 27,546 spans): 39 broken-boundary spans in 38 rows; 0 spans lost; 1 row > 512; [UNK] rate 1.03% (3,953 / 385,632).
+- Rows with a broken boundary are excluded from training and dev evaluation (not repaired): 362 train, 38 dev. This does not change the provisional manifests.

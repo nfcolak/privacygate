@@ -59,3 +59,19 @@ Pinned `ai4privacy/openpii-masking-micro-100k` @ `f95b4e1539657c3d0047d9ad3f20f2
 
 ## Provenance
 Local source note: `/Users/necatifurkancolak/AI-Workplace/Obsidian Vaults/NecatiOS/wiki/sources/privacygate-future-project-idea.md`.
+
+## Stage 3: mBERT (training pipeline; dev-only)
+Approved 2026-10-01: `google-bert/bert-base-multilingual-cased`, pinned revision `3f076fdb1ab68d5b2880cb87a0886f315b8146f8`, trained on the provisional Micro train split. Test split untouched; all tuning/reporting on dev. Not a production or privacy claim.
+```sh
+/opt/homebrew/bin/python3.12 -m venv .venv-train
+env -u PYTHONPATH .venv-train/bin/pip install torch transformers accelerate pyarrow   # resolved versions: requirements-train.txt
+export HF_HOME=$PWD/.cache/hf
+env -u PYTHONPATH .venv-train/bin/python scripts/check_alignment.py
+env -u PYTHONPATH .venv-train/bin/python -m privacygate.train_mbert --run pilot --max-train-rows 2000 --max-dev-rows 500 --epochs 1
+env -u PYTHONPATH .venv-train/bin/python -m privacygate.train_mbert --run full-1 --epochs 2
+```
+Alignment (`docs/data-audit/micro/alignment.json`): train 362 / dev 38 rows have a span boundary inside a wordpiece and are excluded (not repaired); 0 spans lost; 13 train / 1 dev rows exceed 512 wordpieces (sliding window, stride 128); [UNK] rate 1.03%. Labels: B-/I- on every wordpiece of a span, 39 classes.
+
+Pilot (2,000 train rows, 1 epoch, 495 dev rows, MPS, `docs/runs/pilot/`): strict span P 0.624 / R 0.704 / F1 0.662; 0.94 steps/s (batch 16). Per-language and per-label numbers in `metrics.json`; a 1-epoch pilot on 6.5% of the data, not representative.
+
+Full run `full-1` (2 epochs, 3,754 steps, est. ~65-70 min at pilot speed) was **started detached**; its metrics are **not yet in**. Output: `results/full-1/` (log, pid, `full_exit.txt`), `models/full-1/`; metrics will land in `docs/runs/full-1/` when it finishes. The training script skips training if `models/<run>/train_info.json` exists and only re-evaluates.
