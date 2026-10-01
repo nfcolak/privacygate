@@ -75,3 +75,22 @@ Alignment (`docs/data-audit/micro/alignment.json`): train 362 / dev 38 rows have
 Pilot (2,000 train rows, 1 epoch, 495 dev rows, MPS, `docs/runs/pilot/`): strict span P 0.624 / R 0.704 / F1 0.662; 0.94 steps/s (batch 16). Per-language and per-label numbers in `metrics.json`; a 1-epoch pilot on 6.5% of the data, not representative.
 
 Full run `full-1` (single seed 13; 2 epochs, 3,754 steps, MPS, 5,009 s; 30,029 train rows used, 375 excluded for broken boundaries): dev strict entity-span P 0.944 / R 0.954 / F1 0.949 on 3,796 rows and 27,083 spans. Per-language F1: 0.945–0.953. Weakest labels: SURNAME 0.848, GIVENNAME 0.855, DRIVERLICENSENUM 0.905, IDCARDNUM 0.906. Dev only; test split untouched. No hybrid or regex comparison yet. Single seed; not a production privacy claim. Evidence: `docs/runs/full-1/`.
+
+## Stage 4: hybrid comparison (dev)
+Regex vs mBERT (`full-1`) vs hybrids on Micro dev (3,796 rows after the train_mbert boundary exclusion) and a synthetic challenge dev set (EN/DE/FR/IT/ES; 100 IBAN, 40 decoy, 100 clean sentences per language). Test splits (Micro test, challenge test) are not evaluated. No training; single seed; dev-tuned threshold.
+```sh
+python3 scripts/make_challenge.py            # writes data/challenge/{dev,test}.jsonl (ignored) + docs/challenge/manifest.json
+python3 scripts/make_challenge.py --verify   # reproduces manifest hashes
+env -u PYTHONPATH HF_HUB_OFFLINE=1 HF_HOME=$PWD/.cache/hf .venv-train/bin/python scripts/compare.py   # needs models/full-1
+```
+Policies in `privacygate/hybrid.py`: `union`, `rules_first`, `rules_first_thr` (rules_first with mBERT confidence >= 0.5, chosen on dev). Full table, sweep and limitations: `docs/runs/compare-dev/summary.md`.
+
+| arm | Micro strict F1 | Micro EMAIL F1 | IBAN recall (strict) | decoy FP | clean FP |
+|---|---|---|---|---|---|
+| regex | 0.128 | 0.964 | 1.000 | 0.000 | 0.000 |
+| mbert | 0.949 | 0.999 | 0.000 | 1.000 | 0.432 |
+| union | 0.948 | 0.997 | 1.000 | 1.000 | 0.432 |
+| rules_first | 0.946 | 0.967 | 1.000 | 1.000 | 0.432 |
+| rules_first_thr (0.5) | 0.946 | 0.967 | 1.000 | 1.000 | 0.430 |
+
+Regex general F1 is not comparable (2 labels vs 19); the challenge negatives are regex-negative by construction.
