@@ -106,7 +106,7 @@ def manifest_of(args, binding):
         },
         "definitions": DEFINITIONS, "model_forward_sweeps_requested": 1, "threshold_selection": False,
         "synthetic_only": True, "aggregate_only": True,
-        "note": "Refinement rules were written after inspecting v1 failure shapes; v1 gains are optimistic. v2 was generated before any model output on it was seen, but one rule (street-type word before a STREET piece) was added after value-free failure shapes of both v1 and v2 were viewed; v2 is not fully blind.",
+        "note": "Refinement rules were written after inspecting v1 failure shapes; v1 gains are optimistic. v2 was generated before any model output on it was seen, but one rule (street-type word before a STREET piece) was added after value-free failure shapes of both v1 and v2 were viewed; v2 is not fully blind. The later tightening of refine.py (address-part validity, phone-extension guards, dimension guard) was designed after v1 and v2 failures were seen, so neither set is blind any more.",
         "runtime": {"python_version": sys.version.split()[0]},
     }
 
@@ -172,9 +172,36 @@ def _cell(a, b):
     return str(a) + " -> " + str(b)
 
 
+# hybrid_union_refined before the tightening (committed refine-summary.md of the previous commit), for the "Tightening" section.
+BEFORE = {"v1": {"excess": 148, "clean_chars": 0, "ADDRESS": (30, 30), "TELEPHONENUM": (46, 50), "complete": (201, 370)},
+          "v2": {"excess": 64, "clean_chars": 64, "ADDRESS": (45, 45), "TELEPHONENUM": (25, 25), "complete": (70, 130)}}
+
+
+def _tightening(reports):
+    L = ["## Tightening", "",
+         "refine.py was tightened after two measured problems: (a) v1 excess masked chars 0 -> 148 (ZIPCODE/BUILDINGNUM-like pieces the model finds",
+         "inside non-address values, e.g. a username or phone number, were merged with the real address across a short gap); (b) v2 clean-control masked",
+         "chars 56 -> 64. Diagnosis (value-free shapes) confirmed (a) but corrected (b): the added chars came from word completion extending an AGE span",
+         "that sat in front of a letter+digit run (shape 9a9), not from a bare x extension rule; no TELEPHONENUM span was involved on those clean rows.",
+         "Changes: address pieces overlapping/sharing an alphanumeric run with a non-address span, or not word-bounded, are not merged; a merged ADDRESS",
+         "needs a STREET or CITY piece; phone extension rules need >= 6 digits and a bare x needs whitespace/span end before it and no unit or further",
+         "x+digit after it (kept as guards although not the observed cause); word completion leaves digit-x-digit dimension runs alone.", "",
+         "hybrid_union_refined, before -> after (hybrid_union for reference):", "",
+         "| metric | v1 | v2 |", "|---|---|---|"]
+    a = {v: reports[v]["engines"]["hybrid_union_refined"] for v in BEFORE}
+    u = {v: reports[v]["engines"]["hybrid_union"] for v in BEFORE}
+    L.append("| excess masked chars | " + " | ".join(_cell(BEFORE[v]["excess"], a[v]["overall"]["excess_masked_chars"]) + " (hybrid_union " + str(u[v]["overall"]["excess_masked_chars"]) + ")" for v in BEFORE) + " |")
+    L.append("| clean-control masked chars | " + " | ".join(_cell(BEFORE[v]["clean_chars"], a[v]["overall"]["clean_controls"]["masked_chars"]) + " (hybrid_union " + str(u[v]["overall"]["clean_controls"]["masked_chars"]) + ")" for v in BEFORE) + " |")
+    for k in ("ADDRESS", "TELEPHONENUM"):
+        L.append("| " + k + " complete spans | " + " | ".join(_cell("{}/{}".format(*BEFORE[v][k]), "{}/{}".format(a[v]["per_gold_label"][k]["complete_gold_spans"], a[v]["per_gold_label"][k]["gold_spans"])) for v in BEFORE) + " |")
+    L.append("| all complete spans | " + " | ".join(_cell("{}/{}".format(*BEFORE[v]["complete"]), "{}/{}".format(a[v]["overall"]["complete_gold_spans"], a[v]["overall"]["gold_spans"])) for v in BEFORE) + " |")
+    L += ["", "Both sets are no longer blind: the tightening was designed after seeing the v1 and v2 failures (and the rules before it after seeing v1/v2 shapes), so these numbers are development evidence, not an unbiased estimate.", ""]
+    return L
+
+
 def write_summary():
     reports = {v: json.loads((RUNS / ("refine-" + v) / "metrics.json").read_text(encoding="utf-8")) for v in ("v1", "v2")}
-    L = ["# Rule-based span refinement: hybrid_union -> hybrid_union_refined", "",
+    L = ["# Rule-based span refinement: hybrid_union -> hybrid_union_refined", ""] + _tightening(reports) + [
          "Synthetic development diagnostic only (training false, test evaluated false). Counts are annotated-span coverage of invented",
          "synthetic rows; unannotated information is outside them. This is not a privacy guarantee and says nothing about real data.",
          "Same mBERT checkpoint (sha256 " + mm.EXPECTED_MODEL + "), confidence 0.0, one forward sweep per dataset; scoring is the existing",
@@ -184,8 +211,7 @@ def write_summary():
          "(rules a-c as briefed) gave ADDRESS 33/45 and 58/130 complete spans overall; value-free failure shapes (a street-type word such as 'via'/'calle'",
          "left outside the STREET piece) then led to one added rule (street-type prefix), which is what the numbers below include.",
          "Fully masked positive rows stay 0 because every row also carries an owner-name gold span (PERSONNAME) that this checkpoint has no label for;",
-         "refinement does not touch names. Excess on v1 comes from ZIPCODE pieces the model finds inside non-address values (e.g. username) being",
-         "merged with the real address across a short gap, which the briefed gap rules allow.", ""]
+         "refinement does not touch names.", ""]
     for v, title in (("v1", "Stress v1"), ("v2", "Stress v2")):
         rep = reports[v]["engines"]
         b, a = rep["hybrid_union"], rep["hybrid_union_refined"]

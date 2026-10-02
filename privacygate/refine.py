@@ -1,11 +1,15 @@
 """Rule-based span refinement applied after mBERT / hybrid detection (pure stdlib, deterministic).
 
 refine(text, spans) -> spans, same dict shape {start,end,label,source}. Rules, in order:
-  a. phone extension   - extend a TELEPHONENUM over a following extension keyword + digits (or "-12" style suffix)
+  a. phone extension   - extend a TELEPHONENUM (>= 6 digits) over a following extension keyword + digits (or "-12" style
+                         suffix); a bare "x" extension needs whitespace/span end before it and no unit/"x"+digit after it
   b. address merge     - merge STREET/BUILDINGNUM/ZIPCODE/CITY runs into one ADDRESS span, then extend it over
                          ISO-like postcode prefixes, a street-type word before the first STREET piece (addition beyond the
-                         original brief), adjacent unit phrases and a trailing country name
-  c. word completion   - extend any span that starts/ends inside an alphanumeric run to the whole run
+                         original brief), adjacent unit phrases and a trailing country name. Pieces that overlap or share an
+                         alphanumeric run with a non-address span, or are not word-bounded, are not address parts; a merged
+                         group needs at least one STREET or CITY piece
+  c. word completion   - extend any span that starts/ends inside an alphanumeric run to the whole run (not a digit-x-digit
+                         dimension run such as "3x5")
 Finally overlapping/touching spans are unioned (earliest label, ADDRESS preferred over parts).
 
 Never logs or prints; errors are fixed, value-free messages. The vocabulary below is general real-world
@@ -26,10 +30,12 @@ _NOT_BEFORE_ALNUM = r"(?!" + _ALNUM + r")"
 _EXT_KW = (r"(?:tel\.?[ ]?ext\.?|extensi[oó]n|extension|durchwahl|durchw\.?|apparat|interne|interno|anexo|extn|"
            r"ext/|ext\.?|poste|app\.?|int\.?|dw)")
 _EXT = re.compile(
-    r"[ \t,;:(\[/\-\u2013\u2014]{0,3}(?<![^\W\d_])(?:" + _EXT_KW + r"[ \t.:\-]{0,3}|x[ \t]?)\d{1,6}" + _NOT_BEFORE_ALNUM,
+    r"[ \t,;:(\[/\-\u2013\u2014]{0,3}(?<![^\W\d_])(?:" + _EXT_KW + r"[ \t.:\-]{0,3}|(?P<x>x)[ \t]?)\d{1,6}" + _NOT_BEFORE_ALNUM,
     re.I)
 _KW_TAIL = re.compile(r"(?<![^\W\d_])(?:" + _EXT_KW + r"|x)[ \t.:\-]{0,3}$", re.I)
 _DIGITS = re.compile(r"[ \t.:\-]{0,3}\d{1,6}" + _NOT_BEFORE_ALNUM)
+_X_BLOCK = re.compile(r"[ \t]*(?:(?:mm|cm|km|kg|m|in|ft|g|px)(?![^\W_])|%|\u00d7|x[ \t]?\d)", re.I)  # unit / dimension after a bare x
+MIN_PHONE_DIGITS = 6
 _DASH = re.compile(r"(?:[ \t]-[ \t]|-)\d{1,4}" + _NOT_BEFORE_ALNUM)
 
 # ---- b. address merge ---------------------------------------------------------------------------------
@@ -100,14 +106,24 @@ def _changed(s, **kw):
 
 
 # ---- rule a -------------------------------------------------------------------------------------------
+def _x_ok(text, pos, a, b, end):
+    """A bare 'x' at pos is an extension only after whitespace / the span end and not before a unit or another x+digit."""
+    if pos != b and pos != a and text[pos - 1] not in " \t":
+        return False
+    return not _X_BLOCK.match(text, end)
+
+
 def _ext_end(text, s):
     a, b = s["start"], s["end"]
+    if sum(ch.isdigit() for ch in text[a:b]) < MIN_PHONE_DIGITS:
+        return b
     m = _EXT.match(text, b)
-    if m:
+    if m and (m.group("x") is None or _x_ok(text, m.start("x"), a, b, m.end())):
         return m.end()
-    if _KW_TAIL.search(text, a, b):  # span already holds the keyword but stops before its digits
+    kw = _KW_TAIL.search(text, a, b)
+    if kw:  # span already holds the keyword but stops before its digits
         m = _DIGITS.match(text, b)
-        if m:
+        if m and (kw.group(0).rstrip(" \t.:-").lower() != "x" or _x_ok(text, kw.start(), a, b, m.end())):
             return m.end()
     if text[b - 1].isdigit():
         m = _DASH.match(text, b)
@@ -195,12 +211,46 @@ def _extend_address(text, a, b):
     return a, b
 
 
+_RUN_CH = frozenset("._-@/")
+
+
+def _run_bounds(text, a, b):
+    """Alphanumeric run (letters/digits joined by . _ - @ /) around [a, b), trimmed to alphanumeric edges."""
+    lo, hi = a, b
+    while lo > 0 and (text[lo - 1].isalnum() or text[lo - 1] in _RUN_CH):
+        lo -= 1
+    while hi < len(text) and (text[hi].isalnum() or text[hi] in _RUN_CH):
+        hi += 1
+    while lo < a and not text[lo].isalnum():
+        lo += 1
+    while hi > b and not text[hi - 1].isalnum():
+        hi -= 1
+    return lo, hi
+
+
+def _usable_part(text, s, others, parts):
+    """Word-bounded (alnum neighbours must belong to an adjacent address piece, e.g. '12' + 'a' of '12a') and not in a non-address run."""
+    a, b = s["start"], s["end"]
+
+    def covered(j):
+        return any(p is not s and p["start"] <= j < p["end"] for p in parts)
+
+    if a > 0 and text[a - 1].isalnum() and text[a].isalnum() and not covered(a - 1):
+        return False
+    if b < len(text) and text[b - 1].isalnum() and text[b].isalnum() and not covered(b):
+        return False
+    lo, hi = _run_bounds(text, a, b)
+    return not any(o["start"] < hi and lo < o["end"] for o in others)
+
+
 def _address_merge(text, spans):
     spans = sorted(spans, key=lambda s: (s["start"], s["end"]))
     others = [s for s in spans if s["label"] not in ADDRESS_PARTS]
+    parts = [s for s in spans if s["label"] in ADDRESS_PARTS]
+    unused = [s for s in parts if not _usable_part(text, s, others, parts)]
     groups, cur = [], []
     for s in spans:
-        if s["label"] not in ADDRESS_PARTS:
+        if s["label"] not in ADDRESS_PARTS or any(s is u for u in unused):
             continue
         if cur:
             prev_end = max(p["end"] for p in cur)
@@ -214,9 +264,9 @@ def _address_merge(text, spans):
         cur.append(s)
     if cur:
         groups.append(cur)
-    out = list(others)
+    out = list(others) + unused
     for g in groups:
-        if len(g) < 2:
+        if len(g) < 2 or not any(p["label"] in ("STREET", "CITY") for p in g):
             out.extend(g)
             continue
         a, b = _extend_address(text, _street_prefix(text, g), max(p["end"] for p in g))
@@ -234,10 +284,21 @@ def _word_pos(text, j):
     return ch in "-./" and 0 < j < len(text) - 1 and text[j - 1].isalnum() and text[j + 1].isalnum()
 
 
+_DIMENSION = re.compile(r"\d+(?:[x\u00d7]\d+)+", re.I)
+
+
+def _is_dimension(text, a, b):
+    lo, hi = _run_bounds(text, a, b)
+    return _DIMENSION.fullmatch(text, lo, hi) is not None
+
+
 def _word_completion(text, spans):
     out = []
     for s in spans:
         a, b = s["start"], s["end"]
+        if _is_dimension(text, a, b):
+            out.append(s)
+            continue
         if _word_pos(text, a - 1) and _word_pos(text, a):
             lim = max(0, a - MAX_RUN_EXTENSION)
             while a > lim and _word_pos(text, a - 1):

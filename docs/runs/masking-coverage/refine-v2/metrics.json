@@ -704,7 +704,7 @@
       "overall": {
         "clean_controls": {
           "completeness_ratio": null,
-          "masked_chars": 64,
+          "masked_chars": 56,
           "masked_rows": 9,
           "rows": 20,
           "text_chars": 2254
@@ -712,7 +712,7 @@
         "complete_gold_spans": 70,
         "covered_gold_alnum_chars": 2827,
         "covered_gold_chars": 3355,
-        "excess_masked_chars": 64,
+        "excess_masked_chars": 56,
         "final_mask_classification": {
           "exact_correct_label": 25,
           "exact_different_label": 45,
@@ -727,7 +727,7 @@
         "gold_spans": 130,
         "gold_spans_with_alnum_leakage": 0,
         "leaked_gold_alnum_chars": 0,
-        "masked_chars": 3419,
+        "masked_chars": 3411,
         "nonalnum_only_incomplete_gold_spans": 60,
         "partial_gold_spans": 60,
         "positive_rows": 60,
@@ -759,7 +759,7 @@
         "clean": {
           "clean_controls": {
             "completeness_ratio": null,
-            "masked_chars": 64,
+            "masked_chars": 56,
             "masked_rows": 9,
             "rows": 20,
             "text_chars": 2254
@@ -767,7 +767,7 @@
           "complete_gold_spans": 0,
           "covered_gold_alnum_chars": 0,
           "covered_gold_chars": 0,
-          "excess_masked_chars": 64,
+          "excess_masked_chars": 56,
           "final_mask_classification": {
             "exact_correct_label": 0,
             "exact_different_label": 0,
@@ -782,7 +782,7 @@
           "gold_spans": 0,
           "gold_spans_with_alnum_leakage": 0,
           "leaked_gold_alnum_chars": 0,
-          "masked_chars": 64,
+          "masked_chars": 56,
           "nonalnum_only_incomplete_gold_spans": 0,
           "partial_gold_spans": 0,
           "positive_rows": 0,
@@ -1129,7 +1129,7 @@
         "de": {
           "clean_controls": {
             "completeness_ratio": null,
-            "masked_chars": 13,
+            "masked_chars": 11,
             "masked_rows": 2,
             "rows": 4,
             "text_chars": 449
@@ -1137,7 +1137,7 @@
           "complete_gold_spans": 14,
           "covered_gold_alnum_chars": 544,
           "covered_gold_chars": 640,
-          "excess_masked_chars": 13,
+          "excess_masked_chars": 11,
           "final_mask_classification": {
             "exact_correct_label": 5,
             "exact_different_label": 9,
@@ -1152,7 +1152,7 @@
           "gold_spans": 26,
           "gold_spans_with_alnum_leakage": 0,
           "leaked_gold_alnum_chars": 0,
-          "masked_chars": 653,
+          "masked_chars": 651,
           "nonalnum_only_incomplete_gold_spans": 12,
           "partial_gold_spans": 12,
           "positive_rows": 12,
@@ -1183,7 +1183,7 @@
         "en": {
           "clean_controls": {
             "completeness_ratio": null,
-            "masked_chars": 16,
+            "masked_chars": 14,
             "masked_rows": 2,
             "rows": 4,
             "text_chars": 426
@@ -1191,7 +1191,7 @@
           "complete_gold_spans": 14,
           "covered_gold_alnum_chars": 592,
           "covered_gold_chars": 696,
-          "excess_masked_chars": 16,
+          "excess_masked_chars": 14,
           "final_mask_classification": {
             "exact_correct_label": 5,
             "exact_different_label": 9,
@@ -1206,7 +1206,7 @@
           "gold_spans": 26,
           "gold_spans_with_alnum_leakage": 0,
           "leaked_gold_alnum_chars": 0,
-          "masked_chars": 712,
+          "masked_chars": 710,
           "nonalnum_only_incomplete_gold_spans": 12,
           "partial_gold_spans": 12,
           "positive_rows": 12,
@@ -1237,7 +1237,7 @@
         "es": {
           "clean_controls": {
             "completeness_ratio": null,
-            "masked_chars": 12,
+            "masked_chars": 10,
             "masked_rows": 2,
             "rows": 4,
             "text_chars": 439
@@ -1245,7 +1245,7 @@
           "complete_gold_spans": 14,
           "covered_gold_alnum_chars": 567,
           "covered_gold_chars": 675,
-          "excess_masked_chars": 12,
+          "excess_masked_chars": 10,
           "final_mask_classification": {
             "exact_correct_label": 5,
             "exact_different_label": 9,
@@ -1260,7 +1260,7 @@
           "gold_spans": 26,
           "gold_spans_with_alnum_leakage": 0,
           "leaked_gold_alnum_chars": 0,
-          "masked_chars": 687,
+          "masked_chars": 685,
           "nonalnum_only_incomplete_gold_spans": 12,
           "partial_gold_spans": 12,
           "positive_rows": 12,
@@ -1345,7 +1345,7 @@
         "it": {
           "clean_controls": {
             "completeness_ratio": null,
-            "masked_chars": 15,
+            "masked_chars": 13,
             "masked_rows": 2,
             "rows": 4,
             "text_chars": 468
@@ -1353,7 +1353,7 @@
           "complete_gold_spans": 14,
           "covered_gold_alnum_chars": 559,
           "covered_gold_chars": 665,
-          "excess_masked_chars": 15,
+          "excess_masked_chars": 13,
           "final_mask_classification": {
             "exact_correct_label": 5,
             "exact_different_label": 9,
@@ -1368,7 +1368,7 @@
           "gold_spans": 26,
           "gold_spans_with_alnum_leakage": 0,
           "leaked_gold_alnum_chars": 0,
-          "masked_chars": 680,
+          "masked_chars": 678,
           "nonalnum_only_incomplete_gold_spans": 12,
           "partial_gold_spans": 12,
           "positive_rows": 12,

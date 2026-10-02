@@ -84,7 +84,7 @@
   },
   "model_forward_sweeps_requested": 1,
   "model_sha256": "0058a5c93c2ef14c5f65daf8ae8afc061851acf8d5cf5d52ba0342f578d9cac9",
-  "note": "Refinement rules were written after inspecting v1 failure shapes; v1 gains are optimistic. v2 was generated before any model output on it was seen, but one rule (street-type word before a STREET piece) was added after value-free failure shapes of both v1 and v2 were viewed; v2 is not fully blind.",
+  "note": "Refinement rules were written after inspecting v1 failure shapes; v1 gains are optimistic. v2 was generated before any model output on it was seen, but one rule (street-type word before a STREET piece) was added after value-free failure shapes of both v1 and v2 were viewed; v2 is not fully blind. The later tightening of refine.py (address-part validity, phone-extension guards, dimension guard) was designed after v1 and v2 failures were seen, so neither set is blind any more.",
   "runtime": {
     "python_version": "3.12.13"
   },
@@ -98,11 +98,11 @@
     "privacygate/inference.py": "047b18b3a406a2033ebeef4007e1334f5ae7c7500b327ebedc88158ae9bd9f84",
     "privacygate/masking_metrics.py": "5667319e84d41490c09c6d014a0e37ce7fb9df1d13514edc280aba0d7f0fdf81",
     "privacygate/mbert_data.py": "0bab7dbc9bb1b904aeba117067eb2cd9c3c1609ba762813d6835c117636b5d6a",
-    "privacygate/refine.py": "815e8188f716e5753b3324062f320bbe28800103ca221681fe235d87e7826433",
+    "privacygate/refine.py": "c518e07400f1f9cd83c57b15e6eae95b95459572af3869317ff9fb8a90a7d0c6",
     "scripts/make_masking_stress.py": "167906957660c8d4e339f1658cce7347e112bcda688edf2462a3f65198f2a14b",
     "scripts/make_masking_stress_v2.py": "de2cc076d0a7d6910899f1678314d508810c4dca603e0e2ec4d9c2654144c0fb",
     "scripts/measure_masking.py": "9dd606a3fb9df31d09b4b2138aba8d77b015c63e4a9edc3fdf5b1f400706829c",
-    "scripts/measure_refine.py": "3b91f697aae82ec807f4d9cd633116a30e91b0c1380b0557a7d080b7f36d78cd"
+    "scripts/measure_refine.py": "9f7d548825969608085bfad4442441f838b4da221e41e44f4629d44cc7489e3e"
   },
   "synthetic_only": true,
   "test_evaluated": false,
