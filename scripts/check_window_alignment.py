@@ -40,6 +40,20 @@ class OffsetTokenizer:
         return {"input_ids": [0] * len(WHOLE), "offset_mapping": offsets(WHOLE)}
 
 
+_real_encode = md.encode
+
+
+def _fixture_encode(tok, text):
+    # encode now builds windows itself from content tokens; the hand-built fixtures here
+    # specify exact window shapes, so the fixture tokenizer supplies them directly.
+    if isinstance(tok, OffsetTokenizer):
+        return [([0] * len(w), [off for off in w]) for w in tok.windows]
+    return _real_encode(tok, text)
+
+
+md.encode = _fixture_encode
+
+
 def build(spans, windows):
     stats = {}
     wins, excluded = tm.build_windows(OffsetTokenizer(windows), {"synthetic": ("abcdefgh", spans, "en")},

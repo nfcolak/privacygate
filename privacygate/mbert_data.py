@@ -49,15 +49,18 @@ def label_list(train_rows):
 
 
 def encode(tok, text):
-    """Sliding windows (MAX_LEN, STRIDE overlap). Returns list of (input_ids, offsets) per window,
-    special tokens carry offset (0,0) and are dropped from `offsets` as None."""
-    enc = tok(text, return_offsets_mapping=True, truncation=True, max_length=MAX_LEN, stride=STRIDE,
-              return_overflowing_tokens=True)
-    wins = []
-    for ids, offs in zip(enc["input_ids"], enc["offset_mapping"]):
-        offs = [None if (a == b == 0) else (a, b) for a, b in offs]
-        wins.append((ids, offs))
-    return wins
+    """Sliding windows built here (tokenizer overflow handling is not relied on): content tokens are
+    tokenized once, windows of MAX_LEN-2 content tokens start every MAX_LEN-2-STRIDE tokens, the last
+    window ends at the final content token. Returns [(input_ids, offsets)] with [CLS]/[SEP] added and
+    offset None for the two specials. Empty content gives one window of only specials."""
+    enc = tok(text, add_special_tokens=False, truncation=False, return_offsets_mapping=True, verbose=False)
+    ids, offs = list(enc["input_ids"]), [tuple(o) for o in enc["offset_mapping"]]
+    size, step = MAX_LEN - 2, MAX_LEN - 2 - STRIDE
+    starts = [0]
+    while starts[-1] + size < len(ids):
+        starts.append(starts[-1] + step)
+    return [([tok.cls_token_id] + ids[s:s + size] + [tok.sep_token_id], [None] + offs[s:s + size] + [None])
+            for s in starts]
 
 
 def align(offs, spans):

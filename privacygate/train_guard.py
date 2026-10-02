@@ -13,6 +13,8 @@ from .augmentation_data import POSITIVE_SCHEMA_VERSION, POSITIVE_SOURCE_VERSION
 from .window_alignment import ALIGNMENT_POLICY, ALIGNMENT_SOURCE_VERSION
 
 IDENTITY_VERSION = "run-identity-v3"
+# Bound into the run identity: checkpoints trained under another windowing are never silently reused.
+ENCODER_VERSION = "sliding-windows-full-coverage-v1"
 MAX_META_BYTES = 1024 * 1024
 RUN_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
 CHECKPOINT_FILES = ("config.json", "model.safetensors", "train_info.json")
@@ -55,7 +57,7 @@ def build_identity(args, model_id, model_revision, max_len, stride, manifests_sh
     return {
         "version": IDENTITY_VERSION, "run": args.run, "model": model_id, "model_revision": model_revision,
         "epochs": args.epochs, "batch_size": args.batch_size, "lr": args.lr, "seed": args.seed,
-        "max_len": max_len, "window_stride_tokens": stride,
+        "max_len": max_len, "window_stride_tokens": stride, "encoder_version": ENCODER_VERSION,
         "max_train_rows": args.max_train_rows, "max_dev_rows": args.max_dev_rows,
         "manifests_sha256": manifests_sha256,
         "negative_train": neg_binding,
