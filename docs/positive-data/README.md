@@ -1,8 +1,10 @@
 # Synthetic positive PII augmentation (pos-v1)
 
-Status (2026-10-02): trainer wiring is ready and checked with in-memory synthetic fixtures only. NO positive model has been
-trained; no checkpoint inference/evaluation or positive-data scoring was run in this task; no test split exists for this data.
-A separate existing negative pilot is outside this task. This implementation does not start or modify that run.
+Status (2026-10-02): positive train/dev wiring and corrected production window construction are integrated and code/data ready.
+NO positive/corrected-alignment model has been trained or scored. No test split exists for these positives.
+The one completed `neg-pilot-1002` was negative-only on original source `e69fcd8` / `run-identity-v1`, not on this alignment.
+Its original config/metrics/manifest remain frozen; a relocation-only checkpoint copy is documented in
+`docs/runs/neg-pilot-1002/artifact-location.json`. This integration did not train, resume or migrate it.
 Synthetic research target, not a privacy guarantee. All-personal-information masking remains the target, not an achieved result.
 
 Artifacts (generated JSONL is gitignored under data/augmentation/; only code and the value-free manifest are committed):
@@ -62,23 +64,29 @@ These checks do not prove semantic independence.
 - `--max-train-rows` limits Micro only. Positive train and optional negatives are each appended once; existing batch shuffling
   handles the combined data. `micro_train_rows_available`, `micro_train_rows_selected`, `positive_train_rows_included`,
   `negative_train_rows_included` and `train_row_counts` retain separate included/retained/excluded-after-windowing counts for
-  each source, so boundary exclusions cannot conceal augmentation admission.
-- `run-identity-v2` binds positive train and dev separately: exact file-byte SHA256, counts, labels, languages, templates and
-  split; positive schema `positive-jsonl-v1`, supported source version `pos-v1`; the ordered final label inventory; and all
-  existing negative binding, Micro manifest hash, pinned model, output-path and settings fields. Source version denotes the
-  supported protocol, not independently verified provenance of arbitrary input files. Cheap guards run before heavy imports;
-  final inventory/classifier-map compatibility is checked after Micro train loading and before any model work or output writes.
-- Reuse refuses incomplete/missing/incompatible identities, including `run-identity-v1` and historical checkpoints without
-  provenance. No metadata migration. Compatible complete outputs are returned unchanged without retraining/rescoring; when
-  completing a compatible checkpoint's missing outputs, existing config/metrics files are never rewritten. Use a fresh run name
-  for changed bindings or settings. Malformed input/CLI errors are fixed value-free codes, not parser messages or values.
+  each source, so alignment/coverage exclusions cannot conceal augmentation admission.
+- `run-identity-v3` binds positive train and dev separately: exact file-byte SHA256, counts, labels, languages, templates and
+  split; positive schema `positive-jsonl-v1`, supported source version `pos-v1`; the ordered final label inventory;
+  `alignment_policy=whole-row-gate-contained-bio-crossing-ignore-full-coverage-v1` and
+  `alignment_source_version=window-alignment-v1`; and all existing negative binding, Micro manifest hash, pinned model,
+  output-path and settings fields. Source versions denote supported code/protocol, not verified provenance of arbitrary inputs.
+  Cheap guards run before heavy imports; final inventory/classifier-map compatibility is checked after Micro train loading
+  and before any model work or output writes.
+- Reuse refuses incomplete/missing/incompatible identities, including `run-identity-v1`, prior positive `run-identity-v2`,
+  changed alignment versions and historical checkpoints without provenance. No metadata migration. Compatible complete
+  outputs are returned unchanged without retraining/rescoring; when completing a compatible checkpoint's missing outputs,
+  existing config/metrics files are never rewritten. Use a fresh run name for changed bindings/settings. Malformed input/CLI
+  errors are fixed value-free codes, not parser messages or values.
 
 ## Separate positive-development metric
 
 `metrics.json.dev` remains the existing Micro dev result. If and only if `--positive-dev-file` is supplied,
-`metrics.json.positive_dev` is a **separate** call to the unchanged strict span evaluator: overall, per-label, per-language,
-rows evaluated and rows excluded for broken boundaries. The exact input binding is `positive_dev_input` in metrics and
-`positive_dev` in config/identity. There is no pooled headline F1 and no invented result when the file is absent.
+`metrics.json.positive_dev` is a **separate** call to the same strict span evaluator: overall, per-label, per-language,
+rows evaluated, compatible total `rows_excluded_broken_boundary`, plus `rows_excluded_by_reason` and `alignment_stats`.
+The compatible broken-boundary fields now count ALL excluded rows (whole-row broken/lost, overlapping gold, incomplete coverage);
+reason events may overlap. Contained-span window failures are separately counted in `windows_discarded_alignment`.
+The exact input binding is `positive_dev_input` in metrics and `positive_dev` in config/identity.
+There is no pooled headline F1 and no invented result when the file is absent.
 Positive dev rows are never concatenated into training. This generator-development metric probes authored positive-template
 coverage only, not real-world generalisation, semantic independence or final-test performance. There is no final-test option.
 
@@ -92,31 +100,45 @@ Expected: `POSITIVE TRAINING WIRING OK (synthetic only; no training/evaluation)`
 The wiring check uses in-memory Micro rows, loader bytes, a character-tokenizer stub, metadata existence markers and an
 opaque evaluator routing spy. It neither imports torch/transformers nor reads a corpus, opens a checkpoint or emits scores.
 
-## Next bounded pilot example — NOT run
+## Corrected alignment and synthetic proof
 
-Only after the separate negative pilot has finished, the alignment diagnosis below has evidence and is integrated, and
-execution is explicitly authorized. Ensure the already prepared positive JSONL files are available at the two worktree paths
-below (generated files are ignored and do not arrive with a Git branch); stop on missing files/cache/dependencies, never install
-or download as a workaround. This positive-only pilot intentionally omits negatives to keep that experiment separate.
-The main model/cache/venv are read-only; outputs are in this worktree. Cache access is offline. Run from this worktree:
+New construction preserves the whole-row broken/lost gate, ignores wholly outside spans per window, uses existing BIO for
+contained spans, sets crossing gold tokens to IGNORE, and requires every gold span to be fully represented in a retained window.
+Otherwise the row is excluded explicitly for incomplete coverage. See `docs/data-audit/micro/diagnosis/implementation.md`.
+Prediction decoding still uses original offsets and never consults gold ignore positions: partial/duplicate span errors remain.
+This is NOT a general long-text masking solution or a new scorer. Historical full-1 is an unmatched baseline; a later authorized
+comparison must score both models on identical retained dev IDs with the same scorer/preprocessing. No new checkpoint scoring now.
 
-    cd /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-positive-training-1002
+Executed integration checks: existing smoke once (SMOKE OK), original five positive-wiring assertion groups, production window
+synthetic checks (including uncensored prediction offsets and old identity refusal), both generators --verify. One synthetic
+contained-boundary fixture was repaired after an initial failure; no production safeguard was removed and smoke was not rerun.
+Offline pinned cached-tokenizer construction on the generated SYNTHETIC positives only retained all 630 train / 280 dev rows,
+all 1,980 train / 920 dev gold spans across all 13 labels; zero exclusions. This proves structural label coverage, not annotation
+semantics, provenance, independence or learned model quality. No model loaded/scored, no Micro/held-out data opened in integration.
+
+## Next bounded pilot example — explicitly NOT run
+
+Only with fresh execution authorization. The one existing negative pilot is complete; these positive files and the corrected
+alignment have never been trained. Stop on missing files/cache/dependencies, never install/download as a workaround. Main model,
+cache and venv remain read-only; outputs belong to this worktree. Run from the delivery worktree:
+
+    cd /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002
     env -u PYTHONPATH PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+      HF_HUB_DISABLE_TELEMETRY=1 TOKENIZERS_PARALLELISM=false \
       HF_HOME=/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.cache/hf \
       /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.venv-train/bin/python \
-      -m privacygate.train_mbert --run pos-pilot-1002 \
+      -m privacygate.train_mbert --run pos-neg-alignment-pilot-1002 \
       --max-train-rows 2000 --max-dev-rows 500 --epochs 1 --batch-size 16 --lr 3e-5 --seed 13 \
       --positive-train-file data/augmentation/positive-train.jsonl \
-      --positive-dev-file data/augmentation/positive-dev.jsonl --out-dir "$PWD/models"
+      --positive-dev-file data/augmentation/positive-dev.jsonl \
+      --negative-train-file data/augmentation/negatives-train.jsonl --out-dir "$PWD/models"
 
-With the documented prepared artifacts this admits at most 2000 selected Micro train rows plus all 630 positive train rows,
-and at most 500 selected Micro dev rows plus a separate 280-row positive dev evaluation. Retained counts may be lower under
-the **unchanged** alignment exclusions. Report measured time/steps, each source's included/retained/excluded counts, Micro
-`dev` and separate `positive_dev` metrics before considering a larger run. No timing or model-quality result is claimed here.
-
-Alignment dependence: another agent is diagnosing the original alignment logic. Neither `mbert_data.py` nor `build_windows`
-alignment/exclusion logic was changed in this task. Any production correction must be based on that evidence and applied only
-after integration, not silently repaired during positive-data wiring.
+This would admit at most 2000 selected Micro train rows plus 630 positive train and 1000 negative rows, and at most 500 selected
+Micro dev rows plus a SEPARATE 280-row positive dev evaluation. Retained Micro counts depend on corrected alignment. Report actual
+time/steps and each source's included/retained/excluded counts, Micro dev and positive_dev separately before any larger-run request.
+No timing/quality result or full-training promise is made. The old negative-pilot compute extrapolation is NOT an estimate for
+expanded labels/changed alignment. Human semantic quality, publisher provenance and final split freeze remain open; unknown
+categories stay unknown and no all-PII guarantee follows.
 
 ## Limitations
 

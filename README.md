@@ -70,13 +70,27 @@ env -u PYTHONPATH .venv/bin/python scripts/audit_micro.py --verify   # offline r
 ```
 Pinned `ai4privacy/openpii-masking-micro-100k` @ `f95b4e1539657c3d0047d9ad3f20f26675f22c7d`. Reuses Stage 1 row checks (Mini outputs unchanged, still verify byte-identical). Measured: 100,000 rows; 38,835 EN/DE/FR/IT/ES; 442 quarantined (token/BIO/label discrepancies); 317 rows overlap Mini 10K (239 train, 34 dev, 40 test, 4 quarantined; 313 exact) and are excluded from all Micro splits; provisional 30,404 train / 3,835 dev / 3,841 test. Card says synthetic only, without Mini's internal conflict, but unverified; card label list differs from data (e.g. `TIME`). Not training-ready; see `docs/data-audit/micro/verdict.md`. Evidence in `docs/data-audit/micro/` and `data/manifests/micro/`.
 
-## Preparation status (2026-10-02): prepared vs measured
-Prepared, not measured. These items are code/docs wiring checked on synthetic data only; none is benchmark evidence and none changes model quality:
-- `docs/scope/` ([masking-policy](docs/scope/masking-policy.md), [coverage](docs/scope/coverage.md), [gates](docs/scope/gates.md)): what "all personal information" would cover, which labels the checkpoint and rules actually cover (`scripts/audit_coverage.py` reconciles 19 entity labels / 39 BIO labels / 2 rule labels), and the open data/annotation gates.
-- `docs/augmentation/` ([README](docs/augmentation/README.md), `manifest.json`): train-only synthetic clean negatives (`scripts/make_negatives.py`), an input-bounded fail-closed loader and an optional `--negative-train-file` for `privacygate.train_mbert` with a run-reuse guard (`privacygate/train_guard.py`). **No augmented run has been trained.** Training, and any held-out test scoring, still need separate authorization.
-- `--engine hybrid` is only wired into the CLI. Wiring hybrid does **not** establish all-personal-information masking: the measured results above (missed phones/emails by mBERT alone, IBAN recall 0.000 for mBERT, high decoy/clean false-positive rates) are unchanged, and syntactic/format checks cannot prove the absence of personal data.
+## Integration status (2026-10-02): measured pilot vs ready code/data
+Measured: the ONE negative-only `neg-pilot-1002` completed on original source `e69fcd8`, original alignment and `run-identity-v1`.
+It used 1,979 retained Micro + 1,000 negative train rows/windows, 187 optimizer steps, and 495 retained dev rows;
+strict dev F1 0.71760710553814, wall time 155.975368625 s. This is a small wiring/timing pilot, not an improvement claim.
+No expanded positive labels or alignment correction were included. Evidence: `docs/runs/neg-pilot-1002/`.
+The checkpoint/results were copied byte-identically into this worktree's `models/neg-pilot-1002` and `results/neg-pilot-1002`;
+`artifact-location.json` records relocation only. Old metadata keeps the original execution path and is NOT resumable under current code.
 
-Measured (dev only, see sections below): Micro dev and synthetic challenge dev numbers from Stages 3-4. Everything else is pending.
+Ready, NOT trained: the following are code/data changes, not new model-quality evidence:
+- `docs/scope/` ([masking-policy](docs/scope/masking-policy.md), [coverage](docs/scope/coverage.md), [gates](docs/scope/gates.md)): what "all personal information" would cover, historical checkpoint/rule coverage (19 entity / 39 BIO / 2 rule labels), and open provenance, semantic quality and final split gates. Unsupported/new unknown categories remain unknown; no all-PII guarantee.
+- `docs/augmentation/`: existing train-only synthetic `neg-v2` negatives, unchanged (1,000 rows), bounded fail-closed loading.
+- `docs/positive-data/`: 630 train / 280 separate dev positives; TRAIN-only label discovery, separate Micro/positive-dev metrics, strict split/overlap guards. USERNAME, ACCOUNTNUM and PERSONALREF are proposed classes in new wiring, NOT learned by an existing checkpoint. Offline cached-tokenizer checks on synthetic positives retain all rows, with all 1,980 train / 920 dev gold spans fully represented across 13 labels; this is structural coverage, not semantic review or scoring.
+- `privacygate/window_alignment.py`: whole-row broken/lost gate; outside spans ignored per window; cut-crossing gold tokens IGNORE, not O; every gold span must have complete BIO coverage in a retained window or the row is excluded explicitly. New train/dev construction uses this policy. See `docs/data-audit/micro/diagnosis/implementation.md`; saved original diagnosis remains unchanged and original replay uses an explicit legacy helper.
+- `run-identity-v3` binds alignment policy/source version as well as separate positive bindings and final TRAIN label inventory. v1 negative pilot and v2 positive-wiring identities fail closed; no checkpoint migration.
+- Decoding/scoring remains strict window span union and uses predictions at original offsets, never gold ignore masks. Partial/duplicate span errors remain possible; this does NOT solve general long-text masking. Changed training population makes historical `full-1` an unmatched baseline. Any later authorized comparison must score BOTH models on identical retained dev IDs using the SAME scorer/preprocessing; no new model scoring was done here.
+- `--engine hybrid` does not establish complete masking. Historical phone/email misses, mBERT IBAN recall 0.000 and high decoy/clean false positives are unchanged.
+
+One explicitly UNRUN next bounded pilot command, including positives/negatives, is in `docs/positive-data/README.md`; execution needs new authorization.
+The negative-pilot compute estimate applies only to old alignment/negative-only assumptions, NOT expanded labels or changed alignment, and is not a full-training budget.
+Full runs, held-out inspection/scoring, human semantic review, publisher provenance verification and final split freeze remain unauthorized/open.
+Historical Stage 3/4 commands and metrics below describe their original source/populations, not commands to rerun current code against old run names.
 
 ## Future milestones
 1. Chosen dataset: `ai4privacy/openpii-masking-micro-100k` (EN/DE/FR/IT/ES), pinned and audited in Stage 2; a dataset choice, not training authorization. The Mini 10K pilot audit stays as recorded.

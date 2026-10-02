@@ -17,9 +17,27 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from privacygate import mbert_data as md  # noqa: E402
-from privacygate.train_mbert import build_windows  # noqa: E402
 
 OUT = ROOT / "docs/data-audit/micro/diagnosis"
+
+
+def legacy_build_windows(tok, rows, entries, label2id, train):
+    """Frozen e69fcd8 window helper, for ORIGINAL-behaviour replay only.
+
+    Production construction has changed. Never relabel new behaviour as the
+    original diagnostic or use this legacy helper for new training/evaluation.
+    """
+    out, excluded = [], 0
+    for e in entries:
+        text, spans, _ = rows[e["row_id"]]
+        wins = md.encode(tok, text)
+        aligned = [md.align(offs, spans) for _, offs in wins]
+        if any(a[1] or a[2] for a in aligned):
+            excluded += 1
+            continue
+        for (ids, offs), (labs, _, _) in zip(wins, aligned):
+            out.append((ids, [md.IGNORE if l is None else label2id[l] for l in labs], offs, e["row_id"]))
+    return out, excluded
 
 
 def file_hash(path):
@@ -198,9 +216,9 @@ def diagnose_split(tok, split, history):
                 if value:
                     sets[key].add(rid)
         label2id = {name: i for i, name in enumerate(["O"] + sorted({p + lab for _, _, lab in spans for p in ("B-", "I-")}))}
-        # Invoke the unchanged production helper; this is label construction,
-        # not a model evaluation. Separately derived window stats explain it.
-        old_windows, old_excluded = build_windows(tok, {rid: rows[rid]}, [entry], label2id, split == "train")
+        # Replay the explicitly frozen original helper, not new production semantics.
+        # This is label construction, not model evaluation.
+        old_windows, old_excluded = legacy_build_windows(tok, {rid: rows[rid]}, [entry], label2id, split == "train")
         derived_excluded = rid in sets["original_window_broken"] or rid in sets["original_window_lost"]
         if bool(old_excluded) != derived_excluded:
             raise ValueError("production_exclusion_replay_mismatch")
@@ -331,7 +349,7 @@ def execute(splits):
                      "dataset": md.MICRO_REPO, "dataset_revision": md.MICRO_REVISION,
                      "max_len": md.MAX_LEN, "window_overlap_tokens": md.STRIDE,
                      "tokenizer": type(tok).__name__, "cached_snapshot_local_only": True,
-                     "whole_row_special_tokens": True, "original_helper_replayed": "train_mbert.build_windows"},
+                     "whole_row_special_tokens": True, "original_helper_replayed": "diagnose_alignment.legacy_build_windows (frozen e69fcd8)"},
         "bindings": {"protected_files_sha256": protected_hashes, "raw_artifacts_sha256": raw_hashes,
                      "tokenizer_assets_sha256": asset_hashes,
                      "set_hash_scheme": "sha256(UTF-8 compact JSON array of sorted unique manifest row IDs); individual IDs never persisted"},

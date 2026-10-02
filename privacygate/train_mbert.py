@@ -13,22 +13,38 @@ from pathlib import Path
 from . import mbert_data as md
 from . import augmentation_data as ad
 from . import train_guard as tg
+from . import window_alignment as wa
 
 
-def build_windows(tok, rows, entries, label2id, train):
-    """Windows of (ids, label_ids|None, offs, row_id). Rows with a broken span boundary are excluded."""
+def build_windows(tok, rows, entries, label2id, train, alignment_stats=None):
+    """Windows of (ids, label_ids, offs, row_id), with whole-row/full-coverage gates.
+
+    The compatible excluded count includes ALL exclusion reasons, not only broken
+    boundaries. Optional aggregate stats distinguish them. Offsets remain intact
+    even where gold labels are IGNORE: predictions must never use gold censorship.
+    """
     out, excluded = [], 0
+    stats = wa.empty_stats()
     for e in entries:
         text, spans, _ = rows[e["row_id"]]
+        whole = wa.whole_offsets(tok, text)
         wins = md.encode(tok, text)
-        aligned = [md.align(offs, spans) for _, offs in wins]
-        if any(a[1] or a[2] for a in aligned):
-            # boundary check is on whole-row (unwindowed) tokenization in check_alignment; windows can only
-            # see a subset of spans, so any window-level break also excludes the row.
+        aligned = wa.align_windows(whole, [offs for _, offs in wins], spans)
+        stats["windows_discarded_alignment"] += aligned["windows_discarded_alignment"]
+        if not aligned["retained"]:
             excluded += 1
+            for reason in aligned["reasons"]:
+                stats["rows_excluded_by_reason"][reason] += 1
             continue
-        for (ids, offs), (labs, _, _) in zip(wins, aligned):
-            out.append((ids, [md.IGNORE if l is None else label2id[l] for l in labs], offs, e["row_id"]))
+        stats["gold_spans_retained"] += len(spans)
+        stats["gold_spans_fully_covered"] += len(aligned["covered"])
+        for window in aligned["windows"]:
+            ids, offs = wins[window["source_window_index"]]
+            stats["ignored_crossing_tokens_retained"] += window["ignored_crossing_tokens"]
+            out.append((ids, [md.IGNORE if l is None else label2id[l] for l in window["labels"]],
+                        offs, e["row_id"]))
+    if alignment_stats is not None:
+        alignment_stats.update(stats)
     return out, excluded
 
 
@@ -60,7 +76,9 @@ def prf(tp, fp, fn):
 
 def evaluate(model, tok, rows, entries, id2label, device, torch, bs):
     model.eval()
-    wins, excluded = build_windows(tok, rows, entries, {v: k for k, v in id2label.items()}, False)
+    alignment_stats = {}
+    wins, excluded = build_windows(tok, rows, entries, {v: k for k, v in id2label.items()}, False,
+                                   alignment_stats=alignment_stats)
     pred_spans = collections.defaultdict(set)
     with torch.no_grad():
         for batch in batches(wins, bs, False, None):
@@ -82,7 +100,9 @@ def evaluate(model, tok, rows, entries, id2label, device, torch, bs):
             k = 0 if s in gold and s in pred else (1 if s in pred else 2)
             for t in (tot, per_label[s[2]], per_lang[lang]):
                 t[k] += 1
-    return {"rows_evaluated": evaluated, "rows_excluded_broken_boundary": excluded, "overall": prf(*tot),
+    return {"rows_evaluated": evaluated, "rows_excluded_broken_boundary": excluded,
+            "rows_excluded_by_reason": alignment_stats["rows_excluded_by_reason"],
+            "alignment_stats": alignment_stats, "overall": prf(*tot),
             "per_label": {k: prf(*v) for k, v in sorted(per_label.items())},
             "per_language": {k: prf(*v) for k, v in sorted(per_lang.items())}}
 
@@ -183,6 +203,9 @@ def main():
               "positive_train_rows_included": len(pos_train), "negative_train_rows_included": len(neg_rows),
               "negative_train": neg_binding, "positive_train": pos_train_binding, "positive_dev": pos_dev_binding,
               "positive_schema_version": ad.POSITIVE_SCHEMA_VERSION, "positive_source_version": ad.POSITIVE_SOURCE_VERSION,
+              "alignment_policy": wa.ALIGNMENT_POLICY, "alignment_source_version": wa.ALIGNMENT_SOURCE_VERSION,
+              "exclusion_count_note": "compatible broken-boundary count fields count all excluded rows; reason counts may overlap",
+              "prediction_decoding": "strict window-decoded span union; no gold-ignore censorship; partial/duplicate span errors possible",
               "run_identity": identity}
     t0 = time.time()
     if state == "reuse":
@@ -190,8 +213,12 @@ def main():
         print("final checkpoint found; skipping training; only missing outputs may be written", flush=True)
         model = AutoModelForTokenClassification.from_pretrained(model_dir).to(device)
     else:
-        train_wins, ex = build_windows(tok, train_rows, train_entries, label2id, True)
+        train_alignment_stats = {}
+        train_wins, ex = build_windows(tok, train_rows, train_entries, label2id, True,
+                                       alignment_stats=train_alignment_stats)
         config["train_rows_used"] = len({w[3] for w in train_wins}); config["train_rows_excluded_broken"] = ex
+        config["train_rows_excluded_by_reason"] = train_alignment_stats["rows_excluded_by_reason"]
+        config["train_alignment_stats"] = train_alignment_stats
         config["train_row_counts"] = ad.source_counts(micro_train_entries, pos_train, neg_rows, train_wins)
         config["train_windows"] = len(train_wins)
         print(json.dumps({k: v for k, v in config.items() if k != "labels"}), flush=True)
@@ -220,6 +247,8 @@ def main():
         info = {"train_time_s": train_time, "steps": step, "steps_per_sec": step / train_time, "device": device.type,
                 "train_windows": len(train_wins), "train_rows_used": config["train_rows_used"],
                 "train_rows_excluded_broken": ex, "train_row_counts": config["train_row_counts"],
+                "train_rows_excluded_by_reason": train_alignment_stats["rows_excluded_by_reason"],
+                "train_alignment_stats": train_alignment_stats,
                 "micro_train_rows_available": micro_rows_available, "micro_train_rows_selected": len(micro_train_entries),
                 "positive_train_rows_included": len(pos_train), "negative_train_rows_included": len(neg_rows),
                 "run_identity": identity}
@@ -235,7 +264,9 @@ def main():
                "positive_train": pos_train_binding, "positive_dev_input": pos_dev_binding, "run_identity": identity,
                "note": "dev only; strict exact char span + label; test split untouched; positive dev separate, never pooled"}
     config.update({"train_rows_used": info.get("train_rows_used"), "train_rows_excluded_broken": info.get("train_rows_excluded_broken"),
-                   "train_windows": info.get("train_windows"), "train_row_counts": info.get("train_row_counts")})
+                   "train_windows": info.get("train_windows"), "train_row_counts": info.get("train_row_counts"),
+                   "train_rows_excluded_by_reason": info.get("train_rows_excluded_by_reason"),
+                   "train_alignment_stats": info.get("train_alignment_stats")})
     for base in (results_run_dir, docs_run_dir):
         base.mkdir(parents=True, exist_ok=True)
         path = base / "metrics.json"

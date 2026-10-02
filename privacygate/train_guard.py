@@ -10,8 +10,9 @@ import math
 import re
 
 from .augmentation_data import POSITIVE_SCHEMA_VERSION, POSITIVE_SOURCE_VERSION
+from .window_alignment import ALIGNMENT_POLICY, ALIGNMENT_SOURCE_VERSION
 
-IDENTITY_VERSION = "run-identity-v2"
+IDENTITY_VERSION = "run-identity-v3"
 MAX_META_BYTES = 1024 * 1024
 RUN_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
 CHECKPOINT_FILES = ("config.json", "model.safetensors", "train_info.json")
@@ -61,6 +62,8 @@ def build_identity(args, model_id, model_revision, max_len, stride, manifests_sh
         "positive_train": positive_train, "positive_dev": positive_dev,
         "positive_schema_version": POSITIVE_SCHEMA_VERSION,
         "positive_source_version": POSITIVE_SOURCE_VERSION,
+        "alignment_policy": ALIGNMENT_POLICY,
+        "alignment_source_version": ALIGNMENT_SOURCE_VERSION,
         "labels": list(labels) if labels is not None else None,
         "output_dir": str(model_dir.resolve()),
     }

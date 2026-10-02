@@ -71,8 +71,11 @@ def refuse(code, fn):
 
 class CharacterTokenizer:
     def __call__(self, text, **kwargs):
-        return {"input_ids": [[0] + [1] * len(text) + [0]],
-                "offset_mapping": [[(0, 0)] + [(i, i + 1) for i in range(len(text))] + [(0, 0)]]}
+        ids = [0] + [1] * len(text) + [0]
+        offsets = [(0, 0)] + [(i, i + 1) for i in range(len(text))] + [(0, 0)]
+        if kwargs.get("return_overflowing_tokens"):
+            return {"input_ids": [ids], "offset_mapping": [offsets]}
+        return {"input_ids": ids, "offset_mapping": offsets}
 
 
 def check_inventory_and_append():

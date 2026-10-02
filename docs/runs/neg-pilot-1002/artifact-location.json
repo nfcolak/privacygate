@@ -1,0 +1,68 @@
+{
+  "artifacts": [
+    {
+      "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/models/neg-pilot-1002",
+      "file_count": 3,
+      "files": [
+        {
+          "bytes": 2663,
+          "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/models/neg-pilot-1002/config.json",
+          "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002/config.json",
+          "sha256": "d9fd61e72726e9dbc742cf4f1c6f6697db6c036c41452fb6b95eb82d636c9509"
+        },
+        {
+          "bytes": 709194692,
+          "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/models/neg-pilot-1002/model.safetensors",
+          "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002/model.safetensors",
+          "sha256": "405336637e0ec6f3211dc90434449e8b0973108b15cbf2253b46791a22ca2317"
+        },
+        {
+          "bytes": 1105,
+          "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/models/neg-pilot-1002/train_info.json",
+          "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002/train_info.json",
+          "sha256": "6944795f8188048f82d80fd7ecc6c368a1c9f5c9e0dea76814fcf6e48da5c279"
+        }
+      ],
+      "kind": "model",
+      "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002",
+      "total_bytes": 709198460
+    },
+    {
+      "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/results/neg-pilot-1002",
+      "file_count": 3,
+      "files": [
+        {
+          "bytes": 5762,
+          "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/results/neg-pilot-1002/execution.json",
+          "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/results/neg-pilot-1002/execution.json",
+          "sha256": "ee7c217cdad2f36186d92c7a602c1551db22b63e705a6ff8bad8b5e67dfa01e4"
+        },
+        {
+          "bytes": 6893,
+          "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/results/neg-pilot-1002/metrics.json",
+          "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/results/neg-pilot-1002/metrics.json",
+          "sha256": "b143d410661e0a368ae1879981a1e3d7e47a24e4a8031ed294725d644a0ee790"
+        },
+        {
+          "bytes": 3632,
+          "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/results/neg-pilot-1002/run.jsonl",
+          "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/results/neg-pilot-1002/run.jsonl",
+          "sha256": "5fbf6cce21fd761fcd8a08025faf8fd010315f26c7df1610f62879bf4ef3abdc"
+        }
+      ],
+      "kind": "results",
+      "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/results/neg-pilot-1002",
+      "total_bytes": 16287
+    }
+  ],
+  "checkpoint_metadata_byte_identical": true,
+  "not_resumable_under_current_code": true,
+  "original_manifest_sha256": "f55b335634ca527952a7456f21f7bd431869fe2699f48ddcb86450db92c20d89",
+  "recorded_run_identity_version": "run-identity-v1",
+  "schema_version": 1,
+  "source_copied_not_moved": true,
+  "source_revision": "e69fcd895553ee83d54524fc8bbc8c3d52e8c0c5",
+  "source_run": "neg-pilot-1002",
+  "status": "relocation_only",
+  "warning": "Historical negative-only pilot used original alignment/source. Output identity intentionally records original execution path. Current alignment/positive identities are incompatible. No retraining, migration or scoring performed."
+}
