@@ -1,0 +1,359 @@
+{
+  "acceptance": {
+    "all_class_prf_and_count_consistency": true,
+    "artifact_verification_command": "env -u PYTHONPATH PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 HF_HOME=/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.cache/hf HF_HUB_DISABLE_TELEMETRY=1 TOKENIZERS_PARALLELISM=false /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.venv-train/bin/python /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/_runs/pg-neg-pilot-1002/verify_pilot.py",
+    "artifact_verification_exit_code": 0,
+    "tokenizer_regex_warning_observed_during_verification": true,
+    "tokenizer_configuration_changed": false,
+    "checkpoint_structure_and_representative_tensors_loadable": true,
+    "checkpoint_tensor_count": 199,
+    "dev_rows_evaluated": 495,
+    "dev_rows_excluded": 5,
+    "dev_support": 3532,
+    "existing_check": {
+      "aggregate_stdout_matches_smoke_ok": true,
+      "command": "env -u PYTHONPATH PYTHONDONTWRITEBYTECODE=1 /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.venv-train/bin/python smoke.py",
+      "executions": 1,
+      "exit_code": 0
+    },
+    "full_training_started": false,
+    "human_annotation_review": false,
+    "micro_rows_excluded": 21,
+    "micro_rows_included": 1979,
+    "model_config_label_map_matches_original": true,
+    "model_quality_improvement_claim": false,
+    "negative_rows_excluded": 0,
+    "negative_rows_included_verified_by_train_only_window_reconstruction": 1000,
+    "negative_windows_included": 1000,
+    "nonzero_optimizer_steps": 187,
+    "per_label_count": 19,
+    "run_guard_identity_matches": true,
+    "status": "DONE",
+    "synthetic_provenance_verified": false,
+    "test_evaluated": false,
+    "test_manifest_read_by_pilot_or_verifier": false,
+    "train_rows_windows": 2979
+  },
+  "actual_execution": {
+    "exit_code": 0,
+    "group_termination_checked": true,
+    "inputs_unchanged": true,
+    "main_checkout_unchanged": true,
+    "negative_unchanged": true,
+    "shared_after": {
+      "full_1_model": {
+        "files": 3,
+        "metadata_sha256": "1119e28bb7bfa63aff2998ac8c9c66f57c57a8b69eea349f4f7c455529b452f7"
+      },
+      "hf_cache": {
+        "files": 27,
+        "metadata_sha256": "7d6a2ef38a1624cdaec7fb34fac00e34022910845f116b983a44e0ef869fb5a5"
+      },
+      "raw": {
+        "files": 5,
+        "metadata_sha256": "e963a8638edd761e249b77e09ebbe8d6046cd2b0ba14358ed1189475f4d775f8"
+      },
+      "venv": {
+        "files": 31453,
+        "metadata_sha256": "36baa1b549fc6f29a9510b7cb50c57f7324c7f35f2781a87a8550f46c904cd39"
+      }
+    },
+    "shared_unchanged_metadata": true,
+    "source_unchanged": true,
+    "subprocess_wall_s": 155.97536862500056,
+    "suppressed_output_counts": {
+      "unallowlisted_lines": 21
+    },
+    "timed_out": false,
+    "timeout_seconds": 360
+  },
+  "argv": [
+    "env",
+    "-u",
+    "PYTHONPATH",
+    "HF_HUB_OFFLINE=1",
+    "HF_HOME=/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.cache/hf",
+    "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.venv-train/bin/python",
+    "-m",
+    "privacygate.train_mbert",
+    "--run",
+    "neg-pilot-1002",
+    "--max-train-rows",
+    "2000",
+    "--max-dev-rows",
+    "500",
+    "--epochs",
+    "1",
+    "--batch-size",
+    "16",
+    "--lr",
+    "3e-5",
+    "--seed",
+    "13",
+    "--negative-train-file",
+    "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/data/augmentation/negatives-train.jsonl"
+  ],
+  "artifacts": {
+    "model": {
+      "file_count": 3,
+      "files": [
+        {
+          "bytes": 2663,
+          "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002/config.json",
+          "sha256": "d9fd61e72726e9dbc742cf4f1c6f6697db6c036c41452fb6b95eb82d636c9509"
+        },
+        {
+          "bytes": 709194692,
+          "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002/model.safetensors",
+          "sha256": "405336637e0ec6f3211dc90434449e8b0973108b15cbf2253b46791a22ca2317"
+        },
+        {
+          "bytes": 1105,
+          "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002/train_info.json",
+          "sha256": "6944795f8188048f82d80fd7ecc6c368a1c9f5c9e0dea76814fcf6e48da5c279"
+        }
+      ],
+      "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002",
+      "total_bytes": 709198460
+    },
+    "results": {
+      "file_count": 3,
+      "files": [
+        {
+          "bytes": 5762,
+          "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/results/neg-pilot-1002/execution.json",
+          "sha256": "ee7c217cdad2f36186d92c7a602c1551db22b63e705a6ff8bad8b5e67dfa01e4"
+        },
+        {
+          "bytes": 6893,
+          "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/results/neg-pilot-1002/metrics.json",
+          "sha256": "b143d410661e0a368ae1879981a1e3d7e47a24e4a8031ed294725d644a0ee790"
+        },
+        {
+          "bytes": 3632,
+          "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/results/neg-pilot-1002/run.jsonl",
+          "sha256": "5fbf6cce21fd761fcd8a08025faf8fd010315f26c7df1610f62879bf4ef3abdc"
+        }
+      ],
+      "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/results/neg-pilot-1002",
+      "total_bytes": 16287
+    }
+  },
+  "completed_at_utc": "2026-10-02T10:29:19.838963+00:00",
+  "cwd": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002",
+  "held_out_access_caveat": "Existing loader scans raw publisher train/validation byte streams to locate authorized train/dev IDs; held-out manifest IDs are not loaded, and other rows are not JSON-parsed or scored.",
+  "historical_context_hashes": {
+    "docs/runs/full-1/config.json": "852722d82aade5dbe47aeb3a7cd7130dd680849138d4a1d36f66845ea27fe874",
+    "docs/runs/full-1/metrics.json": "40cadb68f379dde01d7dbe1068ce1ab0c61dc289bc2e698c73917c836f8a75e1",
+    "models/full-1/train_info.json": "88aaecb259d72eb292aadcdc909f2a4f3a7f9dfa6b6b7705f944fad267f6b8a9"
+  },
+  "input_hashes": {
+    "data/manifests/micro/dev.jsonl": "984734b16f52cd43eb811eed38ad2e7126c15329a482ff7db07398629d977240",
+    "data/manifests/micro/split-policy.json": "a7635004d65cbe167c9bc1a711ac93c2145cda4c44f32d856bb1fad5aeb546e6",
+    "data/manifests/micro/train.jsonl": "1cdc107f80481465855a2c9bf646766573b767beb93f8455a65665c961c4fdb7",
+    "docs/data-audit/micro/source.json": "7ba4f0401acb75183fc56871f08f4967db6d8268d84f30906bf0a4cbca342009"
+  },
+  "intended_use": "Wiring and timing only. All-personal-information masking remains a target, not an achieved guarantee.",
+  "isolation": {
+    "nested_sandbox_unavailable": true,
+    "network_os_denial_enforced_by_wrapper": false,
+    "offline": true,
+    "shared_cache_copy_used": false,
+    "shared_read_only_verified_after_by_metadata": true,
+    "source_reviewed_no_network_call_path": true,
+    "telemetry_disabled": true
+  },
+  "main_git_before": {
+    "revision": "b2c86f5efed5921b728de64535cd98ed373e3272",
+    "status": ""
+  },
+  "model_results_ignored": true,
+  "negative_manifest": {
+    "file": "data/augmentation/negatives-train.jsonl",
+    "generator_version": "neg-v2",
+    "note": "synthetic; text not committed; generic impersonal statements, no digits; no semantic-independence claim",
+    "per_language": {
+      "de": 200,
+      "en": 200,
+      "es": 200,
+      "fr": 200,
+      "it": 200
+    },
+    "rows": 1000,
+    "seed": 20261002,
+    "sha256": "08e15607c69c36df38ce7fe889b07fa0e8e38c3f157945b68f490a34530c438a",
+    "split": "train",
+    "templates": {
+      "neg-de-t0": 26,
+      "neg-de-t1": 24,
+      "neg-de-t2": 24,
+      "neg-de-t3": 18,
+      "neg-de-t4": 26,
+      "neg-de-t5": 28,
+      "neg-de-t6": 25,
+      "neg-de-t7": 29,
+      "neg-en-t0": 29,
+      "neg-en-t1": 22,
+      "neg-en-t2": 27,
+      "neg-en-t3": 25,
+      "neg-en-t4": 24,
+      "neg-en-t5": 23,
+      "neg-en-t6": 25,
+      "neg-en-t7": 25,
+      "neg-es-t0": 22,
+      "neg-es-t1": 26,
+      "neg-es-t2": 22,
+      "neg-es-t3": 26,
+      "neg-es-t4": 26,
+      "neg-es-t5": 26,
+      "neg-es-t6": 29,
+      "neg-es-t7": 23,
+      "neg-fr-t0": 26,
+      "neg-fr-t1": 27,
+      "neg-fr-t2": 28,
+      "neg-fr-t3": 23,
+      "neg-fr-t4": 27,
+      "neg-fr-t5": 25,
+      "neg-fr-t6": 23,
+      "neg-fr-t7": 21,
+      "neg-it-t0": 27,
+      "neg-it-t1": 29,
+      "neg-it-t2": 21,
+      "neg-it-t3": 28,
+      "neg-it-t4": 24,
+      "neg-it-t5": 26,
+      "neg-it-t6": 23,
+      "neg-it-t7": 22
+    }
+  },
+  "negative_manifest_sha256": "1175cdd7b303817b7b649dcd0c22f1ba31f91fd14253b220a3d41368c24ac1b7",
+  "negative_sha256": "08e15607c69c36df38ce7fe889b07fa0e8e38c3f157945b68f490a34530c438a",
+  "output_roots_absent": true,
+  "pending_gates": [
+    "full_training_approval",
+    "held_out_test_approval",
+    "synthetic_provenance",
+    "human_annotation_completeness_review",
+    "taxonomy_expansion",
+    "alignment_policy_decision",
+    "provisional_split_final_freeze",
+    "negative_semantic_review"
+  ],
+  "pretrainer_launcher_failure": {
+    "exit_code": 71,
+    "preserved_at": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/_runs/pg-neg-pilot-1002/pretrainer-launch-failure",
+    "reason": "nested_sandbox_operation_not_permitted",
+    "trainer_executed": false
+  },
+  "raw_artifact_hashes": {
+    "data/train.jsonl": "6863d8dfc499a4fcc1cca8524db867a266d923e72e764422496f3579d0cafa74",
+    "data/validation.jsonl": "c2175f3146a8afd658f3540f3db3c8ea0fb73ab6fe206bfff1579361b1627e5b"
+  },
+  "scope": {
+    "alignment_changes_included": false,
+    "batch_size": 16,
+    "epochs": 1,
+    "full_training_authorized": false,
+    "lr": 3e-05,
+    "micro_dev_rows_requested": 500,
+    "micro_train_rows_requested": 2000,
+    "negative_rows_requested": 1000,
+    "positive_expansion_included": false,
+    "seed": 13,
+    "sweep_authorized": false
+  },
+  "shared_before": {
+    "full_1_model": {
+      "files": 3,
+      "metadata_sha256": "1119e28bb7bfa63aff2998ac8c9c66f57c57a8b69eea349f4f7c455529b452f7"
+    },
+    "hf_cache": {
+      "files": 27,
+      "metadata_sha256": "7d6a2ef38a1624cdaec7fb34fac00e34022910845f116b983a44e0ef869fb5a5"
+    },
+    "raw": {
+      "files": 5,
+      "metadata_sha256": "e963a8638edd761e249b77e09ebbe8d6046cd2b0ba14358ed1189475f4d775f8"
+    },
+    "venv": {
+      "files": 31453,
+      "metadata_sha256": "36baa1b549fc6f29a9510b7cb50c57f7324c7f35f2781a87a8550f46c904cd39"
+    }
+  },
+  "source_hashes": {
+    ".gitignore": "30bc211d3fb96fba49865bd55aeff4aa48236cf9e6adfcb9507eafaa61760442",
+    "AGENTS.md": "cf14340ffe4a30ebe5b493fb510f54f5942420d0cc2874a3190dea4834f3becd",
+    "privacygate/__init__.py": "95db3a4bf1178df08012362858d1a6580e817b6de025047456e6238a5ca871fc",
+    "privacygate/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "privacygate/cli.py": "61938710d5ae6ab0a57dc864906a64e221ff580d3653240d8f72b7ab6f72603c",
+    "privacygate/detect.py": "9bc3f19664a24404e673e214fc5d20f236df3e0001ec57e53075a778589d7c15",
+    "privacygate/hybrid.py": "f36224689c6b98ca953fb83548f0e3c0bbf9165298b384fffc1b2c6eaf3fd2a4",
+    "privacygate/inference.py": "45b3686d8139767a9e0c03c38741dfbfaa0c92d01fef90e10ca29d3df465d27f",
+    "privacygate/mbert_data.py": "c0660d04b127426aafa5b79145ba7e89a0cddfd8d96003fa5723ee4b8d2eef4c",
+    "privacygate/negative_data.py": "0f51167b7351414d06d46f415e7dcefb4b50f77c39f0c2f227a80c1ecd932e49",
+    "privacygate/train_guard.py": "40e51a076da6b5a71af88c04c42450faf8c8e93988e48edf023b8285177e4a3b",
+    "privacygate/train_mbert.py": "9cea3e46b0dadc48a0200f80418a2d002001558ff525287057def5a7e85b6fa1",
+    "pyproject.toml": "7c62593d11f8acea33ef2c79cded9e303261237f2c5689596e997308b734d748",
+    "requirements-train.txt": "d1195fcdd73d18d5f9e2ad2ab5487e2ff21435651d832c3ad568d913bdda6ea7",
+    "scripts/audit_coverage.py": "c738e0c1425fa531834e94ef6e3d5cce01e97a785bbd0b9e45a4986397e73a4e",
+    "scripts/audit_dataset.py": "6e31f722913938955c11999f06881d60aa9b4f4935ec09ff418dd1b77a624e52",
+    "scripts/audit_micro.py": "4819ab11c7477c4a756b71cf56bb72c9c4fe5cb4be665b11e9a4f3c81cdcfeb0",
+    "scripts/check_alignment.py": "0d7a456396d8f9b7cecc17fdb7e642598cd9c1827029015b32c5fcbfbf60b44f",
+    "scripts/compare.py": "5323982edfec9a469b3fe474a66ec2cc27d8a459724d68dad7fbf17dc5f3f84e",
+    "scripts/make_challenge.py": "e5ee56fc6efe1660231506d20bb539df4b3c4300d61ea56898a50bebbd52035f",
+    "scripts/make_negatives.py": "b466cd2c909b41cefde58343296e501094ee0377d536e5d2f96b7cf2c7bcd98a",
+    "smoke.py": "0db80e5ab2253a7bd33b7b84a3a4dc71c30345e0919c0898d6225856de731c93"
+  },
+  "source_revision": "e69fcd895553ee83d54524fc8bbc8c3d52e8c0c5",
+  "status": "completed",
+  "test_evaluated": false,
+  "timeout_seconds": 360,
+  "timing_caveat": "train_mbert eval_time_s includes train-window construction, model load, checkpoint save and dev evaluation; not pure evaluation time.",
+  "training": {
+    "device": "mps",
+    "run_identity": {
+      "batch_size": 16,
+      "epochs": 1,
+      "lr": 3e-05,
+      "manifests_sha256": "15d0c4ba2ef5aa62df42c5003c2443c15370197f43bd09793ba739d7007884c1",
+      "max_dev_rows": 500,
+      "max_len": 512,
+      "max_train_rows": 2000,
+      "model": "google-bert/bert-base-multilingual-cased",
+      "model_revision": "3f076fdb1ab68d5b2880cb87a0886f315b8146f8",
+      "negative_train": {
+        "per_language": {
+          "de": 200,
+          "en": 200,
+          "es": 200,
+          "fr": 200,
+          "it": 200
+        },
+        "rows": 1000,
+        "sha256": "08e15607c69c36df38ce7fe889b07fa0e8e38c3f157945b68f490a34530c438a",
+        "templates": 40
+      },
+      "output_dir": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-neg-pilot-1002/models/neg-pilot-1002",
+      "run": "neg-pilot-1002",
+      "seed": 13,
+      "version": "run-identity-v1",
+      "window_stride_tokens": 128
+    },
+    "steps": 187,
+    "steps_per_sec": 1.2887147138543595,
+    "train_rows_excluded_broken": 21,
+    "train_rows_used": 2979,
+    "train_time_s": 145.10581588745117,
+    "train_windows": 2979
+  },
+  "verification_script": {
+    "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/_runs/pg-neg-pilot-1002/verify_pilot.py",
+    "sha256": "64f4ef43ab390829f4649ba0d271cb37319b5ffcb3e99b662ea936d84b89f152"
+  },
+  "wrapper": {
+    "effective_command": "/usr/bin/caffeinate -i env -u PYTHONPATH HF_HUB_OFFLINE=1 HF_HOME=/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.cache/hf /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.venv-train/bin/python -m privacygate.train_mbert --run neg-pilot-1002 --max-train-rows 2000 --max-dev-rows 500 --epochs 1 --batch-size 16 --lr 3e-5 --seed 13 --negative-train-file /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/data/augmentation/negatives-train.jsonl",
+    "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/_runs/pg-neg-pilot-1002/launch_pilot.py",
+    "sha256": "844cfadbe1524dc79e007a501e0388ac2cf4625b41e626a5e14b4343563832c9",
+    "stdout_stderr_policy": "allowlisted numeric JSON only; all other raw lines discarded, including exception messages"
+  }
+}
