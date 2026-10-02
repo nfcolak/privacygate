@@ -70,6 +70,14 @@ env -u PYTHONPATH .venv/bin/python scripts/audit_micro.py --verify   # offline r
 ```
 Pinned `ai4privacy/openpii-masking-micro-100k` @ `f95b4e1539657c3d0047d9ad3f20f26675f22c7d`. Reuses Stage 1 row checks (Mini outputs unchanged, still verify byte-identical). Measured: 100,000 rows; 38,835 EN/DE/FR/IT/ES; 442 quarantined (token/BIO/label discrepancies); 317 rows overlap Mini 10K (239 train, 34 dev, 40 test, 4 quarantined; 313 exact) and are excluded from all Micro splits; provisional 30,404 train / 3,835 dev / 3,841 test. Card says synthetic only, without Mini's internal conflict, but unverified; card label list differs from data (e.g. `TIME`). Not training-ready; see `docs/data-audit/micro/verdict.md`. Evidence in `docs/data-audit/micro/` and `data/manifests/micro/`.
 
+## Preparation status (2026-10-02): prepared vs measured
+Prepared, not measured. These items are code/docs wiring checked on synthetic data only; none is benchmark evidence and none changes model quality:
+- `docs/scope/` ([masking-policy](docs/scope/masking-policy.md), [coverage](docs/scope/coverage.md), [gates](docs/scope/gates.md)): what "all personal information" would cover, which labels the checkpoint and rules actually cover (`scripts/audit_coverage.py` reconciles 19 entity labels / 39 BIO labels / 2 rule labels), and the open data/annotation gates.
+- `docs/augmentation/` ([README](docs/augmentation/README.md), `manifest.json`): train-only synthetic clean negatives (`scripts/make_negatives.py`), an input-bounded fail-closed loader and an optional `--negative-train-file` for `privacygate.train_mbert` with a run-reuse guard (`privacygate/train_guard.py`). **No augmented run has been trained.** Training, and any held-out test scoring, still need separate authorization.
+- `--engine hybrid` is only wired into the CLI. Wiring hybrid does **not** establish all-personal-information masking: the measured results above (missed phones/emails by mBERT alone, IBAN recall 0.000 for mBERT, high decoy/clean false-positive rates) are unchanged, and syntactic/format checks cannot prove the absence of personal data.
+
+Measured (dev only, see sections below): Micro dev and synthetic challenge dev numbers from Stages 3-4. Everything else is pending.
+
 ## Future milestones
 1. Chosen dataset: `ai4privacy/openpii-masking-micro-100k` (EN/DE/FR/IT/ES), pinned and audited in Stage 2; a dataset choice, not training authorization. The Mini 10K pilot audit stays as recorded.
 2. Implemented (see Stages 3-4): mBERT BIO classifier and hybrid regex + mBERT, dev comparison only.

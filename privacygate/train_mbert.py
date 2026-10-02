@@ -4,6 +4,7 @@ python -m privacygate.train_mbert --run NAME [--max-train-rows N] [--max-dev-row
 """
 import argparse
 import collections
+import hashlib
 import json
 import random
 import sys
@@ -12,6 +13,7 @@ from pathlib import Path
 
 from . import mbert_data as md
 from . import negative_data as nd
+from . import train_guard as tg
 
 
 def build_windows(tok, rows, entries, label2id, train):
@@ -101,6 +103,28 @@ def main():
     args = ap.parse_args()
 
     md.setup_hf_home()
+    # ---- cheap, side-effect-free guards: everything here runs BEFORE torch/transformers/corpus/model work ----
+    try:
+        tg.check_run_name(args.run)
+        man_bytes = {sp: (md.ROOT / "data/manifests/micro/{}.jsonl".format(sp)).read_bytes() for sp in ("train", "dev")}
+        train_entries = [json.loads(l) for l in man_bytes["train"].decode("utf-8").splitlines()]
+        dev_entries = [json.loads(l) for l in man_bytes["dev"].decode("utf-8").splitlines()]
+        neg_rows, neg_binding = [], None
+        if args.negative_train_file:
+            neg_rows, neg_binding = nd.load_negative_file(
+                args.negative_train_file, forbid_ids={e["row_id"] for e in train_entries + dev_entries})
+        model_dir = args.out_dir / args.run
+        identity = tg.build_identity(
+            args, md.MODEL_ID, md.MODEL_REVISION, md.MAX_LEN, md.STRIDE,
+            hashlib.sha256(man_bytes["train"] + b"\0" + man_bytes["dev"]).hexdigest(), neg_binding, model_dir)
+        state = tg.check_existing(identity, model_dir, md.ROOT / "docs" / "runs" / args.run, md.ROOT / "results" / args.run)
+    except ValueError as exc:
+        print("refused: {}".format(exc), file=sys.stderr)  # error codes only (ValueErrors here are code-only)
+        return 2
+    except (OSError, KeyError, TypeError):
+        print("refused: input_unreadable_or_malformed", file=sys.stderr)
+        return 2
+
     import torch
     from transformers import AutoModelForTokenClassification
 
@@ -108,8 +132,6 @@ def main():
     rng = random.Random(args.seed)
     torch.manual_seed(args.seed)
     tok = md.load_tokenizer()
-    train_entries = md.manifest("train")
-    dev_entries = md.manifest("dev")
     train_rows = md.load_rows(train_entries)
     labels = md.label_list(train_rows)  # from ALL Micro train rows, independent of --max-train-rows
     label2id = {l: i for i, l in enumerate(labels)}
@@ -121,18 +143,10 @@ def main():
     if args.max_dev_rows:
         dev_entries = dev_entries[:args.max_dev_rows]
     dev_rows = md.load_rows(dev_entries)
-    neg_binding = None
-    if args.negative_train_file:
-        try:
-            neg_rows, neg_binding = nd.load_negative_file(args.negative_train_file, forbid_ids=set(train_rows) | set(dev_rows))
-        except (ValueError, OSError) as exc:
-            print("negative file rejected: {}".format(exc if isinstance(exc, ValueError) else "unreadable"), file=sys.stderr)
-            return 2
-        for r in neg_rows:  # appended after positive selection; labels stay those of the original Micro train
-            train_rows[r["row_id"]] = (r["source_text"], [], r["language"])
-            train_entries.append({"row_id": r["row_id"], "language": r["language"]})
+    for r in neg_rows:  # appended after positive selection; labels stay those of the original Micro train
+        train_rows[r["row_id"]] = (r["source_text"], [], r["language"])
+        train_entries.append({"row_id": r["row_id"], "language": r["language"]})
 
-    model_dir = args.out_dir / args.run
     final = model_dir / "train_info.json"
     config = {"run": args.run, "model": md.MODEL_ID, "model_revision": md.MODEL_REVISION, "epochs": args.epochs,
               "batch_size": args.batch_size, "lr": args.lr, "seed": args.seed, "max_len": md.MAX_LEN,
@@ -140,15 +154,9 @@ def main():
               "label_scheme": "first wordpiece of span B-, later wordpieces I-; specials -100",
               "rows_with_broken_boundary_excluded": True, "labels": labels, "data": "Micro provisional train/dev manifests",
               "optimizer": "AdamW wd=0.01, linear schedule 10% warmup", "device": device.type,
-              "negative_train": neg_binding}
-    prior_cfg = md.ROOT / "docs" / "runs" / args.run / "config.json"
-    if prior_cfg.is_file() or final.is_file():
-        prior = json.loads(prior_cfg.read_text()).get("negative_train") if prior_cfg.is_file() else None
-        if prior != neg_binding:
-            print("refusing: existing run is bound to a different negative-train configuration", file=sys.stderr)
-            return 2
+              "negative_train": neg_binding, "run_identity": identity}
     t0 = time.time()
-    if final.is_file():
+    if state == "reuse":
         info = json.loads(final.read_text())
         print("final checkpoint found; skipping training", flush=True)
         model = AutoModelForTokenClassification.from_pretrained(model_dir).to(device)
@@ -180,7 +188,7 @@ def main():
         train_time = time.time() - t_train
         info = {"train_time_s": train_time, "steps": step, "steps_per_sec": step / train_time, "device": device.type,
                 "train_windows": len(train_wins), "train_rows_used": config["train_rows_used"],
-                "train_rows_excluded_broken": ex}
+                "train_rows_excluded_broken": ex, "run_identity": identity}
         model_dir.mkdir(parents=True, exist_ok=True)
         model.save_pretrained(model_dir)
         final.write_text(json.dumps(info, indent=2))  # written last = final-checkpoint marker

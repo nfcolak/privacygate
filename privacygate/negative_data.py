@@ -9,24 +9,29 @@ separate authoring only (those texts were not consulted), not a proven property.
 """
 import hashlib
 import json
+import os
 import random
+import stat
 
 LANGS = ("en", "de", "fr", "it", "es")
 PER_LANG = 200
 SEED = 20261002
-GEN_VERSION = "neg-v1"
+GEN_VERSION = "neg-v2"
 MAX_ROWS, MAX_CHARS = 20000, 2000
+MAX_LINE_BYTES = 32768          # one JSONL row, raw bytes (escaped non-ASCII can be 6 bytes/char)
+MAX_FILE_BYTES = 16 * 1024 * 1024  # hard read bound; checked before any parsing
 KEYS = {"row_id", "language", "source_text", "privacy_mask", "template_id", "split"}
 
-# per language: frames with {A} (singular impersonal subject incl. article) and {B} (predicate)
+# per language: frames with {A} (singular impersonal subject incl. article) and {B} (predicate, main-clause order).
+# German frames never use "dass" + main-clause order: they use a colon-introduced main clause (A is capitalised after ": ").
 SPEC = {
     "en": (["In general, {A} {B}.", "It is widely understood that {A} {B}.", "Usually {A} {B}.", "As a rule, {A} {B}.",
             "Textbooks note that {A} {B}.", "Observers agree that {A} {B}.", "Often {A} {B}.", "Broadly speaking, {A} {B}."],
            ["the river", "a mountain lake", "the old bridge", "a freight train", "the autumn wind", "a bread dough"],
            ["changes slowly over the seasons", "depends on the local climate", "is easier to study from a distance",
             "requires patience and care", "looks different in the early morning", "is part of everyday life"]),
-    "de": (["Im Allgemeinen gilt: {A} {B}.", "Man weiß allgemein, dass {A} {B}.", "Meistens gilt: {A} {B}.", "In der Regel gilt: {A} {B}.",
-            "Lehrbücher halten fest, dass {A} {B}.", "Beobachter sind sich einig, dass {A} {B}.", "Oft gilt: {A} {B}.", "Grob gesagt: {A} {B}."],
+    "de": (["Im Allgemeinen gilt: {A} {B}.", "Man weiß allgemein: {A} {B}.", "Meistens gilt: {A} {B}.", "In der Regel gilt: {A} {B}.",
+            "Lehrbücher halten fest: {A} {B}.", "Beobachter sind sich einig: {A} {B}.", "Oft gilt: {A} {B}.", "Grob gesagt: {A} {B}."],
            ["der Fluss", "ein Bergsee", "die alte Brücke", "ein Güterzug", "der Herbstwind", "ein Brotteig"],
            ["verändert sich langsam im Lauf der Jahreszeiten", "hängt vom örtlichen Klima ab", "lässt sich aus der Ferne leichter beobachten",
             "braucht Geduld und Sorgfalt", "sieht am frühen Morgen anders aus", "gehört zum Alltag"]),
@@ -49,7 +54,10 @@ SPEC = {
 
 
 def _render(lang, ti, a, b):
-    return SPEC[lang][0][ti].format(A=a, B=b)
+    frame = SPEC[lang][0][ti]
+    if ": {A}" in frame:  # a full main clause after a colon starts upper-case in German
+        a = a[0].upper() + a[1:]
+    return frame.format(A=a, B=b)
 
 
 def generate():
@@ -92,26 +100,31 @@ def counts(rows):
 
 
 def check_rows(rows, forbid_ids=()):
-    """Fail-closed: raise ValueError with a code only (never the row content)."""
-    if not rows or len(rows) > MAX_ROWS:
+    """Fail-closed: raise ValueError with a code only (never the row content, keys or types)."""
+    if not isinstance(rows, list) or not rows or len(rows) > MAX_ROWS:
         raise ValueError("neg_row_count")
     ids, texts, tmpl = set(), set(), {}
     forbid = set(forbid_ids)
     for r in rows:
         if not isinstance(r, dict) or set(r) != KEYS:
             raise ValueError("neg_schema")
+        for k in ("row_id", "language", "source_text", "template_id", "split"):
+            if not isinstance(r[k], str):
+                raise ValueError("neg_field_type")
+        if not isinstance(r["privacy_mask"], list):
+            raise ValueError("neg_field_type")
         if r["split"] != "train":
             raise ValueError("neg_split_not_train")
         if r["language"] not in LANGS:
             raise ValueError("neg_language")
-        if r["privacy_mask"] != []:
+        if r["privacy_mask"]:
             raise ValueError("neg_annotations_not_empty")
         t = r["source_text"]
-        if not isinstance(t, str) or not t.strip() or len(t) > MAX_CHARS:
+        if not t.strip() or len(t) > MAX_CHARS:
             raise ValueError("neg_text_bounds")
-        if not isinstance(r["row_id"], str) or not r["row_id"] or r["row_id"] in ids or r["row_id"] in forbid:
+        if not r["row_id"] or r["row_id"] in ids or r["row_id"] in forbid:
             raise ValueError("neg_row_id")
-        if not isinstance(r["template_id"], str) or not r["template_id"]:
+        if not r["template_id"]:
             raise ValueError("neg_template_id")
         if any(ch.isdigit() for ch in t):
             raise ValueError("neg_contains_digit")
@@ -123,13 +136,44 @@ def check_rows(rows, forbid_ids=()):
             raise ValueError("neg_template_language")
 
 
-def load_negative_file(path, forbid_ids=()):
-    """Return (rows, binding). binding = counts + sha256 of the file bytes; value-free."""
-    raw = open(path, "rb").read()
+def _read_bounded(path):
+    """Read at most MAX_FILE_BYTES from a regular file; reject larger/non-regular files before parsing."""
     try:
-        rows = [json.loads(l) for l in raw.decode("utf-8").splitlines() if l.strip()]
-    except (ValueError, UnicodeDecodeError):
-        raise ValueError("neg_unparseable") from None
+        fd = os.open(os.fspath(path), os.O_RDONLY | getattr(os, "O_NONBLOCK", 0))
+    except TypeError:
+        raise ValueError("neg_path") from None
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise ValueError("neg_not_regular_file")
+        f = os.fdopen(fd, "rb")
+    except BaseException:
+        os.close(fd)
+        raise
+    with f:
+        raw = f.read(MAX_FILE_BYTES + 1)
+    if len(raw) > MAX_FILE_BYTES:
+        raise ValueError("neg_file_too_large")
+    return raw
+
+
+def load_negative_file(path, forbid_ids=()):
+    """Return (rows, binding). binding = counts + sha256 of the file bytes; value-free.
+
+    Raises ValueError(code) for any malformed content (OSError only for unreadable paths). The read is
+    byte-bounded and the non-empty line count / line size are checked before any JSON parsing.
+    """
+    raw = _read_bounded(path)
+    lines = [l for l in raw.split(b"\n") if l.strip()]
+    if not lines or len(lines) > MAX_ROWS:
+        raise ValueError("neg_row_count")
+    if any(len(l) > MAX_LINE_BYTES for l in lines):
+        raise ValueError("neg_line_too_long")
+    rows = []
+    for l in lines:
+        try:
+            rows.append(json.loads(l.decode("utf-8")))
+        except (ValueError, RecursionError):  # JSONDecodeError and UnicodeDecodeError are ValueErrors
+            raise ValueError("neg_unparseable") from None
     check_rows(rows, forbid_ids)
     return rows, {"sha256": hashlib.sha256(raw).hexdigest(), "rows": len(rows), "per_language": counts(rows),
                   "templates": len({r["template_id"] for r in rows})}
