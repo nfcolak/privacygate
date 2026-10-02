@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 from . import mbert_data as md
+from . import negative_data as nd
 
 
 def build_windows(tok, rows, entries, label2id, train):
@@ -94,6 +95,8 @@ def main():
     ap.add_argument("--batch-size", type=int, default=16)
     ap.add_argument("--lr", type=float, default=3e-5)
     ap.add_argument("--seed", type=int, default=13)
+    ap.add_argument("--negative-train-file", type=Path, default=None,
+                    help="optional synthetic clean-negative JSONL (split=train, empty annotations); appended after positive selection")
     ap.add_argument("--out-dir", type=Path, default=md.ROOT / "models", help="parent dir for model checkpoints")
     args = ap.parse_args()
 
@@ -118,6 +121,16 @@ def main():
     if args.max_dev_rows:
         dev_entries = dev_entries[:args.max_dev_rows]
     dev_rows = md.load_rows(dev_entries)
+    neg_binding = None
+    if args.negative_train_file:
+        try:
+            neg_rows, neg_binding = nd.load_negative_file(args.negative_train_file, forbid_ids=set(train_rows) | set(dev_rows))
+        except (ValueError, OSError) as exc:
+            print("negative file rejected: {}".format(exc if isinstance(exc, ValueError) else "unreadable"), file=sys.stderr)
+            return 2
+        for r in neg_rows:  # appended after positive selection; labels stay those of the original Micro train
+            train_rows[r["row_id"]] = (r["source_text"], [], r["language"])
+            train_entries.append({"row_id": r["row_id"], "language": r["language"]})
 
     model_dir = args.out_dir / args.run
     final = model_dir / "train_info.json"
@@ -126,7 +139,14 @@ def main():
               "window_stride_tokens": md.STRIDE, "max_train_rows": args.max_train_rows, "max_dev_rows": args.max_dev_rows,
               "label_scheme": "first wordpiece of span B-, later wordpieces I-; specials -100",
               "rows_with_broken_boundary_excluded": True, "labels": labels, "data": "Micro provisional train/dev manifests",
-              "optimizer": "AdamW wd=0.01, linear schedule 10% warmup", "device": device.type}
+              "optimizer": "AdamW wd=0.01, linear schedule 10% warmup", "device": device.type,
+              "negative_train": neg_binding}
+    prior_cfg = md.ROOT / "docs" / "runs" / args.run / "config.json"
+    if prior_cfg.is_file() or final.is_file():
+        prior = json.loads(prior_cfg.read_text()).get("negative_train") if prior_cfg.is_file() else None
+        if prior != neg_binding:
+            print("refusing: existing run is bound to a different negative-train configuration", file=sys.stderr)
+            return 2
     t0 = time.time()
     if final.is_file():
         info = json.loads(final.read_text())
