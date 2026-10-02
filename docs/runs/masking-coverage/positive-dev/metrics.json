@@ -1,0 +1,3030 @@
+{
+  "dataset_sha256": "7cc5c56f555021d135118e9e6b772e5fe8271cf887ddba3aa38530f3ac777a42",
+  "engines": {
+    "hybrid_union": {
+      "overall": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 918,
+        "covered_gold_alnum_chars": 7171,
+        "covered_gold_chars": 7430,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 750,
+          "exact_different_label": 63,
+          "fully_covered_nonexact": 105,
+          "partially_covered": 2,
+          "untouched": 0
+        },
+        "final_mask_entities": 1068,
+        "fully_masked_positive_rows": 278,
+        "gold_alnum_chars": 7182,
+        "gold_chars": 7441,
+        "gold_spans": 920,
+        "gold_spans_with_alnum_leakage": 2,
+        "leaked_gold_alnum_chars": 11,
+        "masked_chars": 7430,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 2,
+        "positive_rows": 280,
+        "ratios": {
+          "complete_gold_spans": 0.9978260869565218,
+          "covered_original_gold_chars": 0.9985217040720333,
+          "fully_masked_positive_rows": 0.9928571428571429,
+          "leaked_gold_alnum_chars": 0.0015316067947646894
+        },
+        "raw_detection_candidates": 1068,
+        "raw_detection_classification": {
+          "exact_correct_label": 750,
+          "exact_different_label": 63,
+          "fully_covered_nonexact": 105,
+          "partially_covered": 2,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_correct_label_correct_label_overlap": 750,
+          "exact_different_label_only_different_label_overlap": 63,
+          "fully_covered_nonexact_correct_label_overlap": 77,
+          "fully_covered_nonexact_only_different_label_overlap": 28,
+          "partially_covered_correct_label_overlap": 2
+        },
+        "rows": 280,
+        "text_chars": 16753,
+        "uncovered_gold_chars": 11,
+        "untouched_gold_spans": 0
+      },
+      "per_gold_label": {
+        "ACCOUNTNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 375,
+          "covered_gold_chars": 399,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 10,
+            "fully_covered_nonexact": 30,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 160,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 375,
+          "gold_chars": 399,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 951,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 160,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 10,
+            "fully_covered_nonexact": 30,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_different_label_only_different_label_overlap": 10,
+            "fully_covered_nonexact_correct_label_overlap": 24,
+            "fully_covered_nonexact_only_different_label_overlap": 6
+          },
+          "rows": 40,
+          "text_chars": 2375,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "BUILDINGNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 111,
+          "covered_gold_chars": 111,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 24,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 16,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 260,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 111,
+          "gold_chars": 111,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1645,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 260,
+          "raw_detection_classification": {
+            "exact_correct_label": 24,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 16,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 24,
+            "fully_covered_nonexact_correct_label_overlap": 16
+          },
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "CITY": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 209,
+          "covered_gold_chars": 209,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 260,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 209,
+          "gold_chars": 209,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1645,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 260,
+          "raw_detection_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 40
+          },
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "DRIVERLICENSENUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 20,
+          "covered_gold_alnum_chars": 200,
+          "covered_gold_chars": 220,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 16,
+            "fully_covered_nonexact": 4,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 90,
+          "fully_masked_positive_rows": 20,
+          "gold_alnum_chars": 200,
+          "gold_chars": 220,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 699,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 90,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 16,
+            "fully_covered_nonexact": 4,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_different_label_only_different_label_overlap": 16,
+            "fully_covered_nonexact_only_different_label_overlap": 4
+          },
+          "rows": 20,
+          "text_chars": 1627,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "GIVENNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 280,
+          "covered_gold_alnum_chars": 1793,
+          "covered_gold_chars": 1793,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 266,
+            "exact_different_label": 11,
+            "fully_covered_nonexact": 3,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 1068,
+          "fully_masked_positive_rows": 280,
+          "gold_alnum_chars": 1793,
+          "gold_chars": 1793,
+          "gold_spans": 280,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 7430,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 280,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 1068,
+          "raw_detection_classification": {
+            "exact_correct_label": 266,
+            "exact_different_label": 11,
+            "fully_covered_nonexact": 3,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 266,
+            "exact_different_label_only_different_label_overlap": 11,
+            "fully_covered_nonexact_correct_label_overlap": 1,
+            "fully_covered_nonexact_only_different_label_overlap": 2
+          },
+          "rows": 280,
+          "text_chars": 16753,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "IDCARDNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 20,
+          "covered_gold_alnum_chars": 200,
+          "covered_gold_chars": 200,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 20,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 90,
+          "fully_masked_positive_rows": 20,
+          "gold_alnum_chars": 200,
+          "gold_chars": 200,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 699,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 90,
+          "raw_detection_classification": {
+            "exact_correct_label": 20,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 20
+          },
+          "rows": 20,
+          "text_chars": 1627,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "PASSPORTNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 20,
+          "covered_gold_alnum_chars": 180,
+          "covered_gold_chars": 180,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 4,
+            "exact_different_label": 5,
+            "fully_covered_nonexact": 11,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 80,
+          "fully_masked_positive_rows": 20,
+          "gold_alnum_chars": 180,
+          "gold_chars": 180,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 453,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 80,
+          "raw_detection_classification": {
+            "exact_correct_label": 4,
+            "exact_different_label": 5,
+            "fully_covered_nonexact": 11,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 4,
+            "exact_different_label_only_different_label_overlap": 5,
+            "fully_covered_nonexact_correct_label_overlap": 11
+          },
+          "rows": 20,
+          "text_chars": 1137,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "PERSONALREF": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 554,
+          "covered_gold_chars": 581,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 15,
+            "fully_covered_nonexact": 25,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 164,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 554,
+          "gold_chars": 581,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1136,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 164,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 15,
+            "fully_covered_nonexact": 25,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_different_label_only_different_label_overlap": 15,
+            "fully_covered_nonexact_correct_label_overlap": 10,
+            "fully_covered_nonexact_only_different_label_overlap": 15
+          },
+          "rows": 40,
+          "text_chars": 2732,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "STREET": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 519,
+          "covered_gold_chars": 551,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 260,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 519,
+          "gold_chars": 551,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1645,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 260,
+          "raw_detection_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 40
+          },
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "SURNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 260,
+          "covered_gold_alnum_chars": 1943,
+          "covered_gold_chars": 1943,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 252,
+            "exact_different_label": 6,
+            "fully_covered_nonexact": 2,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 1048,
+          "fully_masked_positive_rows": 260,
+          "gold_alnum_chars": 1943,
+          "gold_chars": 1943,
+          "gold_spans": 260,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 7303,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 260,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 1048,
+          "raw_detection_classification": {
+            "exact_correct_label": 252,
+            "exact_different_label": 6,
+            "fully_covered_nonexact": 2,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 252,
+            "exact_different_label_only_different_label_overlap": 6,
+            "fully_covered_nonexact_correct_label_overlap": 1,
+            "fully_covered_nonexact_only_different_label_overlap": 1
+          },
+          "rows": 260,
+          "text_chars": 16190,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "TELEPHONENUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 423,
+          "covered_gold_chars": 547,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 120,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 423,
+          "gold_chars": 547,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1104,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 120,
+          "raw_detection_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 40
+          },
+          "rows": 40,
+          "text_chars": 2656,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "USERNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 38,
+          "covered_gold_alnum_chars": 456,
+          "covered_gold_chars": 480,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 24,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 14,
+            "partially_covered": 2,
+            "untouched": 0
+          },
+          "final_mask_entities": 134,
+          "fully_masked_positive_rows": 38,
+          "gold_alnum_chars": 467,
+          "gold_chars": 491,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 2,
+          "leaked_gold_alnum_chars": 11,
+          "masked_chars": 1037,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 2,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.95,
+            "covered_original_gold_chars": 0.9775967413441955,
+            "fully_masked_positive_rows": 0.95,
+            "leaked_gold_alnum_chars": 0.023554603854389723
+          },
+          "raw_detection_candidates": 134,
+          "raw_detection_classification": {
+            "exact_correct_label": 24,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 14,
+            "partially_covered": 2,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 24,
+            "fully_covered_nonexact_correct_label_overlap": 14,
+            "partially_covered_correct_label_overlap": 2
+          },
+          "rows": 40,
+          "text_chars": 2220,
+          "uncovered_gold_chars": 11,
+          "untouched_gold_spans": 0
+        },
+        "ZIPCODE": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 208,
+          "covered_gold_chars": 216,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 260,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 208,
+          "gold_chars": 216,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1645,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 260,
+          "raw_detection_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 40
+          },
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        }
+      },
+      "per_language": {
+        "de": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 184,
+          "covered_gold_alnum_chars": 1489,
+          "covered_gold_chars": 1523,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 145,
+            "exact_different_label": 14,
+            "fully_covered_nonexact": 25,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 217,
+          "fully_masked_positive_rows": 56,
+          "gold_alnum_chars": 1489,
+          "gold_chars": 1523,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1523,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 217,
+          "raw_detection_classification": {
+            "exact_correct_label": 145,
+            "exact_different_label": 14,
+            "fully_covered_nonexact": 25,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 145,
+            "exact_different_label_only_different_label_overlap": 14,
+            "fully_covered_nonexact_correct_label_overlap": 20,
+            "fully_covered_nonexact_only_different_label_overlap": 5
+          },
+          "rows": 56,
+          "text_chars": 3555,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "en": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 183,
+          "covered_gold_alnum_chars": 1436,
+          "covered_gold_chars": 1488,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 150,
+            "exact_different_label": 15,
+            "fully_covered_nonexact": 18,
+            "partially_covered": 1,
+            "untouched": 0
+          },
+          "final_mask_entities": 206,
+          "fully_masked_positive_rows": 55,
+          "gold_alnum_chars": 1441,
+          "gold_chars": 1493,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 1,
+          "leaked_gold_alnum_chars": 5,
+          "masked_chars": 1488,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 1,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.9945652173913043,
+            "covered_original_gold_chars": 0.9966510381781648,
+            "fully_masked_positive_rows": 0.9821428571428571,
+            "leaked_gold_alnum_chars": 0.0034698126301179735
+          },
+          "raw_detection_candidates": 206,
+          "raw_detection_classification": {
+            "exact_correct_label": 150,
+            "exact_different_label": 15,
+            "fully_covered_nonexact": 18,
+            "partially_covered": 1,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 150,
+            "exact_different_label_only_different_label_overlap": 15,
+            "fully_covered_nonexact_correct_label_overlap": 12,
+            "fully_covered_nonexact_only_different_label_overlap": 6,
+            "partially_covered_correct_label_overlap": 1
+          },
+          "rows": 56,
+          "text_chars": 3241,
+          "uncovered_gold_chars": 5,
+          "untouched_gold_spans": 0
+        },
+        "es": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 183,
+          "covered_gold_alnum_chars": 1394,
+          "covered_gold_chars": 1454,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 152,
+            "exact_different_label": 9,
+            "fully_covered_nonexact": 22,
+            "partially_covered": 1,
+            "untouched": 0
+          },
+          "final_mask_entities": 223,
+          "fully_masked_positive_rows": 55,
+          "gold_alnum_chars": 1400,
+          "gold_chars": 1460,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 1,
+          "leaked_gold_alnum_chars": 6,
+          "masked_chars": 1454,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 1,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.9945652173913043,
+            "covered_original_gold_chars": 0.9958904109589041,
+            "fully_masked_positive_rows": 0.9821428571428571,
+            "leaked_gold_alnum_chars": 0.004285714285714286
+          },
+          "raw_detection_candidates": 223,
+          "raw_detection_classification": {
+            "exact_correct_label": 152,
+            "exact_different_label": 9,
+            "fully_covered_nonexact": 22,
+            "partially_covered": 1,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 152,
+            "exact_different_label_only_different_label_overlap": 9,
+            "fully_covered_nonexact_correct_label_overlap": 17,
+            "fully_covered_nonexact_only_different_label_overlap": 5,
+            "partially_covered_correct_label_overlap": 1
+          },
+          "rows": 56,
+          "text_chars": 3300,
+          "uncovered_gold_chars": 6,
+          "untouched_gold_spans": 0
+        },
+        "fr": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 184,
+          "covered_gold_alnum_chars": 1411,
+          "covered_gold_chars": 1477,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 153,
+            "exact_different_label": 12,
+            "fully_covered_nonexact": 19,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 208,
+          "fully_masked_positive_rows": 56,
+          "gold_alnum_chars": 1411,
+          "gold_chars": 1477,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1477,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 208,
+          "raw_detection_classification": {
+            "exact_correct_label": 153,
+            "exact_different_label": 12,
+            "fully_covered_nonexact": 19,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 153,
+            "exact_different_label_only_different_label_overlap": 12,
+            "fully_covered_nonexact_correct_label_overlap": 13,
+            "fully_covered_nonexact_only_different_label_overlap": 6
+          },
+          "rows": 56,
+          "text_chars": 3345,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "it": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 184,
+          "covered_gold_alnum_chars": 1441,
+          "covered_gold_chars": 1488,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 150,
+            "exact_different_label": 13,
+            "fully_covered_nonexact": 21,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 214,
+          "fully_masked_positive_rows": 56,
+          "gold_alnum_chars": 1441,
+          "gold_chars": 1488,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1488,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 214,
+          "raw_detection_classification": {
+            "exact_correct_label": 150,
+            "exact_different_label": 13,
+            "fully_covered_nonexact": 21,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 150,
+            "exact_different_label_only_different_label_overlap": 13,
+            "fully_covered_nonexact_correct_label_overlap": 15,
+            "fully_covered_nonexact_only_different_label_overlap": 6
+          },
+          "rows": 56,
+          "text_chars": 3312,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        }
+      }
+    },
+    "mbert": {
+      "overall": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 918,
+        "covered_gold_alnum_chars": 7171,
+        "covered_gold_chars": 7430,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 750,
+          "exact_different_label": 63,
+          "fully_covered_nonexact": 105,
+          "partially_covered": 2,
+          "untouched": 0
+        },
+        "final_mask_entities": 1068,
+        "fully_masked_positive_rows": 278,
+        "gold_alnum_chars": 7182,
+        "gold_chars": 7441,
+        "gold_spans": 920,
+        "gold_spans_with_alnum_leakage": 2,
+        "leaked_gold_alnum_chars": 11,
+        "masked_chars": 7430,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 2,
+        "positive_rows": 280,
+        "ratios": {
+          "complete_gold_spans": 0.9978260869565218,
+          "covered_original_gold_chars": 0.9985217040720333,
+          "fully_masked_positive_rows": 0.9928571428571429,
+          "leaked_gold_alnum_chars": 0.0015316067947646894
+        },
+        "raw_detection_candidates": 1068,
+        "raw_detection_classification": {
+          "exact_correct_label": 750,
+          "exact_different_label": 63,
+          "fully_covered_nonexact": 105,
+          "partially_covered": 2,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_correct_label_correct_label_overlap": 750,
+          "exact_different_label_only_different_label_overlap": 63,
+          "fully_covered_nonexact_correct_label_overlap": 77,
+          "fully_covered_nonexact_only_different_label_overlap": 28,
+          "partially_covered_correct_label_overlap": 2
+        },
+        "rows": 280,
+        "text_chars": 16753,
+        "uncovered_gold_chars": 11,
+        "untouched_gold_spans": 0
+      },
+      "per_gold_label": {
+        "ACCOUNTNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 375,
+          "covered_gold_chars": 399,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 10,
+            "fully_covered_nonexact": 30,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 160,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 375,
+          "gold_chars": 399,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 951,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 160,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 10,
+            "fully_covered_nonexact": 30,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_different_label_only_different_label_overlap": 10,
+            "fully_covered_nonexact_correct_label_overlap": 24,
+            "fully_covered_nonexact_only_different_label_overlap": 6
+          },
+          "rows": 40,
+          "text_chars": 2375,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "BUILDINGNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 111,
+          "covered_gold_chars": 111,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 24,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 16,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 260,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 111,
+          "gold_chars": 111,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1645,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 260,
+          "raw_detection_classification": {
+            "exact_correct_label": 24,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 16,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 24,
+            "fully_covered_nonexact_correct_label_overlap": 16
+          },
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "CITY": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 209,
+          "covered_gold_chars": 209,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 260,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 209,
+          "gold_chars": 209,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1645,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 260,
+          "raw_detection_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 40
+          },
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "DRIVERLICENSENUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 20,
+          "covered_gold_alnum_chars": 200,
+          "covered_gold_chars": 220,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 16,
+            "fully_covered_nonexact": 4,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 90,
+          "fully_masked_positive_rows": 20,
+          "gold_alnum_chars": 200,
+          "gold_chars": 220,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 699,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 90,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 16,
+            "fully_covered_nonexact": 4,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_different_label_only_different_label_overlap": 16,
+            "fully_covered_nonexact_only_different_label_overlap": 4
+          },
+          "rows": 20,
+          "text_chars": 1627,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "GIVENNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 280,
+          "covered_gold_alnum_chars": 1793,
+          "covered_gold_chars": 1793,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 266,
+            "exact_different_label": 11,
+            "fully_covered_nonexact": 3,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 1068,
+          "fully_masked_positive_rows": 280,
+          "gold_alnum_chars": 1793,
+          "gold_chars": 1793,
+          "gold_spans": 280,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 7430,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 280,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 1068,
+          "raw_detection_classification": {
+            "exact_correct_label": 266,
+            "exact_different_label": 11,
+            "fully_covered_nonexact": 3,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 266,
+            "exact_different_label_only_different_label_overlap": 11,
+            "fully_covered_nonexact_correct_label_overlap": 1,
+            "fully_covered_nonexact_only_different_label_overlap": 2
+          },
+          "rows": 280,
+          "text_chars": 16753,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "IDCARDNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 20,
+          "covered_gold_alnum_chars": 200,
+          "covered_gold_chars": 200,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 20,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 90,
+          "fully_masked_positive_rows": 20,
+          "gold_alnum_chars": 200,
+          "gold_chars": 200,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 699,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 90,
+          "raw_detection_classification": {
+            "exact_correct_label": 20,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 20
+          },
+          "rows": 20,
+          "text_chars": 1627,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "PASSPORTNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 20,
+          "covered_gold_alnum_chars": 180,
+          "covered_gold_chars": 180,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 4,
+            "exact_different_label": 5,
+            "fully_covered_nonexact": 11,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 80,
+          "fully_masked_positive_rows": 20,
+          "gold_alnum_chars": 180,
+          "gold_chars": 180,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 453,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 80,
+          "raw_detection_classification": {
+            "exact_correct_label": 4,
+            "exact_different_label": 5,
+            "fully_covered_nonexact": 11,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 4,
+            "exact_different_label_only_different_label_overlap": 5,
+            "fully_covered_nonexact_correct_label_overlap": 11
+          },
+          "rows": 20,
+          "text_chars": 1137,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "PERSONALREF": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 554,
+          "covered_gold_chars": 581,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 15,
+            "fully_covered_nonexact": 25,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 164,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 554,
+          "gold_chars": 581,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1136,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 164,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 15,
+            "fully_covered_nonexact": 25,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_different_label_only_different_label_overlap": 15,
+            "fully_covered_nonexact_correct_label_overlap": 10,
+            "fully_covered_nonexact_only_different_label_overlap": 15
+          },
+          "rows": 40,
+          "text_chars": 2732,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "STREET": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 519,
+          "covered_gold_chars": 551,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 260,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 519,
+          "gold_chars": 551,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1645,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 260,
+          "raw_detection_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 40
+          },
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "SURNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 260,
+          "covered_gold_alnum_chars": 1943,
+          "covered_gold_chars": 1943,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 252,
+            "exact_different_label": 6,
+            "fully_covered_nonexact": 2,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 1048,
+          "fully_masked_positive_rows": 260,
+          "gold_alnum_chars": 1943,
+          "gold_chars": 1943,
+          "gold_spans": 260,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 7303,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 260,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 1048,
+          "raw_detection_classification": {
+            "exact_correct_label": 252,
+            "exact_different_label": 6,
+            "fully_covered_nonexact": 2,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 252,
+            "exact_different_label_only_different_label_overlap": 6,
+            "fully_covered_nonexact_correct_label_overlap": 1,
+            "fully_covered_nonexact_only_different_label_overlap": 1
+          },
+          "rows": 260,
+          "text_chars": 16190,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "TELEPHONENUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 423,
+          "covered_gold_chars": 547,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 120,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 423,
+          "gold_chars": 547,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1104,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 120,
+          "raw_detection_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 40
+          },
+          "rows": 40,
+          "text_chars": 2656,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "USERNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 38,
+          "covered_gold_alnum_chars": 456,
+          "covered_gold_chars": 480,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 24,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 14,
+            "partially_covered": 2,
+            "untouched": 0
+          },
+          "final_mask_entities": 134,
+          "fully_masked_positive_rows": 38,
+          "gold_alnum_chars": 467,
+          "gold_chars": 491,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 2,
+          "leaked_gold_alnum_chars": 11,
+          "masked_chars": 1037,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 2,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.95,
+            "covered_original_gold_chars": 0.9775967413441955,
+            "fully_masked_positive_rows": 0.95,
+            "leaked_gold_alnum_chars": 0.023554603854389723
+          },
+          "raw_detection_candidates": 134,
+          "raw_detection_classification": {
+            "exact_correct_label": 24,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 14,
+            "partially_covered": 2,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 24,
+            "fully_covered_nonexact_correct_label_overlap": 14,
+            "partially_covered_correct_label_overlap": 2
+          },
+          "rows": 40,
+          "text_chars": 2220,
+          "uncovered_gold_chars": 11,
+          "untouched_gold_spans": 0
+        },
+        "ZIPCODE": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 40,
+          "covered_gold_alnum_chars": 208,
+          "covered_gold_chars": 216,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 260,
+          "fully_masked_positive_rows": 40,
+          "gold_alnum_chars": 208,
+          "gold_chars": 216,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1645,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 260,
+          "raw_detection_classification": {
+            "exact_correct_label": 40,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 40
+          },
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        }
+      },
+      "per_language": {
+        "de": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 184,
+          "covered_gold_alnum_chars": 1489,
+          "covered_gold_chars": 1523,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 145,
+            "exact_different_label": 14,
+            "fully_covered_nonexact": 25,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 217,
+          "fully_masked_positive_rows": 56,
+          "gold_alnum_chars": 1489,
+          "gold_chars": 1523,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1523,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 217,
+          "raw_detection_classification": {
+            "exact_correct_label": 145,
+            "exact_different_label": 14,
+            "fully_covered_nonexact": 25,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 145,
+            "exact_different_label_only_different_label_overlap": 14,
+            "fully_covered_nonexact_correct_label_overlap": 20,
+            "fully_covered_nonexact_only_different_label_overlap": 5
+          },
+          "rows": 56,
+          "text_chars": 3555,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "en": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 183,
+          "covered_gold_alnum_chars": 1436,
+          "covered_gold_chars": 1488,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 150,
+            "exact_different_label": 15,
+            "fully_covered_nonexact": 18,
+            "partially_covered": 1,
+            "untouched": 0
+          },
+          "final_mask_entities": 206,
+          "fully_masked_positive_rows": 55,
+          "gold_alnum_chars": 1441,
+          "gold_chars": 1493,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 1,
+          "leaked_gold_alnum_chars": 5,
+          "masked_chars": 1488,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 1,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.9945652173913043,
+            "covered_original_gold_chars": 0.9966510381781648,
+            "fully_masked_positive_rows": 0.9821428571428571,
+            "leaked_gold_alnum_chars": 0.0034698126301179735
+          },
+          "raw_detection_candidates": 206,
+          "raw_detection_classification": {
+            "exact_correct_label": 150,
+            "exact_different_label": 15,
+            "fully_covered_nonexact": 18,
+            "partially_covered": 1,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 150,
+            "exact_different_label_only_different_label_overlap": 15,
+            "fully_covered_nonexact_correct_label_overlap": 12,
+            "fully_covered_nonexact_only_different_label_overlap": 6,
+            "partially_covered_correct_label_overlap": 1
+          },
+          "rows": 56,
+          "text_chars": 3241,
+          "uncovered_gold_chars": 5,
+          "untouched_gold_spans": 0
+        },
+        "es": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 183,
+          "covered_gold_alnum_chars": 1394,
+          "covered_gold_chars": 1454,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 152,
+            "exact_different_label": 9,
+            "fully_covered_nonexact": 22,
+            "partially_covered": 1,
+            "untouched": 0
+          },
+          "final_mask_entities": 223,
+          "fully_masked_positive_rows": 55,
+          "gold_alnum_chars": 1400,
+          "gold_chars": 1460,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 1,
+          "leaked_gold_alnum_chars": 6,
+          "masked_chars": 1454,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 1,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.9945652173913043,
+            "covered_original_gold_chars": 0.9958904109589041,
+            "fully_masked_positive_rows": 0.9821428571428571,
+            "leaked_gold_alnum_chars": 0.004285714285714286
+          },
+          "raw_detection_candidates": 223,
+          "raw_detection_classification": {
+            "exact_correct_label": 152,
+            "exact_different_label": 9,
+            "fully_covered_nonexact": 22,
+            "partially_covered": 1,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 152,
+            "exact_different_label_only_different_label_overlap": 9,
+            "fully_covered_nonexact_correct_label_overlap": 17,
+            "fully_covered_nonexact_only_different_label_overlap": 5,
+            "partially_covered_correct_label_overlap": 1
+          },
+          "rows": 56,
+          "text_chars": 3300,
+          "uncovered_gold_chars": 6,
+          "untouched_gold_spans": 0
+        },
+        "fr": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 184,
+          "covered_gold_alnum_chars": 1411,
+          "covered_gold_chars": 1477,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 153,
+            "exact_different_label": 12,
+            "fully_covered_nonexact": 19,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 208,
+          "fully_masked_positive_rows": 56,
+          "gold_alnum_chars": 1411,
+          "gold_chars": 1477,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1477,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 208,
+          "raw_detection_classification": {
+            "exact_correct_label": 153,
+            "exact_different_label": 12,
+            "fully_covered_nonexact": 19,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 153,
+            "exact_different_label_only_different_label_overlap": 12,
+            "fully_covered_nonexact_correct_label_overlap": 13,
+            "fully_covered_nonexact_only_different_label_overlap": 6
+          },
+          "rows": 56,
+          "text_chars": 3345,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        },
+        "it": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 184,
+          "covered_gold_alnum_chars": 1441,
+          "covered_gold_chars": 1488,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 150,
+            "exact_different_label": 13,
+            "fully_covered_nonexact": 21,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "final_mask_entities": 214,
+          "fully_masked_positive_rows": 56,
+          "gold_alnum_chars": 1441,
+          "gold_chars": 1488,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 0,
+          "leaked_gold_alnum_chars": 0,
+          "masked_chars": 1488,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 1.0,
+            "covered_original_gold_chars": 1.0,
+            "fully_masked_positive_rows": 1.0,
+            "leaked_gold_alnum_chars": 0.0
+          },
+          "raw_detection_candidates": 214,
+          "raw_detection_classification": {
+            "exact_correct_label": 150,
+            "exact_different_label": 13,
+            "fully_covered_nonexact": 21,
+            "partially_covered": 0,
+            "untouched": 0
+          },
+          "raw_label_overlap_diagnostic": {
+            "exact_correct_label_correct_label_overlap": 150,
+            "exact_different_label_only_different_label_overlap": 13,
+            "fully_covered_nonexact_correct_label_overlap": 15,
+            "fully_covered_nonexact_only_different_label_overlap": 6
+          },
+          "rows": 56,
+          "text_chars": 3312,
+          "uncovered_gold_chars": 0,
+          "untouched_gold_spans": 0
+        }
+      }
+    },
+    "regex": {
+      "overall": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 0,
+        "covered_gold_alnum_chars": 0,
+        "covered_gold_chars": 0,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 920
+        },
+        "final_mask_entities": 0,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 7182,
+        "gold_chars": 7441,
+        "gold_spans": 920,
+        "gold_spans_with_alnum_leakage": 920,
+        "leaked_gold_alnum_chars": 7182,
+        "masked_chars": 0,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 0,
+        "positive_rows": 280,
+        "ratios": {
+          "complete_gold_spans": 0.0,
+          "covered_original_gold_chars": 0.0,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 1.0
+        },
+        "raw_detection_candidates": 0,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 920
+        },
+        "raw_label_overlap_diagnostic": {},
+        "rows": 280,
+        "text_chars": 16753,
+        "uncovered_gold_chars": 7441,
+        "untouched_gold_spans": 920
+      },
+      "per_gold_label": {
+        "ACCOUNTNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 375,
+          "gold_chars": 399,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 40,
+          "leaked_gold_alnum_chars": 375,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 40,
+          "text_chars": 2375,
+          "uncovered_gold_chars": 399,
+          "untouched_gold_spans": 40
+        },
+        "BUILDINGNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 111,
+          "gold_chars": 111,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 40,
+          "leaked_gold_alnum_chars": 111,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 111,
+          "untouched_gold_spans": 40
+        },
+        "CITY": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 209,
+          "gold_chars": 209,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 40,
+          "leaked_gold_alnum_chars": 209,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 209,
+          "untouched_gold_spans": 40
+        },
+        "DRIVERLICENSENUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 20
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 200,
+          "gold_chars": 220,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 20,
+          "leaked_gold_alnum_chars": 200,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 20
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 20,
+          "text_chars": 1627,
+          "uncovered_gold_chars": 220,
+          "untouched_gold_spans": 20
+        },
+        "GIVENNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 280
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 1793,
+          "gold_chars": 1793,
+          "gold_spans": 280,
+          "gold_spans_with_alnum_leakage": 280,
+          "leaked_gold_alnum_chars": 1793,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 280,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 280
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 280,
+          "text_chars": 16753,
+          "uncovered_gold_chars": 1793,
+          "untouched_gold_spans": 280
+        },
+        "IDCARDNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 20
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 200,
+          "gold_chars": 200,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 20,
+          "leaked_gold_alnum_chars": 200,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 20
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 20,
+          "text_chars": 1627,
+          "uncovered_gold_chars": 200,
+          "untouched_gold_spans": 20
+        },
+        "PASSPORTNUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 20
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 180,
+          "gold_chars": 180,
+          "gold_spans": 20,
+          "gold_spans_with_alnum_leakage": 20,
+          "leaked_gold_alnum_chars": 180,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 20,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 20
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 20,
+          "text_chars": 1137,
+          "uncovered_gold_chars": 180,
+          "untouched_gold_spans": 20
+        },
+        "PERSONALREF": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 554,
+          "gold_chars": 581,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 40,
+          "leaked_gold_alnum_chars": 554,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 40,
+          "text_chars": 2732,
+          "uncovered_gold_chars": 581,
+          "untouched_gold_spans": 40
+        },
+        "STREET": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 519,
+          "gold_chars": 551,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 40,
+          "leaked_gold_alnum_chars": 519,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 551,
+          "untouched_gold_spans": 40
+        },
+        "SURNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 260
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 1943,
+          "gold_chars": 1943,
+          "gold_spans": 260,
+          "gold_spans_with_alnum_leakage": 260,
+          "leaked_gold_alnum_chars": 1943,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 260,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 260
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 260,
+          "text_chars": 16190,
+          "uncovered_gold_chars": 1943,
+          "untouched_gold_spans": 260
+        },
+        "TELEPHONENUM": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 423,
+          "gold_chars": 547,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 40,
+          "leaked_gold_alnum_chars": 423,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 40,
+          "text_chars": 2656,
+          "uncovered_gold_chars": 547,
+          "untouched_gold_spans": 40
+        },
+        "USERNAME": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 467,
+          "gold_chars": 491,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 40,
+          "leaked_gold_alnum_chars": 467,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 40,
+          "text_chars": 2220,
+          "uncovered_gold_chars": 491,
+          "untouched_gold_spans": 40
+        },
+        "ZIPCODE": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 208,
+          "gold_chars": 216,
+          "gold_spans": 40,
+          "gold_spans_with_alnum_leakage": 40,
+          "leaked_gold_alnum_chars": 208,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 40,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 40
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 40,
+          "text_chars": 2781,
+          "uncovered_gold_chars": 216,
+          "untouched_gold_spans": 40
+        }
+      },
+      "per_language": {
+        "de": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 1489,
+          "gold_chars": 1523,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 184,
+          "leaked_gold_alnum_chars": 1489,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 56,
+          "text_chars": 3555,
+          "uncovered_gold_chars": 1523,
+          "untouched_gold_spans": 184
+        },
+        "en": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 1441,
+          "gold_chars": 1493,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 184,
+          "leaked_gold_alnum_chars": 1441,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 56,
+          "text_chars": 3241,
+          "uncovered_gold_chars": 1493,
+          "untouched_gold_spans": 184
+        },
+        "es": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 1400,
+          "gold_chars": 1460,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 184,
+          "leaked_gold_alnum_chars": 1400,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 56,
+          "text_chars": 3300,
+          "uncovered_gold_chars": 1460,
+          "untouched_gold_spans": 184
+        },
+        "fr": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 1411,
+          "gold_chars": 1477,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 184,
+          "leaked_gold_alnum_chars": 1411,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 56,
+          "text_chars": 3345,
+          "uncovered_gold_chars": 1477,
+          "untouched_gold_spans": 184
+        },
+        "it": {
+          "clean_controls": {
+            "completeness_ratio": null,
+            "masked_chars": 0,
+            "masked_rows": 0,
+            "rows": 0,
+            "text_chars": 0
+          },
+          "complete_gold_spans": 0,
+          "covered_gold_alnum_chars": 0,
+          "covered_gold_chars": 0,
+          "excess_masked_chars": 0,
+          "final_mask_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "final_mask_entities": 0,
+          "fully_masked_positive_rows": 0,
+          "gold_alnum_chars": 1441,
+          "gold_chars": 1488,
+          "gold_spans": 184,
+          "gold_spans_with_alnum_leakage": 184,
+          "leaked_gold_alnum_chars": 1441,
+          "masked_chars": 0,
+          "nonalnum_only_incomplete_gold_spans": 0,
+          "partial_gold_spans": 0,
+          "positive_rows": 56,
+          "ratios": {
+            "complete_gold_spans": 0.0,
+            "covered_original_gold_chars": 0.0,
+            "fully_masked_positive_rows": 0.0,
+            "leaked_gold_alnum_chars": 1.0
+          },
+          "raw_detection_candidates": 0,
+          "raw_detection_classification": {
+            "exact_correct_label": 0,
+            "exact_different_label": 0,
+            "fully_covered_nonexact": 0,
+            "partially_covered": 0,
+            "untouched": 184
+          },
+          "raw_label_overlap_diagnostic": {},
+          "rows": 56,
+          "text_chars": 3312,
+          "uncovered_gold_chars": 1488,
+          "untouched_gold_spans": 184
+        }
+      }
+    }
+  },
+  "manifest_sha256": "0c10e342180fc9bc72831e6f487db29fc86dd13b7bf60d5ec037be2222ef3304",
+  "model_sha256": "0058a5c93c2ef14c5f65daf8ae8afc061851acf8d5cf5d52ba0342f578d9cac9",
+  "rows_evaluated": 280,
+  "scorer_version": "masking-union-v1",
+  "scoring_scope": "development_diagnostic",
+  "test_evaluated": false,
+  "training": false
+}

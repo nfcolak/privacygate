@@ -1,0 +1,17 @@
+{
+  "bindings_unchanged": true,
+  "device": "mps",
+  "manifest_sha256": "0c10e342180fc9bc72831e6f487db29fc86dd13b7bf60d5ec037be2222ef3304",
+  "metrics_sha256": "0396fe962f59ccbff9b373a302cb319c4345099e0ee0d8c97060a51eaac47921",
+  "model_forward_sweeps_completed": 1,
+  "model_forward_sweeps_started": 1,
+  "rows_requested": 280,
+  "rows_scored": 280,
+  "scoring_elapsed_s": 12.105087,
+  "scoring_scope": "development_diagnostic",
+  "stage": "complete",
+  "status": "complete",
+  "summary_sha256": "8b1f19b4bb6835961217002494ff880849666fa52e97a8843121ecef44a2563b",
+  "test_evaluated": false,
+  "training": false
+}
