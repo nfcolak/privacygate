@@ -1,0 +1,134 @@
+{
+  "dataset_sha256": "b901873cbdd3715aaae2c78477193fecb3fd47410344fdb240ce75abdbfb6cbf",
+  "definitions": {
+    "beyond_end": "Gold start >= greatest actual window token end; no per-example offsets or values emitted.",
+    "token_overlap": "Any actual non-special offset intersects the gold interval; not masking success.",
+    "untruncated": "Same cached tokenizer, truncation=False, diagnostic only; actual scorer keeps unchanged mbert_data.encode."
+  },
+  "diagnosis_version": "stress-token-offset-extent-v1",
+  "input_modification": false,
+  "long_encoded_final_token_end": {
+    "max": 2553,
+    "min": 2013
+  },
+  "long_untruncated_content_tokens": {
+    "max": 2202,
+    "min": 1671
+  },
+  "model_forward_sweeps": 0,
+  "model_loaded": false,
+  "overall": {
+    "encoded_window_content_tokens_including_overlap": 6420,
+    "gold_spans": 370,
+    "gold_spans_beyond_final_token_end": 39,
+    "gold_spans_with_any_token_overlap": 331,
+    "gold_spans_without_token_overlap": 39,
+    "rows": 110,
+    "rows_with_final_token_before_text_end": 10,
+    "untruncated_content_tokens": 20198,
+    "untruncated_gold_spans_without_token_overlap": 0
+  },
+  "per_family": {
+    "account": {
+      "gold_spans": 20,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 20,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "clean": {
+      "gold_spans": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "full_address": {
+      "gold_spans": 20,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 20,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "identity": {
+      "gold_spans": 40,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 40,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "long_text": {
+      "encoded_window_content_tokens_including_overlap": 6420,
+      "gold_spans": 60,
+      "gold_spans_beyond_final_token_end": 39,
+      "gold_spans_with_any_token_overlap": 21,
+      "gold_spans_without_token_overlap": 39,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 10,
+      "untruncated_content_tokens": 20198,
+      "untruncated_gold_spans_without_token_overlap": 0
+    },
+    "multiple_entities": {
+      "gold_spans": 70,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 70,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "names": {
+      "gold_spans": 30,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 30,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "personalref": {
+      "gold_spans": 20,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 20,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "phone": {
+      "gold_spans": 20,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 20,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "repeated_values": {
+      "gold_spans": 70,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 70,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    },
+    "username": {
+      "gold_spans": 20,
+      "gold_spans_beyond_final_token_end": 0,
+      "gold_spans_with_any_token_overlap": 20,
+      "gold_spans_without_token_overlap": 0,
+      "rows": 10,
+      "rows_with_final_token_before_text_end": 0
+    }
+  },
+  "predictions_consulted": false,
+  "preflight_source_sha256": "e7c122f85e1c41345821e3b5318c9a3924aef34c2bfaae294cd312effe6296da",
+  "source_sha256": {
+    "docs/masking-stress/manifest.json": "44695205ff103c5f9b2c7e5036a14b9666fb1dba465738a08ff9b1f8a90206af",
+    "privacygate/detect.py": "9bc3f19664a24404e673e214fc5d20f236df3e0001ec57e53075a778589d7c15",
+    "privacygate/hybrid.py": "f36224689c6b98ca953fb83548f0e3c0bbf9165298b384fffc1b2c6eaf3fd2a4",
+    "privacygate/inference.py": "45b3686d8139767a9e0c03c38741dfbfaa0c92d01fef90e10ca29d3df465d27f",
+    "privacygate/masking_metrics.py": "5667319e84d41490c09c6d014a0e37ce7fb9df1d13514edc280aba0d7f0fdf81",
+    "privacygate/mbert_data.py": "c0660d04b127426aafa5b79145ba7e89a0cddfd8d96003fa5723ee4b8d2eef4c",
+    "privacygate/positive_data.py": "3fe6f75c77d615315986e2222d912fa824b00005072d7b10af3649080153a5be",
+    "scripts/make_masking_stress.py": "167906957660c8d4e339f1658cce7347e112bcda688edf2462a3f65198f2a14b",
+    "scripts/measure_masking.py": "9dd606a3fb9df31d09b4b2138aba8d77b015c63e4a9edc3fdf5b1f400706829c"
+  }
+}

@@ -20,7 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from privacygate import hybrid, inference, mbert_data, positive_data
 from privacygate.masking_metrics import (
-    Aggregate, CLASSES, DEFINITIONS, EngineAggregate, LABELS, MaskingError,
+    Aggregate, CLASSES, DEFINITIONS, EngineAggregate, GOLD_DIAGNOSTIC_LABELS,
+    LABELS, MaskingError, STRESS_FAMILIES,
     SCORER_VERSION, count_chars, intersection, interval_union, validate_spans,
 )
 
@@ -28,10 +29,13 @@ EXPECTED_MODEL = "0058a5c93c2ef14c5f65daf8ae8afc061851acf8d5cf5d52ba0342f578d9ca
 EXPECTED_POSITIVE = "7cc5c56f555021d135118e9e6b772e5fe8271cf887ddba3aa38530f3ac777a42"
 ENGINES = ("regex", "mbert", "hybrid_union")
 STRESS_KEYS = frozenset({"case_id", "language", "family", "text", "gold", "split"})
+STRESS_MAX_CHARS = 12000  # Frozen stress generator cap; positive_data limits unchanged.
+EXPECTED_STRESS = "b901873cbdd3715aaae2c78477193fecb3fd47410344fdb240ce75abdbfb6cbf"
 SOURCES = (
     "privacygate/masking_metrics.py", "scripts/measure_masking.py",
     "privacygate/hybrid.py", "privacygate/inference.py", "privacygate/detect.py",
     "privacygate/mbert_data.py", "privacygate/positive_data.py",
+    "scripts/make_masking_stress.py", "docs/masking-stress/manifest.json",
 )
 TOKENIZER_FILES = ("config.json", "tokenizer.json", "tokenizer_config.json", "vocab.txt")
 SCOPE = {"test_evaluated": False, "training": False, "scoring_scope": "development_diagnostic"}
@@ -70,9 +74,9 @@ def check_stress_rows(rows):
             raise MaskingError("stress_language")
         if not row["case_id"] or len(row["case_id"]) > positive_data.MAX_ID_CHARS or row["case_id"] in ids:
             raise MaskingError("stress_case_id")
-        if not row["family"] or len(row["family"]) > positive_data.MAX_ID_CHARS:
+        if row["family"] not in STRESS_FAMILIES:
             raise MaskingError("stress_family")
-        if not row["text"].strip() or len(row["text"]) > positive_data.MAX_CHARS:
+        if not row["text"].strip() or len(row["text"]) > STRESS_MAX_CHARS:
             raise MaskingError("stress_text_bounds")
         gold = row["gold"]
         if not isinstance(gold, list) or len(gold) > positive_data.MAX_ANNOTATIONS:
@@ -80,6 +84,8 @@ def check_stress_rows(rows):
         if any(not isinstance(span, dict) or span.keys() != positive_data.MASK_KEYS for span in gold):
             raise MaskingError("stress_gold_schema")
         validate_spans(gold, len(row["text"]), gold=True)
+        if (row["family"] == "clean") != (not gold):
+            raise MaskingError("stress_clean_family")
         ids.add(row["case_id"])
 
 
@@ -97,7 +103,7 @@ def load_dataset(path, format_name):
         rows, binding = positive_data.load_positive_file(path, allowed_split="dev")
         if binding["sha256"] != EXPECTED_POSITIVE or len(rows) != 280:
             raise MaskingError("mask_positive_binding")
-        return [(row["source_text"], row["privacy_mask"], row["language"]) for row in rows], binding
+        return [(row["source_text"], row["privacy_mask"], row["language"], None) for row in rows], binding
     raw = positive_data._read_bounded(path)
     lines = [line for line in raw.split(b"\n") if line.strip()]
     if not lines or len(lines) > positive_data.MAX_ROWS:
@@ -116,8 +122,13 @@ def load_dataset(path, format_name):
         "per_language": {lang: sum(row["language"] == lang for row in rows) for lang in positive_data.LANGS},
         "per_label": {label: sum(g["label"] == label for row in rows for g in row["gold"]) for label in sorted({g["label"] for row in rows for g in row["gold"]})},
         "clean_rows": sum(not row["gold"] for row in rows),
+        "positive_rows": sum(bool(row["gold"]) for row in rows),
+        "gold_spans": sum(len(row["gold"]) for row in rows), "bytes": len(raw),
+        "per_family": {family: sum(row["family"] == family for row in rows) for family in sorted(STRESS_FAMILIES)},
     }
-    return [(row["text"], row["gold"], row["language"]) for row in rows], binding
+    if (binding["sha256"], binding["rows"], binding["positive_rows"], binding["clean_rows"], binding["gold_spans"], binding["bytes"]) != (EXPECTED_STRESS, 110, 100, 10, 370, 137089):
+        raise MaskingError("mask_stress_binding")
+    return [(row["text"], row["gold"], row["language"], row["family"]) for row in rows], binding
 
 
 @contextmanager
@@ -190,7 +201,7 @@ def sanity_checks():
     result = aggregate.report()
     ok(result["clean_controls"]["masked_rows"] == 1 and result["ratios"]["complete_gold_spans"] is None)
     rejects(lambda: validate_spans(gold + gold, len(text), gold=True), "mask_gold_overlap")
-    synthetic = {"case_id": "sanity", "language": "en", "family": "sanity", "text": text, "gold": [], "split": "dev"}
+    synthetic = {"case_id": "sanity", "language": "en", "family": "clean", "text": text, "gold": [], "split": "dev"}
     check_stress_rows([synthetic])
     checks += 1
     rejects(lambda: check_stress_rows([dict(synthetic, split="train")]), "stress_split")
@@ -203,6 +214,38 @@ def sanity_checks():
     checks += 1
     rejects(lambda: positive_data.check_rows([positive]), "pos_split_mismatch")
     rejects(lambda: positive_data.check_rows([dict(positive, split="test")], allowed_split="dev"), "pos_split_mismatch")
+    # Narrow stress compatibility: diagnostic labels remain GOLD-only.
+    for label in sorted(GOLD_DIAGNOSTIC_LABELS):
+        diagnostic = [dict(gold[0], label=label)]
+        validate_spans(diagnostic, len(text), gold=True)
+        checks += 1
+        rejects(lambda: validate_spans(diagnostic, len(text)), "mask_label")
+        rejects(lambda: positive_data.check_rows([dict(positive, privacy_mask=diagnostic)], allowed_split="dev"), "pos_label")
+    rejects(lambda: validate_spans([dict(gold[0], label="UNKNOWN")], len(text), gold=True), "mask_label")
+    check_stress_rows([dict(synthetic, text=text[0] * STRESS_MAX_CHARS)])
+    checks += 1
+    rejects(lambda: check_stress_rows([dict(synthetic, text=text[0] * (STRESS_MAX_CHARS + 1))]), "stress_text_bounds")
+    positive_data.check_rows([dict(positive, source_text=text[0] * positive_data.MAX_CHARS)], allowed_split="dev")
+    checks += 1
+    rejects(lambda: positive_data.check_rows([dict(positive, source_text=text[0] * (positive_data.MAX_CHARS + 1))], allowed_split="dev"), "pos_text_bounds")
+    rejects(lambda: check_stress_rows([dict(synthetic, family="UNKNOWN")]), "stress_family")
+    rejects(lambda: check_stress_rows([dict(synthetic, family="phone")]), "stress_clean_family")
+    by_family = EngineAggregate()
+    by_family.add(text, gold, "en", wrong, wrong, family="names")
+    by_family.add(text, [], "en", [], [], family="clean")
+    family_report = by_family.report()
+    ok(family_report["per_family"]["names"]["complete_gold_spans"] == 1)
+    ok(family_report["per_family"]["clean"]["clean_controls"]["rows"] == 1)
+    ok(sum(group["rows"] for group in family_report["per_family"].values()) == family_report["overall"]["rows"])
+    rejects(lambda: by_family.add(text, gold, "en", wrong, wrong, family="UNKNOWN"), "stress_family")
+    compatible = EngineAggregate()
+    compatible.add(text, gold, "en", wrong, wrong)
+    ok(compatible.report()["per_family"] == {} and compatible.report()["overall"]["complete_gold_spans"] == 1)
+    with patch.object(positive_data, "load_positive_file", return_value=([positive] * 280, {"sha256": EXPECTED_POSITIVE})) as loader:
+        loaded, _ = load_dataset("unused", "positive")
+        ok(len(loaded) == 280 and loaded[0] == (text, gold, "en", None))
+        loader.assert_called_once_with("unused", allowed_split="dev")
+        checks += 1
     # Actual run/apply_mask semantics, including overlapping labels and adjacency.
     raw = pred + [{"start": 2, "end": 4, "label": "CITY"}]
     final = inference.merge_spans(raw, len(text))
@@ -240,6 +283,10 @@ def freeze_manifest(args, dataset, checks):
     return {
         **SCOPE, "scorer_version": SCORER_VERSION, "definitions": DEFINITIONS,
         "dataset_format": args.format, "dataset": dataset, "model_sha256": EXPECTED_MODEL,
+        "schema_limits": {"stress_max_chars": STRESS_MAX_CHARS, "positive_max_chars": positive_data.MAX_CHARS,
+                          "max_file_bytes": positive_data.MAX_FILE_BYTES, "max_line_bytes": positive_data.MAX_LINE_BYTES,
+                          "max_rows": positive_data.MAX_ROWS, "max_gold_spans_per_row": positive_data.MAX_ANNOTATIONS},
+        "gold_only_diagnostic_labels": sorted(GOLD_DIAGNOSTIC_LABELS), "stress_family_allowlist": sorted(STRESS_FAMILIES),
         "checkpoint_file_sha256": model_files,
         "tokenizer": {"model_id": mbert_data.MODEL_ID, "revision": mbert_data.MODEL_REVISION, "file_sha256": tokenizer_files},
         "source_sha256": {name: sha256(ROOT / name) for name in SOURCES},
@@ -299,6 +346,10 @@ def summary_text(report):
         lines.append("  Language: complete/total; chars covered/total; alnum leaked/total; positive rows fully masked/total; partial/untouched; excess")
         for language, metrics in engine["per_language"].items():
             lines.append("  " + language + ": " + "{complete_gold_spans}/{gold_spans}; {covered_gold_chars}/{gold_chars}; {leaked_gold_alnum_chars}/{gold_alnum_chars}; {fully_masked_positive_rows}/{positive_rows}; {partial_gold_spans}/{untouched_gold_spans}; {excess_masked_chars}".format(**metrics))
+        lines.append("  Family: complete/total; chars covered/total; alnum leaked/total; positive rows fully masked/total; partial/untouched; excess; clean masked/total")
+        for family, metrics in engine["per_family"].items():
+            clean = metrics["clean_controls"]
+            lines.append("  " + family + ": " + "{complete_gold_spans}/{gold_spans}; {covered_gold_chars}/{gold_chars}; {leaked_gold_alnum_chars}/{gold_alnum_chars}; {fully_masked_positive_rows}/{positive_rows}; {partial_gold_spans}/{untouched_gold_spans}; {excess_masked_chars}".format(**metrics) + "; " + str(clean["masked_rows"]) + "/" + str(clean["rows"]))
         lines.append("")
     lines.extend(["Full aggregate counts, classifications and clean controls: metrics.json.", "Pre-scoring frozen definitions and input/checkpoint/source/tokenizer hashes: manifest.json.", "Execution receipt: receipt.json."])
     return "\n".join(lines) + "\n"
@@ -346,7 +397,7 @@ def execute(args):
             raise MaskingError("mask_prediction_count")
         receipt["stage"] = "aggregate_scoring"
         json_write(out / "receipt.json", receipt)
-        for (text, gold, language), raw, regex in zip(rows, raw_predictions, regex_predictions):
+        for (text, gold, language, family), raw, regex in zip(rows, raw_predictions, regex_predictions):
             mb = model.spans(raw, thr=0.0)
             # No prediction is selected, removed or changed using gold.
             validate_spans(regex, len(text))
@@ -358,7 +409,7 @@ def execute(args):
                 "hybrid_union": inference.merge_spans(hybrid.union(regex, mb), len(text)),
             }
             for name in ENGINES:
-                aggregates[name].add(text, gold, language, candidates[name], final[name])
+                aggregates[name].add(text, gold, language, candidates[name], final[name], family=family)
             receipt["rows_scored"] += 1
         signal.setitimer(signal.ITIMER_REAL, 0)
         receipt["scoring_elapsed_s"] = round(time.monotonic() - start, 6)

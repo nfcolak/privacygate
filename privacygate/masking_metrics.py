@@ -6,7 +6,12 @@ No text, identifiers, offsets or predicted fragments are returned by aggregate s
 from collections import Counter
 from typing import Any
 
-SCORER_VERSION = "masking-union-v1"
+SCORER_VERSION = "masking-union-v2"
+GOLD_DIAGNOSTIC_LABELS = frozenset({"ADDRESS", "PERSONNAME"})
+STRESS_FAMILIES = frozenset({
+    "names", "phone", "identity", "full_address", "username", "account",
+    "personalref", "multiple_entities", "repeated_values", "long_text", "clean",
+})
 LABELS = frozenset({
     "ACCOUNTNUM", "AGE", "BUILDINGNUM", "CITY", "CREDITCARDNUMBER", "DATE",
     "DRIVERLICENSENUM", "EMAIL", "GENDER", "GIVENNAME", "IBAN", "IDCARDNUM",
@@ -33,6 +38,9 @@ DEFINITIONS = {
     "raw_vs_final": "Raw mBERT decoded window candidates (deduplicated by hybrid.Mbert.spans); hybrid raw candidates are regex plus mBERT. Coverage uses actual CLI overlap merging, including hybrid.union then inference.merge_spans. No substring disappearance test.",
     "historical": "Not historical strict F1: exact offsets AND label are detection correctness, not class-agnostic masking coverage. No historical artifacts changed or scorer equivalence asserted.",
     "annotation_limit": "Only annotated synthetic dev spans are measured. Unannotated personal information may exist; excess is annotation-relative. Cannot establish coverage of all real personal information or complete address/person linkage.",
+    "gold_diagnostic_labels": "ADDRESS and PERSONNAME admitted for gold only; prediction LABELS unchanged, never arbitrary strings or new trained classes.",
+    "per_family": "Stress rows grouped only by the frozen 11-family allowlist; disjoint row groups, aggregate-only. Positive format has no family.",
+    "version": "v2 adds stress-only schema/length compatibility and family reporting; interval-union formulas unchanged. Historical v1 artifacts keep their original source bindings.",
 }
 
 
@@ -62,7 +70,8 @@ def validate_spans(spans, n, gold=False):
             raise MaskingError("mask_offset_type")
         if not 0 <= a < b <= n:
             raise MaskingError("mask_offset_bounds")
-        if not isinstance(span["label"], str) or span["label"] not in LABELS:
+        allowed = LABELS | GOLD_DIAGNOSTIC_LABELS if gold else LABELS
+        if not isinstance(span["label"], str) or span["label"] not in allowed:
             raise MaskingError("mask_label")
         pairs.append((a, b))
     if gold:
@@ -234,10 +243,15 @@ class EngineAggregate:
         self.overall = Aggregate()
         self.languages = {}
         self.labels = {}
+        self.families = {}
 
-    def add(self, text, gold, language, raw, final):
+    def add(self, text, gold, language, raw, final, family=None):
+        if family is not None and (not isinstance(family, str) or family not in STRESS_FAMILIES):
+            raise MaskingError("stress_family")
         self.overall.add(text, gold, raw, final)
         self.languages.setdefault(language, Aggregate()).add(text, gold, raw, final)
+        if family is not None:
+            self.families.setdefault(family, Aggregate()).add(text, gold, raw, final)
         for label in sorted({g["label"] for g in gold}):
             self.labels.setdefault(label, Aggregate()).add(text, [g for g in gold if g["label"] == label], raw, final, all_gold=gold)
 
@@ -246,4 +260,5 @@ class EngineAggregate:
             "overall": self.overall.report(),
             "per_language": {key: value.report() for key, value in sorted(self.languages.items())},
             "per_gold_label": {key: value.report() for key, value in sorted(self.labels.items())},
+            "per_family": {key: value.report() for key, value in sorted(self.families.items())},
         }

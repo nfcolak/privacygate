@@ -1,0 +1,388 @@
+{
+  "aggregate_only": true,
+  "dataset": {
+    "bytes": 137089,
+    "clean_rows": 10,
+    "gold_spans": 370,
+    "per_family": {
+      "account": 10,
+      "clean": 10,
+      "full_address": 10,
+      "identity": 10,
+      "long_text": 10,
+      "multiple_entities": 10,
+      "names": 10,
+      "personalref": 10,
+      "phone": 10,
+      "repeated_values": 10,
+      "username": 10
+    },
+    "per_label": {
+      "ACCOUNTNUM": 10,
+      "ADDRESS": 30,
+      "DRIVERLICENSENUM": 10,
+      "EMAIL": 10,
+      "IDCARDNUM": 20,
+      "PASSPORTNUM": 10,
+      "PERSONALREF": 30,
+      "PERSONNAME": 150,
+      "TELEPHONENUM": 50,
+      "USERNAME": 50
+    },
+    "per_language": {
+      "de": 22,
+      "en": 22,
+      "es": 22,
+      "fr": 22,
+      "it": 22
+    },
+    "positive_rows": 100,
+    "rows": 110,
+    "sha256": "b901873cbdd3715aaae2c78477193fecb3fd47410344fdb240ce75abdbfb6cbf",
+    "split": "dev"
+  },
+  "definitions": {
+    "containment": "A complete gold interval is between first/last non-special token offsets in at least one window. Structural containment, not masking success.",
+    "cut_crossing": "A gold interval strictly contains an actual noninitial window first-token start or a nonfinal window last-token end. Distinct spans counted once; cut incidences separately. Cuts derived from actual cached tokenizer offsets, never character-target schedules.",
+    "internal_window_cuts": "All noninitial starts plus nonfinal ends, including overlap edges; no per-example offsets emitted.",
+    "long_character_rows": "Text length >2000 original Unicode code points; original positive limit unchanged.",
+    "multiwindow_rows": "Actual pinned tokenizer encode returned more than one inference window."
+  },
+  "diagnosis_version": "stress-actual-tokenizer-boundaries-v1",
+  "existing_generator_source_bindings_verified": true,
+  "frozen_generator_manifest_sha256": "44695205ff103c5f9b2c7e5036a14b9666fb1dba465738a08ff9b1f8a90206af",
+  "long_row_characters": {
+    "max": 8752,
+    "min": 8341,
+    "rows": 10
+  },
+  "model_forward_sweeps": 0,
+  "model_loaded": false,
+  "model_sha256": "0058a5c93c2ef14c5f65daf8ae8afc061851acf8d5cf5d52ba0342f578d9cac9",
+  "original_generator_manifest_unchanged": true,
+  "overall": {
+    "gold_span_end_cut_incidences": 0,
+    "gold_span_start_cut_incidences": 0,
+    "gold_spans": 370,
+    "gold_spans_contained_in_at_least_one_window": 331,
+    "gold_spans_crossing_actual_window_cuts": 0,
+    "gold_spans_not_contained_in_any_window": 39,
+    "internal_window_cuts": 20,
+    "long_character_rows": 10,
+    "multiwindow_rows": 10,
+    "rows": 110,
+    "rows_with_actual_cut_crossings": 0,
+    "windows": 120
+  },
+  "per_family": {
+    "account": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 20,
+      "gold_spans_contained_in_at_least_one_window": 20,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "clean": {
+      "gold_spans": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "full_address": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 20,
+      "gold_spans_contained_in_at_least_one_window": 20,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "identity": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 40,
+      "gold_spans_contained_in_at_least_one_window": 40,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "long_text": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 60,
+      "gold_spans_contained_in_at_least_one_window": 21,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 39,
+      "internal_window_cuts": 20,
+      "long_character_rows": 10,
+      "multiwindow_rows": 10,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 20
+    },
+    "multiple_entities": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 70,
+      "gold_spans_contained_in_at_least_one_window": 70,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "names": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 30,
+      "gold_spans_contained_in_at_least_one_window": 30,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "personalref": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 20,
+      "gold_spans_contained_in_at_least_one_window": 20,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "phone": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 20,
+      "gold_spans_contained_in_at_least_one_window": 20,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "repeated_values": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 70,
+      "gold_spans_contained_in_at_least_one_window": 70,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    },
+    "username": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 20,
+      "gold_spans_contained_in_at_least_one_window": 20,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0,
+      "internal_window_cuts": 0,
+      "long_character_rows": 0,
+      "multiwindow_rows": 0,
+      "rows": 10,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 10
+    }
+  },
+  "per_gold_label": {
+    "ACCOUNTNUM": {
+      "gold_spans": 10,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0
+    },
+    "ADDRESS": {
+      "gold_spans": 30,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 9
+    },
+    "DRIVERLICENSENUM": {
+      "gold_spans": 10,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0
+    },
+    "EMAIL": {
+      "gold_spans": 10,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0
+    },
+    "IDCARDNUM": {
+      "gold_spans": 20,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0
+    },
+    "PASSPORTNUM": {
+      "gold_spans": 10,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0
+    },
+    "PERSONALREF": {
+      "gold_spans": 30,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 10
+    },
+    "PERSONNAME": {
+      "gold_spans": 150,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 10
+    },
+    "TELEPHONENUM": {
+      "gold_spans": 50,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 0
+    },
+    "USERNAME": {
+      "gold_spans": 50,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 10
+    }
+  },
+  "per_language": {
+    "de": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 74,
+      "gold_spans_contained_in_at_least_one_window": 66,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 8,
+      "internal_window_cuts": 4,
+      "long_character_rows": 2,
+      "multiwindow_rows": 2,
+      "rows": 22,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 24
+    },
+    "en": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 74,
+      "gold_spans_contained_in_at_least_one_window": 67,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 7,
+      "internal_window_cuts": 4,
+      "long_character_rows": 2,
+      "multiwindow_rows": 2,
+      "rows": 22,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 24
+    },
+    "es": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 74,
+      "gold_spans_contained_in_at_least_one_window": 66,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 8,
+      "internal_window_cuts": 4,
+      "long_character_rows": 2,
+      "multiwindow_rows": 2,
+      "rows": 22,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 24
+    },
+    "fr": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 74,
+      "gold_spans_contained_in_at_least_one_window": 66,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 8,
+      "internal_window_cuts": 4,
+      "long_character_rows": 2,
+      "multiwindow_rows": 2,
+      "rows": 22,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 24
+    },
+    "it": {
+      "gold_span_end_cut_incidences": 0,
+      "gold_span_start_cut_incidences": 0,
+      "gold_spans": 74,
+      "gold_spans_contained_in_at_least_one_window": 66,
+      "gold_spans_crossing_actual_window_cuts": 0,
+      "gold_spans_not_contained_in_any_window": 8,
+      "internal_window_cuts": 4,
+      "long_character_rows": 2,
+      "multiwindow_rows": 2,
+      "rows": 22,
+      "rows_with_actual_cut_crossings": 0,
+      "windows": 24
+    }
+  },
+  "predictions_consulted": false,
+  "preflight_source_sha256": "79abadf3a239fae019155b6fe85680637a2cae2be3f5a47ec7fca7efa862de30",
+  "source_sha256": {
+    "docs/masking-stress/manifest.json": "44695205ff103c5f9b2c7e5036a14b9666fb1dba465738a08ff9b1f8a90206af",
+    "privacygate/detect.py": "9bc3f19664a24404e673e214fc5d20f236df3e0001ec57e53075a778589d7c15",
+    "privacygate/hybrid.py": "f36224689c6b98ca953fb83548f0e3c0bbf9165298b384fffc1b2c6eaf3fd2a4",
+    "privacygate/inference.py": "45b3686d8139767a9e0c03c38741dfbfaa0c92d01fef90e10ca29d3df465d27f",
+    "privacygate/masking_metrics.py": "5667319e84d41490c09c6d014a0e37ce7fb9df1d13514edc280aba0d7f0fdf81",
+    "privacygate/mbert_data.py": "c0660d04b127426aafa5b79145ba7e89a0cddfd8d96003fa5723ee4b8d2eef4c",
+    "privacygate/positive_data.py": "3fe6f75c77d615315986e2222d912fa824b00005072d7b10af3649080153a5be",
+    "scripts/make_masking_stress.py": "167906957660c8d4e339f1658cce7347e112bcda688edf2462a3f65198f2a14b",
+    "scripts/measure_masking.py": "9dd606a3fb9df31d09b4b2138aba8d77b015c63e4a9edc3fdf5b1f400706829c"
+  },
+  "synthetic_only": true,
+  "template_set_sha256": "5bd7bafbc64e914ee26d06e54cc3c20a2a0f47ffc0a9dff6a670e01b14af8794",
+  "templates_frozen_before_inference": true,
+  "test_evaluated": false,
+  "tokenizer": {
+    "file_sha256": {
+      "config.json": "4d10c2021c6b5fbe8b70698abc6ccc6691dc28d1bae9732f7fa1087782feba7e",
+      "tokenizer.json": "f4a4d5bf7301717e261fafbe26e1eb967f6ba4cb3ae0ab7a29f4642ec229f386",
+      "tokenizer_config.json": "0f6d13e6f4da6f9e24f22ada6bc3be571123d858d7c0c05a8a7cd55a9c23c2e8",
+      "vocab.txt": "fe0fda7c425b48c516fc8f160d594c8022a0808447475c1a7c6d6479763f310c"
+    },
+    "model_id": "google-bert/bert-base-multilingual-cased",
+    "revision": "3f076fdb1ab68d5b2880cb87a0886f315b8146f8"
+  },
+  "training": false,
+  "window_count_histogram": {
+    "1": 100,
+    "2": 10
+  },
+  "window_policy": {
+    "max_length": 512,
+    "stride_overlap_tokens": 128
+  }
+}
