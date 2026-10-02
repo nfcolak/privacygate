@@ -1,0 +1,97 @@
+{
+  "count_inputs": {
+    "augmentation_windows_assumption": "each of the same 630 positive TRAIN and 1000 negative TRAIN rows is one retained window, as actually observed here",
+    "historical_corrected_policy_micro_dev_retained_rows_proxy": 3796,
+    "historical_corrected_policy_micro_retained_rows_proxy": 30033,
+    "historical_corrected_policy_micro_retained_windows_proxy": 30037,
+    "historical_diagnosis_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/docs/data-audit/micro/diagnosis/aggregate.json",
+    "historical_diagnosis_sha256": "c1341d7fda541ea3cb19f8ac033441dde272e6ed66675454db19fb5e8c463aee",
+    "historical_manifest_and_tokenizer_hashes_match": true,
+    "new_production_full_pass_performed": false,
+    "verified_manifest_dev_rows": 3835,
+    "verified_manifest_train_rows": 30404
+  },
+  "distribution_shift": {
+    "control_caveat": "Micro-only control has the TRAIN-discovered 39 BIO classes versus candidate 45; rate borrowed from candidate pilot is a proxy, not a measured control rate.",
+    "expanded_full_augmentation_window_fraction_proxy": 0.05147314238797486,
+    "historical_full_micro_mean_whole_row_wordpieces_including_specials": 101.8684712537824,
+    "historical_full_micro_rows_over_512": 13,
+    "length_caveat": "Pilot padded batch token lengths were not instrumented. Whole-row mean is not retained-window mean or batch maximum. collate rounds batch maximum to 64-token buckets up to 512. A much smaller short-augmentation fraction changes random-batch maxima; attention cost depends on padded length, so steps/s need not transfer. Longer windows, MPS allocation/cache, sustained thermal/power state and fresh model startup also matter.",
+    "pilot_augmentation_retained_window_fraction": 0.4516486561374342,
+    "pilot_retained_windows_minus_rows": 0
+  },
+  "full_data_definition": "all 30404 current provisional language-filtered Micro TRAIN manifest rows, NOT all publisher corpus rows or held-out rows",
+  "future_settings_assumed": {
+    "alignment_source_version": "window-alignment-v1",
+    "batch_size": 16,
+    "epochs_per_arm": 1,
+    "lr": 3e-05,
+    "max_len": 512,
+    "micro_dev_requested": 3835,
+    "positive_dev_requested_candidate_only": 280,
+    "run_identity_version": "run-identity-v3",
+    "seed": 13,
+    "window_stride_tokens": 128
+  },
+  "historical_old_alignment_sensitivity_anchor_NOT_confidence_interval": {
+    "different_old_alignment_and_head_and_duration": true,
+    "measured_rate": 0.7493875084312737,
+    "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/docs/runs/full-1/metrics.json",
+    "scenario": {
+      "candidate_optimizer_seconds": 2642.1577324458244,
+      "candidate_overhead_proxy_seconds": 41.72576119252507,
+      "candidate_wall_proxy_seconds": 2683.8834936383496,
+      "control_optimizer_seconds": 2506.0465765319486,
+      "control_overhead_proxy_seconds": 39.21083615255689,
+      "control_wall_proxy_seconds": 2545.2574126845057,
+      "matched_study_optimizer_seconds": 5148.204308977773,
+      "matched_study_wall_proxy_seconds": 5229.140906322855,
+      "rate_steps_per_second": 0.7493875084312737
+    },
+    "sha256": "40cadb68f379dde01d7dbe1068ce1ab0c61dc289bc2e698c73917c836f8a75e1",
+    "unmatched": true
+  },
+  "matched_study_definition": {
+    "candidate": "fresh pinned BASE, same Micro TRAIN plus 630 positive TRAIN and 1000 negative TRAIN, corrected protocol, one epoch; separate candidate positive-dev result",
+    "control": "fresh pinned BASE, current Micro TRAIN only, corrected protocol, one epoch; current TRAIN-only discovery; Micro dev only",
+    "historical_full_1_or_negative_pilot_rescored": false,
+    "matching_required_before_future_execution": "same seed/settings/pinned tokenizer/model revision, immutable input manifests, identical retained Micro dev ID population, identical scorer/preprocessing; record set hashes in future approved study",
+    "new_label_limit": "Control has no USERNAME/ACCOUNTNUM/PERSONALREF train labels. Unchanged trainer cannot admit positive-dev labels for that control. Compare only the identical Micro dev population; candidate positive-dev remains separate and NOT a control-vs-candidate result. No label-map override or new framework is proposed.",
+    "not_a_causal_positive_only_or_negative_only_ablation": true
+  },
+  "measured_pilot": {
+    "device": "mps",
+    "metrics_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/docs/runs/pos-neg-alignment-pilot-1002/metrics.json",
+    "metrics_sha256": "8865d54fc68c64f409bcd0e30ca5edfc1e33ba56986a166f517e2e8e5e6c0192",
+    "optimizer_seconds": 159.80232977867126,
+    "optimizer_steps": 226,
+    "steps_per_second": 1.4142472160012531,
+    "total_wall_seconds": 171.878921125,
+    "trainer_eval_time_residual_seconds": 6.960953235626221,
+    "wall_minus_optimizer_minus_trainer_eval_residual_proxy_seconds": 5.11563811070252,
+    "wall_minus_optimizer_seconds": 12.07659134632874
+  },
+  "not_authorization": true,
+  "not_reused_negative_only_estimate": true,
+  "overhead_proxy_caveat": "Trainer eval_time_s starts before train-window construction/base loading and ends after checkpoint save plus both dev calls; it is not isolated evaluation time. Linear retained-dev-row scaling also scales those non-eval costs and ignores token lengths. Separate startup/filesystem residual is likewise not an isolated profiler measurement. No confidence bound, reservation guarantee or statistical interval.",
+  "pilot_rate_extrapolation": {
+    "candidate_optimizer_seconds": 1400.0381104503058,
+    "candidate_overhead_proxy_seconds": 41.72576119252507,
+    "candidate_wall_proxy_seconds": 1441.763871642831,
+    "control_optimizer_seconds": 1327.9149350634718,
+    "control_overhead_proxy_seconds": 39.21083615255689,
+    "control_wall_proxy_seconds": 1367.1257712160286,
+    "matched_study_optimizer_seconds": 2727.9530455137774,
+    "matched_study_wall_proxy_seconds": 2808.8896428588596,
+    "rate_steps_per_second": 1.4142472160012531
+  },
+  "status": "PROVISIONAL; computation only; no full run authorized or started",
+  "steps": {
+    "expanded_candidate_steps_one_epoch": 1980,
+    "expanded_candidate_windows_proxy": 31667,
+    "formula": "epochs * ceil(retained_windows / batch_size)",
+    "matched_study_total_steps_one_epoch_each": 3858,
+    "micro_only_matched_control_steps_one_epoch": 1878,
+    "micro_only_matched_control_windows_proxy": 30037
+  }
+}

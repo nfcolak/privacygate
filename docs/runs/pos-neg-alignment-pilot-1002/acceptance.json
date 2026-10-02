@@ -1,0 +1,98 @@
+{
+  "alignment_verified": "window-alignment-v1",
+  "augmentation_hashes_unchanged": true,
+  "checkpoint_classifier_finite": true,
+  "checkpoint_payload_offsets_complete": true,
+  "classifier_label_count": 45,
+  "classifier_new_label_indices": {
+    "ACCOUNTNUM": {
+      "B": 1,
+      "I": 2
+    },
+    "PERSONALREF": {
+      "B": 25,
+      "I": 26
+    },
+    "USERNAME": {
+      "B": 41,
+      "I": 42
+    }
+  },
+  "classifier_new_label_weight_row_norms": {
+    "ACCOUNTNUM": {
+      "B": 0.5650269389152527,
+      "I": 0.570322573184967
+    },
+    "PERSONALREF": {
+      "B": 0.5425042510032654,
+      "I": 0.5641733407974243
+    },
+    "USERNAME": {
+      "B": 0.5438019037246704,
+      "I": 0.5332766175270081
+    }
+  },
+  "classifier_shapes": {
+    "classifier.bias": [
+      45
+    ],
+    "classifier.weight": [
+      45,
+      768
+    ]
+  },
+  "classifier_tensor_count": 199,
+  "complete_checkpoint_config_metrics_verified": true,
+  "dev_re_evaluated_for_reporting": false,
+  "dev_rows_evaluated": 495,
+  "dev_rows_selected": 500,
+  "filesystem_hash_evidence_is_byte_integrity_proxy_not_quality_or_privacy": true,
+  "full_training_or_repeated_pilot": false,
+  "guarantee": "None: provisional synthetic research only; publisher provenance and semantic annotation/completeness quality remain unverified; unsupported categories remain unknown.",
+  "guard_admitted_execution": true,
+  "held_out_test_access": false,
+  "identity_verified": "run-identity-v3",
+  "incumbent_rescored": false,
+  "nonzero_optimizer_steps": 226,
+  "optimizer_seconds": 159.80232977867126,
+  "pinned_cache_file_hashes_unchanged": true,
+  "positive_dev_rows_admitted": 280,
+  "positive_dev_rows_evaluated": 280,
+  "raw_byte_hashes_unchanged": true,
+  "returncode": 0,
+  "scope": "one authorized bounded local offline expanded-data corrected-alignment pilot only",
+  "smoke": {
+    "invocations": 1,
+    "passed": true,
+    "returncode": 0,
+    "stderr_suppressed": false,
+    "stdout_allowlisted": "SMOKE OK",
+    "wall_seconds": 0.11199112500071351
+  },
+  "source_code_edited": false,
+  "source_counts": {
+    "micro": {
+      "excluded_after_windowing": 21,
+      "included": 2000,
+      "retained": 1979
+    },
+    "negative": {
+      "excluded_after_windowing": 0,
+      "included": 1000,
+      "retained": 1000
+    },
+    "positive": {
+      "excluded_after_windowing": 0,
+      "included": 630,
+      "retained": 630
+    }
+  },
+  "source_hashes_unchanged": true,
+  "status": "DONE",
+  "steps_per_second": 1.4142472160012531,
+  "test_evaluated": false,
+  "timed_out": false,
+  "timeout_seconds": 360,
+  "total_wall_seconds": 171.878921125,
+  "trainer_invocations": 1
+}
