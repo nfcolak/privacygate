@@ -1,0 +1,756 @@
+{
+  "counts": {
+    "checksum_invalid_personal_reference_occurrences": 15,
+    "clean_rows": 10,
+    "gold_original_characters": 9130,
+    "gold_spans": 370,
+    "gold_unicode_alphanumeric_characters": 7854,
+    "per_family": {
+      "account": 10,
+      "clean": 10,
+      "full_address": 10,
+      "identity": 10,
+      "long_text": 10,
+      "multiple_entities": 10,
+      "names": 10,
+      "personalref": 10,
+      "phone": 10,
+      "repeated_values": 10,
+      "username": 10
+    },
+    "per_label": {
+      "ACCOUNTNUM": 10,
+      "ADDRESS": 30,
+      "DRIVERLICENSENUM": 10,
+      "EMAIL": 10,
+      "IDCARDNUM": 20,
+      "PASSPORTNUM": 10,
+      "PERSONALREF": 30,
+      "PERSONNAME": 150,
+      "TELEPHONENUM": 50,
+      "USERNAME": 50
+    },
+    "per_language": {
+      "de": 22,
+      "en": 22,
+      "es": 22,
+      "fr": 22,
+      "it": 22
+    },
+    "positive_rows": 100
+  },
+  "dataset": {
+    "bytes": 137089,
+    "path": "data/augmentation/masking-stress-dev.jsonl",
+    "rows": 110,
+    "sha256": "b901873cbdd3715aaae2c78477193fecb3fd47410344fdb240ce75abdbfb6cbf"
+  },
+  "family_language_label_matrix": {
+    "account": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ACCOUNTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ACCOUNTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ACCOUNTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ACCOUNTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ACCOUNTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "clean": {
+      "de": {
+        "clean_rows": 2,
+        "gold_spans": 0,
+        "per_label": {},
+        "positive_rows": 0,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 2,
+        "gold_spans": 0,
+        "per_label": {},
+        "positive_rows": 0,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 2,
+        "gold_spans": 0,
+        "per_label": {},
+        "positive_rows": 0,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 2,
+        "gold_spans": 0,
+        "per_label": {},
+        "positive_rows": 0,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 2,
+        "gold_spans": 0,
+        "per_label": {},
+        "positive_rows": 0,
+        "rows": 2
+      }
+    },
+    "full_address": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "identity": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 8,
+        "per_label": {
+          "DRIVERLICENSENUM": 2,
+          "IDCARDNUM": 2,
+          "PASSPORTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 8,
+        "per_label": {
+          "DRIVERLICENSENUM": 2,
+          "IDCARDNUM": 2,
+          "PASSPORTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 8,
+        "per_label": {
+          "DRIVERLICENSENUM": 2,
+          "IDCARDNUM": 2,
+          "PASSPORTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 8,
+        "per_label": {
+          "DRIVERLICENSENUM": 2,
+          "IDCARDNUM": 2,
+          "PASSPORTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 8,
+        "per_label": {
+          "DRIVERLICENSENUM": 2,
+          "IDCARDNUM": 2,
+          "PASSPORTNUM": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "long_text": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 12,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 4,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 12,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 4,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 12,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 4,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 12,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 4,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 12,
+        "per_label": {
+          "ADDRESS": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 4,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "multiple_entities": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "ADDRESS": 2,
+          "EMAIL": 2,
+          "IDCARDNUM": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "ADDRESS": 2,
+          "EMAIL": 2,
+          "IDCARDNUM": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "ADDRESS": 2,
+          "EMAIL": 2,
+          "IDCARDNUM": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "ADDRESS": 2,
+          "EMAIL": 2,
+          "IDCARDNUM": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "ADDRESS": 2,
+          "EMAIL": 2,
+          "IDCARDNUM": 2,
+          "PERSONALREF": 2,
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "names": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 6,
+        "per_label": {
+          "PERSONNAME": 6
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 6,
+        "per_label": {
+          "PERSONNAME": 6
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 6,
+        "per_label": {
+          "PERSONNAME": 6
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 6,
+        "per_label": {
+          "PERSONNAME": 6
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 6,
+        "per_label": {
+          "PERSONNAME": 6
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "personalref": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONALREF": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONALREF": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONALREF": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONALREF": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONALREF": 2,
+          "PERSONNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "phone": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "TELEPHONENUM": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "repeated_values": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "PERSONNAME": 6,
+          "TELEPHONENUM": 4,
+          "USERNAME": 4
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "PERSONNAME": 6,
+          "TELEPHONENUM": 4,
+          "USERNAME": 4
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "PERSONNAME": 6,
+          "TELEPHONENUM": 4,
+          "USERNAME": 4
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "PERSONNAME": 6,
+          "TELEPHONENUM": 4,
+          "USERNAME": 4
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 14,
+        "per_label": {
+          "PERSONNAME": 6,
+          "TELEPHONENUM": 4,
+          "USERNAME": 4
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    },
+    "username": {
+      "de": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "en": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "es": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "fr": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      },
+      "it": {
+        "clean_rows": 0,
+        "gold_spans": 4,
+        "per_label": {
+          "PERSONNAME": 2,
+          "USERNAME": 2
+        },
+        "positive_rows": 2,
+        "rows": 2
+      }
+    }
+  },
+  "generator": {
+    "deterministic": true,
+    "model_or_predictions_used": false,
+    "path": "scripts/make_masking_stress.py",
+    "randomness": false,
+    "sha256": "167906957660c8d4e339f1658cce7347e112bcda688edf2462a3f65198f2a14b"
+  },
+  "limitations": [
+    "Invented names, codes, addresses and phone numbers can accidentally collide with real values; no number is verified unassigned.",
+    "Country names are public; synthetic street/locality spellings and national-looking formats are artificial and not authority-validated.",
+    "Clean prose is deliberately impersonal geometry/optics, not ambiguous generic identifier codes; no detector-based filtering occurs.",
+    "Diagnostic PERSONNAME and ADDRESS labels need not exist in a checkpoint; unsupported labels do not make examples negative.",
+    "Every inserted slot is annotated mechanically; automated offset validation does not prove complete semantic annotation of all possible personal information.",
+    "Whitespace/punctuation inside whole addresses, names, phones and formatted codes are gold characters; separators left visible can fail complete-span coverage despite full alphanumeric coverage.",
+    "All-character and Unicode-alphanumeric masking must be reported separately by the integrator; neither proves privacy on real data.",
+    "No substring-disappearance argument, masking metric, model scoring, threshold tuning, training, held-out inspection or production/privacy guarantee is provided."
+  ],
+  "long_text": {
+    "actual_tokenizer_window_boundary_verification": "pending; no tokenizer or model loaded",
+    "character_targets": [
+      [
+        1000,
+        2200,
+        3900,
+        5800,
+        8100
+      ],
+      [
+        1250,
+        2550,
+        4250,
+        6150,
+        8350
+      ]
+    ],
+    "insertions_after_owner_per_row": 5,
+    "max_allowed_characters": 12000,
+    "max_characters": 8752,
+    "min_characters": 8341,
+    "post_owner_slot_start_max": 8544,
+    "post_owner_slot_start_min": 1069,
+    "rows": 10,
+    "sliding_window_boundary_crossings_proven": false
+  },
+  "purpose": "bounded synthetic DEVELOPMENT literal-masking diagnostic; never training or held-out final evaluation",
+  "schema": "masking-stress-six-field-v1",
+  "source_disjointness": {
+    "exact_skeleton_vs_source_string_literals_disjoint": true,
+    "existing_generated_texts_compared": false,
+    "held_out_files_read": false,
+    "ids_vs_literals_and_positive_template_ids_disjoint": true,
+    "new_id_prefix_absent_from_existing_source_literals": true,
+    "positive_template_ids_checked": 175,
+    "rendered_texts_vs_source_string_literals_disjoint": true,
+    "scope": "exact source-literal/skeleton and source-reconstructed positive-template ID checks only",
+    "semantic_or_translation_independence_proven": false,
+    "source_bindings": {
+      "privacygate/negative_data.py": {
+        "sha256": "0f51167b7351414d06d46f415e7dcefb4b50f77c39f0c2f227a80c1ecd932e49",
+        "string_literal_count": 147
+      },
+      "scripts/make_challenge.py": {
+        "sha256": "e5ee56fc6efe1660231506d20bb539df4b3c4300d61ea56898a50bebbd52035f",
+        "string_literal_count": 215
+      },
+      "scripts/make_negatives.py": {
+        "sha256": "b466cd2c909b41cefde58343296e501094ee0377d536e5d2f96b7cf2c7bcd98a",
+        "string_literal_count": 23
+      },
+      "scripts/make_positives.py": {
+        "sha256": "1f9ab85dad0bf489f81af13caa1d2b41e80ce6e14746d12b5324c2cd4f2adcc9",
+        "string_literal_count": 520
+      }
+    }
+  },
+  "split": "dev",
+  "template_rules": {
+    "case_selection_uses_predictions": false,
+    "frozen_before_predictions": true,
+    "template_set_sha256": "5bd7bafbc64e914ee26d06e54cc3c20a2a0f47ffc0a9dff6a670e01b14af8794",
+    "templates": 110,
+    "variants_per_family_language": 2
+  },
+  "validation": {
+    "all_declared_personal_slots_annotated_during_concatenation": true,
+    "allowed_languages_and_dev_only": true,
+    "bool_offsets_rejected": true,
+    "every_family_language_covered": true,
+    "exact_schema": true,
+    "in_bounds_sorted_nonoverlapping_gold": true,
+    "positive_and_clean_rows_present": true,
+    "sanity_assertions": {
+      "invalid_structure_rejections": 8,
+      "unicode_slot_offset_check": "passed"
+    },
+    "unique_ids_and_exact_texts": true,
+    "whole_address_one_contiguous_span": true
+  },
+  "version": "masking-stress-v1"
+}
