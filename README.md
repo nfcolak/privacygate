@@ -70,13 +70,16 @@ env -u PYTHONPATH .venv/bin/python scripts/audit_micro.py --verify   # offline r
 ```
 Pinned `ai4privacy/openpii-masking-micro-100k` @ `f95b4e1539657c3d0047d9ad3f20f26675f22c7d`. Reuses Stage 1 row checks (Mini outputs unchanged, still verify byte-identical). Measured: 100,000 rows; 38,835 EN/DE/FR/IT/ES; 442 quarantined (token/BIO/label discrepancies); 317 rows overlap Mini 10K (239 train, 34 dev, 40 test, 4 quarantined; 313 exact) and are excluded from all Micro splits; provisional 30,404 train / 3,835 dev / 3,841 test. Card says synthetic only, without Mini's internal conflict, but unverified; card label list differs from data (e.g. `TIME`). Not training-ready; see `docs/data-audit/micro/verdict.md`. Evidence in `docs/data-audit/micro/` and `data/manifests/micro/`.
 
-## Integration status (2026-10-02): measured pilot vs ready code/data
+## Integration status (2026-10-02): measured pilots vs ready code/data
 Measured: the ONE negative-only `neg-pilot-1002` completed on original source `e69fcd8`, original alignment and `run-identity-v1`.
 It used 1,979 retained Micro + 1,000 negative train rows/windows, 187 optimizer steps, and 495 retained dev rows;
 strict dev F1 0.71760710553814, wall time 155.975368625 s. This is a small wiring/timing pilot, not an improvement claim.
 No expanded positive labels or alignment correction were included. Evidence: `docs/runs/neg-pilot-1002/`.
 The checkpoint/results were copied byte-identically into this worktree's `models/neg-pilot-1002` and `results/neg-pilot-1002`;
 `artifact-location.json` records relocation only. Old metadata keeps the original execution path and is NOT resumable under current code.
+
+Measured: one expanded corrected-alignment pilot trained on 1,979 retained Micro + 630 positive + 1,000 negative rows (3,609 total retained; 226 steps; 171.878921125 s wall time), with 495 Micro dev rows and a separate 280-row positive-dev evaluation. Micro strict exact-span+label F1: 0.7429782723900371; separate positive-dev F1: 0.7545271629778673. On positive-dev, ACCOUNTNUM and PERSONALREF each had strict exact-span+correct-label TP=0/support=40; USERNAME TP=24/support=40. These strict class-specific misses do NOT establish that every character in those spans was left visible: no class-agnostic masking-coverage diagnostic was run. Results: `docs/runs/pos-neg-alignment-pilot-1002/`; relocation-only receipt: `artifact-location.json` there. The original output identity remains bound to the source path, so the delivered checkpoint is not resumable at the delivery path.
+These synthetic pilot results do not demonstrate readiness or improvement over unmatched historical runs. Full training, final-test evaluation, matched incumbent comparison, and semantic-quality, provenance, and split gates remain pending.
 
 Ready, NOT trained: the following are code/data changes, not new model-quality evidence:
 - `docs/scope/` ([masking-policy](docs/scope/masking-policy.md), [coverage](docs/scope/coverage.md), [gates](docs/scope/gates.md)): what "all personal information" would cover, historical checkpoint/rule coverage (19 entity / 39 BIO / 2 rule labels), and open provenance, semantic quality and final split gates. Unsupported/new unknown categories remain unknown; no all-PII guarantee.

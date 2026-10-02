@@ -1,11 +1,6 @@
 # Synthetic positive PII augmentation (pos-v1)
 
-Status (2026-10-02): positive train/dev wiring and corrected production window construction are integrated and code/data ready.
-NO positive/corrected-alignment model has been trained or scored. No test split exists for these positives.
-The one completed `neg-pilot-1002` was negative-only on original source `e69fcd8` / `run-identity-v1`, not on this alignment.
-Its original config/metrics/manifest remain frozen; a relocation-only checkpoint copy is documented in
-`docs/runs/neg-pilot-1002/artifact-location.json`. This integration did not train, resume or migrate it.
-Synthetic research target, not a privacy guarantee. All-personal-information masking remains the target, not an achieved result.
+Status (2026-10-02): positive train/dev wiring and corrected production window construction are integrated. One expanded corrected-alignment synthetic pilot has now trained: 1,979 retained Micro + 630 positive + 1,000 negative train rows; separate evaluations used 495 Micro-dev and 280 positive-dev rows. Micro strict F1 was 0.7429782723900371 and separate positive-dev strict F1 was 0.7545271629778673. ACCOUNTNUM and PERSONALREF each had strict exact-span+correct-label TP=0/support=40; USERNAME TP=24/support=40. No class-agnostic masking-coverage diagnostic was run, so these results do not show whether all characters in those spans were left visible. The copied checkpoint is relocation-only and not resumable at the delivery output path; see `../runs/pos-neg-alignment-pilot-1002/`. This is not evidence of readiness or improvement over unmatched historical runs. Full training, final-test evaluation, matched incumbent comparison, and semantic-quality, provenance and split gates remain pending. Synthetic research only, not a privacy guarantee.
 
 Artifacts (generated JSONL is gitignored under data/augmentation/; only code and the value-free manifest are committed):
 - data/augmentation/positive-train.jsonl  630 rows, 105 templates (3 per family/language, 6 variants each)
@@ -116,29 +111,10 @@ Offline pinned cached-tokenizer construction on the generated SYNTHETIC positive
 all 1,980 train / 920 dev gold spans across all 13 labels; zero exclusions. This proves structural label coverage, not annotation
 semantics, provenance, independence or learned model quality. No model loaded/scored, no Micro/held-out data opened in integration.
 
-## Next bounded pilot example — explicitly NOT run
+## Next bounded pilot example — executed
 
-Only with fresh execution authorization. The one existing negative pilot is complete; these positive files and the corrected
-alignment have never been trained. Stop on missing files/cache/dependencies, never install/download as a workaround. Main model,
-cache and venv remain read-only; outputs belong to this worktree. Run from the delivery worktree:
+The expanded corrected-alignment pilot was executed once. Its exact bound command is recorded in `docs/runs/pos-neg-alignment-pilot-1002/run-manifest.json`; see also the run's `summary.md` and `artifact-location.json`. It ran from the original pilot worktree, not this delivery worktree. This is not a new run proposal: do not rerun it. The original run identity and output path remain unchanged; the copied checkpoint is not resumable at this delivery path. Synthetic results do not establish readiness or improvement over unmatched historical runs. Full training, final-test evaluation, matched incumbent comparison, and semantic-quality, provenance and split gates remain pending.
 
-    cd /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002
-    env -u PYTHONPATH PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
-      HF_HUB_DISABLE_TELEMETRY=1 TOKENIZERS_PARALLELISM=false \
-      HF_HOME=/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.cache/hf \
-      /Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.venv-train/bin/python \
-      -m privacygate.train_mbert --run pos-neg-alignment-pilot-1002 \
-      --max-train-rows 2000 --max-dev-rows 500 --epochs 1 --batch-size 16 --lr 3e-5 --seed 13 \
-      --positive-train-file data/augmentation/positive-train.jsonl \
-      --positive-dev-file data/augmentation/positive-dev.jsonl \
-      --negative-train-file data/augmentation/negatives-train.jsonl --out-dir "$PWD/models"
-
-This would admit at most 2000 selected Micro train rows plus 630 positive train and 1000 negative rows, and at most 500 selected
-Micro dev rows plus a SEPARATE 280-row positive dev evaluation. Retained Micro counts depend on corrected alignment. Report actual
-time/steps and each source's included/retained/excluded counts, Micro dev and positive_dev separately before any larger-run request.
-No timing/quality result or full-training promise is made. The old negative-pilot compute extrapolation is NOT an estimate for
-expanded labels/changed alignment. Human semantic quality, publisher provenance and final split freeze remain open; unknown
-categories stay unknown and no all-PII guarantee follows.
 
 ## Limitations
 

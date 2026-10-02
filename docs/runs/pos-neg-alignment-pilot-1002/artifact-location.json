@@ -1,0 +1,60 @@
+{
+  "run": "pos-neg-alignment-pilot-1002",
+  "status": "relocation-only; byte-identical copy from original run output",
+  "resumability": {
+    "original_output_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/models/pos-neg-alignment-pilot-1002",
+    "delivery_output_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/models/pos-neg-alignment-pilot-1002",
+    "resumable_at_delivery_path": false,
+    "reason": "run-identity-v3 binds the original output path; identity and original metadata were not rewritten"
+  },
+  "files": [
+    {
+      "group": "checkpoint_files",
+      "file": "config.json",
+      "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/models/pos-neg-alignment-pilot-1002/config.json",
+      "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/models/pos-neg-alignment-pilot-1002/config.json",
+      "bytes": 2959,
+      "sha256": "1971581cd9010dac5817982a32621c80fafbbeac0cb63da8b8b434f892870f23"
+    },
+    {
+      "group": "checkpoint_files",
+      "file": "model.safetensors",
+      "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/models/pos-neg-alignment-pilot-1002/model.safetensors",
+      "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/models/pos-neg-alignment-pilot-1002/model.safetensors",
+      "bytes": 709213148,
+      "sha256": "0058a5c93c2ef14c5f65daf8ae8afc061851acf8d5cf5d52ba0342f578d9cac9"
+    },
+    {
+      "group": "checkpoint_files",
+      "file": "train_info.json",
+      "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/models/pos-neg-alignment-pilot-1002/train_info.json",
+      "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/models/pos-neg-alignment-pilot-1002/train_info.json",
+      "bytes": 4657,
+      "sha256": "129c79ab611113dd96d0bf90a8e60f328f2036166c9347d8299823a2efb52aca"
+    },
+    {
+      "group": "results_files",
+      "file": "execution-receipt.json",
+      "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/results/pos-neg-alignment-pilot-1002/execution-receipt.json",
+      "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/results/pos-neg-alignment-pilot-1002/execution-receipt.json",
+      "bytes": 5467,
+      "sha256": "dd6763bcaf9cae24d14772dc11ccd9a269e55eff46b553ac0ce50b0c4866803d"
+    },
+    {
+      "group": "results_files",
+      "file": "metrics.json",
+      "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/results/pos-neg-alignment-pilot-1002/metrics.json",
+      "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/results/pos-neg-alignment-pilot-1002/metrics.json",
+      "bytes": 21031,
+      "sha256": "8865d54fc68c64f409bcd0e30ca5edfc1e33ba56986a166f517e2e8e5e6c0192"
+    },
+    {
+      "group": "results_files",
+      "file": "sanitized-run.log",
+      "original_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-expanded-pilot-1002/results/pos-neg-alignment-pilot-1002/sanitized-run.log",
+      "delivery_path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/privacygate-prep-1002/results/pos-neg-alignment-pilot-1002/sanitized-run.log",
+      "bytes": 4053,
+      "sha256": "146641f30dc5d6332cbfcc5f8c99cf83c0cfa47effa121d3d28645cc8f350b51"
+    }
+  ]
+}
