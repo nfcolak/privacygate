@@ -20,7 +20,7 @@ assembly (no find/replace), and entries hold only start/end/label.
 ## Labels
 
 Existing exact labels: GIVENNAME, SURNAME, TELEPHONENUM, IDCARDNUM, PASSPORTNUM, DRIVERLICENSENUM, STREET, BUILDINGNUM, CITY, ZIPCODE.
-New, initial proposed operational labels (not a taxonomy, not a legal classification, no trained support, not exhaustive):
+New, initial proposed operational labels (not a taxonomy, not a legal classification, learned support not established; the pilot's limited per-class results are below; not exhaustive):
 - USERNAME: handle/account name explicitly stated as belonging to an invented person.
 - ACCOUNTNUM: non-IBAN membership/customer/loyalty/library number explicitly tied to an invented person.
 - PERSONALREF: order/tracking/case reference explicitly tied to an invented person. Shapes vary; some are IBAN-shaped strings with an
@@ -53,9 +53,7 @@ These checks do not prove semantic independence.
 - Inventory is the sorted union of labels from **all original Micro TRAIN rows** plus positive TRAIN annotations, using the
   original `O`, `B-<label>`, `I-<label>` ordering. Dev never discovers classes. Dev annotations absent from the training
   inventory are refused before fitting; unknown labels are not dropped. With no positive file the original label order remains.
-- USERNAME, ACCOUNTNUM and PERSONALREF receive B/I classes when present in positive train. A fresh classifier is initialized
-  from the existing pinned `google-bert/bert-base-multilingual-cased` base revision, **not** from `full-1`. This is implemented
-  support, not evidence that those labels have been trained or learned. Neither `full-1` nor historical outputs are modified.
+- Fresh classifier's 45-class head was actually trained in the bounded expanded pilot, including B/I classes for these labels. This establishes training occurred, not reliable learning: positive-dev exact-span+label results were USERNAME TP=24/support=40, ACCOUNTNUM TP=0/support=40, PERSONALREF TP=0/support=40. No class-agnostic complete-masking measurement exists. Neither `full-1` nor historical outputs are modified.
 - `--max-train-rows` limits Micro only. Positive train and optional negatives are each appended once; existing batch shuffling
   handles the combined data. `micro_train_rows_available`, `micro_train_rows_selected`, `positive_train_rows_included`,
   `negative_train_rows_included` and `train_row_counts` retain separate included/retained/excluded-after-windowing counts for
