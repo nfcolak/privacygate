@@ -1,0 +1,1308 @@
+{
+  "alignment_dev_metadata": {
+    "rows": {
+      "key": "/splits/dev/rows",
+      "source": "alignment",
+      "value": 3835
+    },
+    "rows_excluded": {
+      "key": "/splits/dev/rows_excluded",
+      "source": "alignment",
+      "value": 38
+    },
+    "spans_boundary_inside_wordpiece": {
+      "key": "/splits/dev/spans_boundary_inside_wordpiece",
+      "source": "alignment",
+      "value": 39
+    }
+  },
+  "categories": [
+    {
+      "category": "names",
+      "caveat": "Component spans only; full-name, alias and nickname coverage unmeasured.",
+      "checkpoint_labels": [
+        "GIVENNAME",
+        "SURNAME"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "partial"
+    },
+    {
+      "category": "phones",
+      "caveat": "Extensions, obfuscation, regional formats and person linkage unmeasured.",
+      "checkpoint_labels": [
+        "TELEPHONENUM"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "label_supported"
+    },
+    {
+      "category": "identity_numbers",
+      "caveat": "Named label families do not establish all national or institutional ID formats.",
+      "checkpoint_labels": [
+        "IDCARDNUM",
+        "PASSPORTNUM",
+        "DRIVERLICENSENUM",
+        "SOCIALNUM",
+        "TAXNUM"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "partial"
+    },
+    {
+      "category": "person_address",
+      "caveat": "No whole-address/person-link recall; apartment, country, region, PO box and coordinates not separately supported.",
+      "checkpoint_labels": [
+        "STREET",
+        "BUILDINGNUM",
+        "CITY",
+        "ZIPCODE"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "partial"
+    },
+    {
+      "category": "email",
+      "caveat": "Rule is format-based; aliases, obfuscation and contextual person linkage unmeasured.",
+      "checkpoint_labels": [
+        "EMAIL"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [
+        "EMAIL"
+      ],
+      "support_status": "label_and_rule_supported"
+    },
+    {
+      "category": "payment_cards",
+      "caveat": "No separate CVV, PIN, expiry or payment-token label.",
+      "checkpoint_labels": [
+        "CREDITCARDNUMBER"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "partial"
+    },
+    {
+      "category": "bank_iban",
+      "caveat": "Checksum/form rule only; no learned IBAN label or person-link classification.",
+      "checkpoint_labels": [],
+      "measurement_status": "historical_synthetic_IBAN_recall_only; person-link recall unknown",
+      "rules": [
+        "IBAN"
+      ],
+      "support_status": "rule_only"
+    },
+    {
+      "category": "age",
+      "caveat": "Person-linked attributes remain personal even without direct identifiers.",
+      "checkpoint_labels": [
+        "AGE"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "label_supported"
+    },
+    {
+      "category": "personal_dates",
+      "caveat": "DATE does not establish birthdate/event semantics or TIME coverage.",
+      "checkpoint_labels": [
+        "DATE"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "partial"
+    },
+    {
+      "category": "sex_gender",
+      "caveat": "Broader sensitive traits and contextual linkage unmeasured.",
+      "checkpoint_labels": [
+        "SEX",
+        "GENDER"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "label_supported"
+    },
+    {
+      "category": "personal_titles",
+      "caveat": "Not evidence for occupation, employer or education-history coverage.",
+      "checkpoint_labels": [
+        "TITLE"
+      ],
+      "measurement_status": "historical_label_recall_only; category/person-link recall unknown",
+      "rules": [],
+      "support_status": "partial"
+    },
+    {
+      "category": "person_linked_order_tracking_serial_reference",
+      "caveat": "Format or invalid IBAN checksum never establishes a safe negative; incidental ID labels are not validated coverage.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    },
+    {
+      "category": "usernames_handles_customer_membership_accounts",
+      "caveat": "Person-linked handles, URLs, membership and non-IBAN account IDs remain targets.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    },
+    {
+      "category": "ip_mac_device_cookie_online_identifiers",
+      "caveat": "No dedicated online/device identifier labels or rules.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    },
+    {
+      "category": "precise_location_and_movements",
+      "caveat": "Address components do not establish coordinates, journeys or habitual-location coverage.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    },
+    {
+      "category": "health_disability_genetic_biometric",
+      "caveat": "No dedicated labels/rules; incidental detections cannot establish coverage.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    },
+    {
+      "category": "religion_politics_ethnicity_sexuality",
+      "caveat": "No dedicated labels/rules for these person-linked sensitive attributes.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    },
+    {
+      "category": "employment_education_financial_history",
+      "caveat": "Employer, school, salary, debt and history coverage unknown.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    },
+    {
+      "category": "relationships_behavior_personal_narratives",
+      "caveat": "Indirect identification and combined quasi-identifiers are not measured.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    },
+    {
+      "category": "credentials_and_person_linked_secrets",
+      "caveat": "No dedicated password, access-token or security-answer coverage.",
+      "checkpoint_labels": [],
+      "measurement_status": "unknown",
+      "rules": [],
+      "support_status": "absent_dedicated_support"
+    }
+  ],
+  "caveats": [
+    "Label supported is not successful detection, semantic completeness or a privacy guarantee; no finite taxonomy proves all personal information covered.",
+    "Recall values are unchanged historical strict start/end/label dev aggregates, not new evaluation, category-level recall or current CLI recall.",
+    "Historical taxonomy equality does not verify checkpoint weights or bind historical scores to a new inference implementation.",
+    "Threshold was tuned on dev; single seed/model and synthetic templates; no test inspection or scoring performed.",
+    "Decoy FP is a benchmark-convention result, not a proven masking error under the all-personal-information policy.",
+    "Regex negatives were selected by absence of regex detections; zero FP is by construction, not robustness evidence.",
+    "Alignment metadata excludes 38 dev rows, comparison metadata excludes 39; their row sets cannot be reconciled from aggregates alone.",
+    "Micro extra labels are hashed out-of-taxonomy audit bins, not checkpoint support; semantic label names cannot be recovered from hashes alone.",
+    "Full person-address, person linkage, unannotated information and combinations of indirect identifiers remain unmeasured."
+  ],
+  "historical_challenge_dev": {
+    "mbert": {
+      "clean_fp_rate": {
+        "key": "/arms/mbert/challenge_dev/clean_fp_rate",
+        "source": "metrics",
+        "value": 0.432
+      },
+      "decoy_fp_rate": {
+        "key": "/arms/mbert/challenge_dev/decoy_fp_rate",
+        "source": "metrics",
+        "value": 1.0
+      },
+      "iban_recall_label_agnostic": {
+        "key": "/arms/mbert/challenge_dev/iban_recall_label_agnostic",
+        "source": "metrics",
+        "value": 0.774
+      },
+      "iban_recall_strict": {
+        "key": "/arms/mbert/challenge_dev/iban_recall_strict",
+        "source": "metrics",
+        "value": 0.0
+      }
+    },
+    "regex": {
+      "clean_fp_rate": {
+        "key": "/arms/regex/challenge_dev/clean_fp_rate",
+        "source": "metrics",
+        "value": 0.0
+      },
+      "decoy_fp_rate": {
+        "key": "/arms/regex/challenge_dev/decoy_fp_rate",
+        "source": "metrics",
+        "value": 0.0
+      },
+      "iban_recall_label_agnostic": {
+        "key": "/arms/regex/challenge_dev/iban_recall_label_agnostic",
+        "source": "metrics",
+        "value": 1.0
+      },
+      "iban_recall_strict": {
+        "key": "/arms/regex/challenge_dev/iban_recall_strict",
+        "source": "metrics",
+        "value": 1.0
+      }
+    },
+    "rules_first": {
+      "clean_fp_rate": {
+        "key": "/arms/rules_first/challenge_dev/clean_fp_rate",
+        "source": "metrics",
+        "value": 0.432
+      },
+      "decoy_fp_rate": {
+        "key": "/arms/rules_first/challenge_dev/decoy_fp_rate",
+        "source": "metrics",
+        "value": 1.0
+      },
+      "iban_recall_label_agnostic": {
+        "key": "/arms/rules_first/challenge_dev/iban_recall_label_agnostic",
+        "source": "metrics",
+        "value": 1.0
+      },
+      "iban_recall_strict": {
+        "key": "/arms/rules_first/challenge_dev/iban_recall_strict",
+        "source": "metrics",
+        "value": 1.0
+      }
+    },
+    "rules_first_thr": {
+      "clean_fp_rate": {
+        "key": "/arms/rules_first_thr/challenge_dev/clean_fp_rate",
+        "source": "metrics",
+        "value": 0.43
+      },
+      "decoy_fp_rate": {
+        "key": "/arms/rules_first_thr/challenge_dev/decoy_fp_rate",
+        "source": "metrics",
+        "value": 1.0
+      },
+      "iban_recall_label_agnostic": {
+        "key": "/arms/rules_first_thr/challenge_dev/iban_recall_label_agnostic",
+        "source": "metrics",
+        "value": 1.0
+      },
+      "iban_recall_strict": {
+        "key": "/arms/rules_first_thr/challenge_dev/iban_recall_strict",
+        "source": "metrics",
+        "value": 1.0
+      }
+    },
+    "union": {
+      "clean_fp_rate": {
+        "key": "/arms/union/challenge_dev/clean_fp_rate",
+        "source": "metrics",
+        "value": 0.432
+      },
+      "decoy_fp_rate": {
+        "key": "/arms/union/challenge_dev/decoy_fp_rate",
+        "source": "metrics",
+        "value": 1.0
+      },
+      "iban_recall_label_agnostic": {
+        "key": "/arms/union/challenge_dev/iban_recall_label_agnostic",
+        "source": "metrics",
+        "value": 1.0
+      },
+      "iban_recall_strict": {
+        "key": "/arms/union/challenge_dev/iban_recall_strict",
+        "source": "metrics",
+        "value": 1.0
+      }
+    }
+  },
+  "historical_dev_context": {
+    "challenge_rows": {
+      "key": "/challenge_rows",
+      "source": "metrics",
+      "value": 1200
+    },
+    "chosen_threshold": {
+      "key": "/chosen_threshold",
+      "source": "metrics",
+      "value": 0.5
+    },
+    "micro_rows_evaluated": {
+      "key": "/micro_rows_evaluated",
+      "source": "metrics",
+      "value": 3796
+    },
+    "micro_rows_excluded_broken_boundary": {
+      "key": "/micro_rows_excluded_broken_boundary",
+      "source": "metrics",
+      "value": 39
+    }
+  },
+  "inventory": {
+    "bio_labels": [
+      "O",
+      "B-AGE",
+      "I-AGE",
+      "B-BUILDINGNUM",
+      "I-BUILDINGNUM",
+      "B-CITY",
+      "I-CITY",
+      "B-CREDITCARDNUMBER",
+      "I-CREDITCARDNUMBER",
+      "B-DATE",
+      "I-DATE",
+      "B-DRIVERLICENSENUM",
+      "I-DRIVERLICENSENUM",
+      "B-EMAIL",
+      "I-EMAIL",
+      "B-GENDER",
+      "I-GENDER",
+      "B-GIVENNAME",
+      "I-GIVENNAME",
+      "B-IDCARDNUM",
+      "I-IDCARDNUM",
+      "B-PASSPORTNUM",
+      "I-PASSPORTNUM",
+      "B-SEX",
+      "I-SEX",
+      "B-SOCIALNUM",
+      "I-SOCIALNUM",
+      "B-STREET",
+      "I-STREET",
+      "B-SURNAME",
+      "I-SURNAME",
+      "B-TAXNUM",
+      "I-TAXNUM",
+      "B-TELEPHONENUM",
+      "I-TELEPHONENUM",
+      "B-TITLE",
+      "I-TITLE",
+      "B-ZIPCODE",
+      "I-ZIPCODE"
+    ],
+    "checkpoint_source_keys": [
+      "/id2label",
+      "/label2id"
+    ],
+    "checkpoint_weights_verified": false,
+    "counts": {
+      "checkpoint_bio_labels": 39,
+      "checkpoint_entity_labels": 19,
+      "micro_extra_hashed_label_bins": 12,
+      "micro_extra_label_spans": 1144,
+      "rule_labels": 2
+    },
+    "entity_labels": [
+      "AGE",
+      "BUILDINGNUM",
+      "CITY",
+      "CREDITCARDNUMBER",
+      "DATE",
+      "DRIVERLICENSENUM",
+      "EMAIL",
+      "GENDER",
+      "GIVENNAME",
+      "IDCARDNUM",
+      "PASSPORTNUM",
+      "SEX",
+      "SOCIALNUM",
+      "STREET",
+      "SURNAME",
+      "TAXNUM",
+      "TELEPHONENUM",
+      "TITLE",
+      "ZIPCODE"
+    ],
+    "historical_taxonomy_match": true,
+    "micro_extra_label_count_source": {
+      "key": "/overall_all_languages/entity_counts",
+      "source": "micro"
+    },
+    "micro_extra_label_spans_check": {
+      "key": "/annotations/structural_check_failure_counts/span_label_invalid",
+      "source": "micro",
+      "value": 1144
+    },
+    "micro_supported_labels_present": true,
+    "mini_taxonomy_match": true,
+    "rule_labels": [
+      "EMAIL",
+      "IBAN"
+    ],
+    "rule_source": "rules:detect output tuples; EMAIL_RE; IBAN_RE and iban_valid"
+  },
+  "labels": [
+    {
+      "checkpoint_ids": {
+        "B": 1,
+        "I": 2
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/AGE/recall",
+            "source": "metrics",
+            "value": 0.9725722757598221
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/AGE/support",
+            "source": "metrics",
+            "value": 1349
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/AGE/recall",
+            "source": "metrics",
+            "value": 0.9725722757598221
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/AGE/support",
+            "source": "metrics",
+            "value": 1349
+          }
+        }
+      },
+      "label": "AGE",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/AGE",
+        "source": "micro",
+        "value": 35574
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/AGE",
+        "source": "mini",
+        "value": 3969
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 3,
+        "I": 4
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/BUILDINGNUM/recall",
+            "source": "metrics",
+            "value": 0.9792498004788508
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/BUILDINGNUM/support",
+            "source": "metrics",
+            "value": 1253
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/BUILDINGNUM/recall",
+            "source": "metrics",
+            "value": 0.9784517158818835
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/BUILDINGNUM/support",
+            "source": "metrics",
+            "value": 1253
+          }
+        }
+      },
+      "label": "BUILDINGNUM",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/BUILDINGNUM",
+        "source": "micro",
+        "value": 33474
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/BUILDINGNUM",
+        "source": "mini",
+        "value": 3650
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 5,
+        "I": 6
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/CITY/recall",
+            "source": "metrics",
+            "value": 0.9859594383775351
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/CITY/support",
+            "source": "metrics",
+            "value": 1923
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/CITY/recall",
+            "source": "metrics",
+            "value": 0.984919396775871
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/CITY/support",
+            "source": "metrics",
+            "value": 1923
+          }
+        }
+      },
+      "label": "CITY",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/CITY",
+        "source": "micro",
+        "value": 50105
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/CITY",
+        "source": "mini",
+        "value": 5476
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 7,
+        "I": 8
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/CREDITCARDNUMBER/recall",
+            "source": "metrics",
+            "value": 1.0
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/CREDITCARDNUMBER/support",
+            "source": "metrics",
+            "value": 856
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/CREDITCARDNUMBER/recall",
+            "source": "metrics",
+            "value": 1.0
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/CREDITCARDNUMBER/support",
+            "source": "metrics",
+            "value": 856
+          }
+        }
+      },
+      "label": "CREDITCARDNUMBER",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/CREDITCARDNUMBER",
+        "source": "micro",
+        "value": 22804
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/CREDITCARDNUMBER",
+        "source": "mini",
+        "value": 2551
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 9,
+        "I": 10
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/DATE/recall",
+            "source": "metrics",
+            "value": 0.9984871406959153
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/DATE/support",
+            "source": "metrics",
+            "value": 3305
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/DATE/recall",
+            "source": "metrics",
+            "value": 0.9984871406959153
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/DATE/support",
+            "source": "metrics",
+            "value": 3305
+          }
+        }
+      },
+      "label": "DATE",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/DATE",
+        "source": "micro",
+        "value": 85671
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/DATE",
+        "source": "mini",
+        "value": 9662
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 11,
+        "I": 12
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/DRIVERLICENSENUM/recall",
+            "source": "metrics",
+            "value": 0.907258064516129
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/DRIVERLICENSENUM/support",
+            "source": "metrics",
+            "value": 744
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/DRIVERLICENSENUM/recall",
+            "source": "metrics",
+            "value": 0.9045698924731183
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/DRIVERLICENSENUM/support",
+            "source": "metrics",
+            "value": 744
+          }
+        }
+      },
+      "label": "DRIVERLICENSENUM",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/DRIVERLICENSENUM",
+        "source": "micro",
+        "value": 19787
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/DRIVERLICENSENUM",
+        "source": "mini",
+        "value": 2376
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 13,
+        "I": 14
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/EMAIL/recall",
+            "source": "metrics",
+            "value": 0.9994824016563147
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/EMAIL/support",
+            "source": "metrics",
+            "value": 1932
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/EMAIL/recall",
+            "source": "metrics",
+            "value": 0.9684265010351967
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/EMAIL/support",
+            "source": "metrics",
+            "value": 1932
+          }
+        }
+      },
+      "label": "EMAIL",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/EMAIL",
+        "source": "micro",
+        "value": 54015
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/EMAIL",
+        "source": "mini",
+        "value": 5973
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 15,
+        "I": 16
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/GENDER/recall",
+            "source": "metrics",
+            "value": 0.9516574585635359
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/GENDER/support",
+            "source": "metrics",
+            "value": 724
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/GENDER/recall",
+            "source": "metrics",
+            "value": 0.9488950276243094
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/GENDER/support",
+            "source": "metrics",
+            "value": 724
+          }
+        }
+      },
+      "label": "GENDER",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/GENDER",
+        "source": "micro",
+        "value": 19414
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/GENDER",
+        "source": "mini",
+        "value": 2399
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 17,
+        "I": 18
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/GIVENNAME/recall",
+            "source": "metrics",
+            "value": 0.863914373088685
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/GIVENNAME/support",
+            "source": "metrics",
+            "value": 3270
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/GIVENNAME/recall",
+            "source": "metrics",
+            "value": 0.8636085626911315
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/GIVENNAME/support",
+            "source": "metrics",
+            "value": 3270
+          }
+        }
+      },
+      "label": "GIVENNAME",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/GIVENNAME",
+        "source": "micro",
+        "value": 85017
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/GIVENNAME",
+        "source": "mini",
+        "value": 9579
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 19,
+        "I": 20
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/IDCARDNUM/recall",
+            "source": "metrics",
+            "value": 0.9326364692218351
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/IDCARDNUM/support",
+            "source": "metrics",
+            "value": 861
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/IDCARDNUM/recall",
+            "source": "metrics",
+            "value": 0.926829268292683
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/IDCARDNUM/support",
+            "source": "metrics",
+            "value": 861
+          }
+        }
+      },
+      "label": "IDCARDNUM",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/IDCARDNUM",
+        "source": "micro",
+        "value": 23622
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/IDCARDNUM",
+        "source": "mini",
+        "value": 2491
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 21,
+        "I": 22
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/PASSPORTNUM/recall",
+            "source": "metrics",
+            "value": 0.9267326732673268
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/PASSPORTNUM/support",
+            "source": "metrics",
+            "value": 505
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/PASSPORTNUM/recall",
+            "source": "metrics",
+            "value": 0.9188118811881189
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/PASSPORTNUM/support",
+            "source": "metrics",
+            "value": 505
+          }
+        }
+      },
+      "label": "PASSPORTNUM",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/PASSPORTNUM",
+        "source": "micro",
+        "value": 14529
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/PASSPORTNUM",
+        "source": "mini",
+        "value": 1749
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 23,
+        "I": 24
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/SEX/recall",
+            "source": "metrics",
+            "value": 0.9763513513513513
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/SEX/support",
+            "source": "metrics",
+            "value": 592
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/SEX/recall",
+            "source": "metrics",
+            "value": 0.9763513513513513
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/SEX/support",
+            "source": "metrics",
+            "value": 592
+          }
+        }
+      },
+      "label": "SEX",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/SEX",
+        "source": "micro",
+        "value": 17710
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/SEX",
+        "source": "mini",
+        "value": 2148
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 25,
+        "I": 26
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/SOCIALNUM/recall",
+            "source": "metrics",
+            "value": 0.9512578616352201
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/SOCIALNUM/support",
+            "source": "metrics",
+            "value": 636
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/SOCIALNUM/recall",
+            "source": "metrics",
+            "value": 0.9481132075471698
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/SOCIALNUM/support",
+            "source": "metrics",
+            "value": 636
+          }
+        }
+      },
+      "label": "SOCIALNUM",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/SOCIALNUM",
+        "source": "micro",
+        "value": 17139
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/SOCIALNUM",
+        "source": "mini",
+        "value": 2153
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 27,
+        "I": 28
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/STREET/recall",
+            "source": "metrics",
+            "value": 0.9797191887675507
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/STREET/support",
+            "source": "metrics",
+            "value": 1282
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/STREET/recall",
+            "source": "metrics",
+            "value": 0.9797191887675507
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/STREET/support",
+            "source": "metrics",
+            "value": 1282
+          }
+        }
+      },
+      "label": "STREET",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/STREET",
+        "source": "micro",
+        "value": 34061
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/STREET",
+        "source": "mini",
+        "value": 3736
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 29,
+        "I": 30
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/SURNAME/recall",
+            "source": "metrics",
+            "value": 0.8565340909090909
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/SURNAME/support",
+            "source": "metrics",
+            "value": 2816
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/SURNAME/recall",
+            "source": "metrics",
+            "value": 0.8522727272727273
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/SURNAME/support",
+            "source": "metrics",
+            "value": 2816
+          }
+        }
+      },
+      "label": "SURNAME",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/SURNAME",
+        "source": "micro",
+        "value": 73012
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/SURNAME",
+        "source": "mini",
+        "value": 8318
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 31,
+        "I": 32
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/TAXNUM/recall",
+            "source": "metrics",
+            "value": 0.9701492537313433
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/TAXNUM/support",
+            "source": "metrics",
+            "value": 670
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/TAXNUM/recall",
+            "source": "metrics",
+            "value": 0.9701492537313433
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/TAXNUM/support",
+            "source": "metrics",
+            "value": 670
+          }
+        }
+      },
+      "label": "TAXNUM",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/TAXNUM",
+        "source": "micro",
+        "value": 18728
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/TAXNUM",
+        "source": "mini",
+        "value": 2185
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 33,
+        "I": 34
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/TELEPHONENUM/recall",
+            "source": "metrics",
+            "value": 0.9956678700361011
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/TELEPHONENUM/support",
+            "source": "metrics",
+            "value": 1385
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/TELEPHONENUM/recall",
+            "source": "metrics",
+            "value": 0.9956678700361011
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/TELEPHONENUM/support",
+            "source": "metrics",
+            "value": 1385
+          }
+        }
+      },
+      "label": "TELEPHONENUM",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/TELEPHONENUM",
+        "source": "micro",
+        "value": 40440
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/TELEPHONENUM",
+        "source": "mini",
+        "value": 4626
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 35,
+        "I": 36
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/TITLE/recall",
+            "source": "metrics",
+            "value": 0.9955005624296963
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/TITLE/support",
+            "source": "metrics",
+            "value": 1778
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/TITLE/recall",
+            "source": "metrics",
+            "value": 0.9955005624296963
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/TITLE/support",
+            "source": "metrics",
+            "value": 1778
+          }
+        }
+      },
+      "label": "TITLE",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/TITLE",
+        "source": "micro",
+        "value": 47173
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/TITLE",
+        "source": "mini",
+        "value": 5009
+      }
+    },
+    {
+      "checkpoint_ids": {
+        "B": 37,
+        "I": 38
+      },
+      "historical_micro_dev": {
+        "mbert": {
+          "recall": {
+            "key": "/arms/mbert/micro_dev/per_label/ZIPCODE/recall",
+            "source": "metrics",
+            "value": 0.9950083194675541
+          },
+          "support": {
+            "key": "/arms/mbert/micro_dev/per_label/ZIPCODE/support",
+            "source": "metrics",
+            "value": 1202
+          }
+        },
+        "rules_first_thr": {
+          "recall": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/ZIPCODE/recall",
+            "source": "metrics",
+            "value": 0.9950083194675541
+          },
+          "support": {
+            "key": "/arms/rules_first_thr/micro_dev/per_label/ZIPCODE/support",
+            "source": "metrics",
+            "value": 1202
+          }
+        }
+      },
+      "label": "ZIPCODE",
+      "micro_spans": {
+        "key": "/overall_all_languages/entity_counts/ZIPCODE",
+        "source": "micro",
+        "value": 30808
+      },
+      "mini_spans": {
+        "key": "/overall/entity_counts/ZIPCODE",
+        "source": "mini",
+        "value": 3421
+      }
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Offline synthetic research preparation; label inventory and previously committed aggregates only; no privacy guarantee.",
+  "sources": {
+    "alignment": {
+      "path": "docs/data-audit/micro/alignment.json",
+      "sha256": "534a1b6d0690d600b2d52f463dac0e2512b8c6d19b19a289b3ff8e75dd7d8af1"
+    },
+    "challenge_generator": {
+      "path": "scripts/make_challenge.py",
+      "sha256": "e5ee56fc6efe1660231506d20bb539df4b3c4300d61ea56898a50bebbd52035f"
+    },
+    "checkpoint": {
+      "path": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/models/full-1/config.json",
+      "sha256": "d9fd61e72726e9dbc742cf4f1c6f6697db6c036c41452fb6b95eb82d636c9509"
+    },
+    "metrics": {
+      "path": "docs/runs/compare-dev/metrics.json",
+      "sha256": "f294ca4260699d7761c8e9813070321ed2c55ba9e988d6cb35504206a29c1f1c"
+    },
+    "micro": {
+      "path": "docs/data-audit/micro/audit.json",
+      "sha256": "d9db2a195edbdf9b5eddc09d3e0aea7e03b8d6c472b082e921f468e4bd02b1d6"
+    },
+    "mini": {
+      "path": "docs/data-audit/audit.json",
+      "sha256": "c85d2a0fb92f4af9abc3fdc8b83844e0c9227292d214cda8b7356ce3abccd9f0"
+    },
+    "rules": {
+      "path": "privacygate/detect.py",
+      "sha256": "9bc3f19664a24404e673e214fc5d20f236df3e0001ec57e53075a778589d7c15"
+    },
+    "run": {
+      "path": "docs/runs/full-1/config.json",
+      "sha256": "852722d82aade5dbe47aeb3a7cd7130dd680849138d4a1d36f66845ea27fe874"
+    }
+  },
+  "target": "Mask ALL personal information, including but not limited to names, phones, identity numbers and a person's address."
+}
