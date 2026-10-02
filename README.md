@@ -3,7 +3,7 @@
 Research prototype (initialized from a local proposal note; see Provenance). Goal: compare regex, mBERT BIO classifier and hybrid PII detection/masking on synthetic multilingual text (EN, DE, FR, IT, ES).
 
 ## Status
-The regex-only baseline and mBERT BIO classifier are implemented; hybrid comparison remains unimplemented. Stage 1 audited all 10,000 rows of a pinned public candidate locally and produced value-free manifests. The data is **not training-ready**: synthetic provenance and annotation-quality gates remain open. Stage 2 audited the Micro 100K dataset (provisional manifests, also **not training-ready**). Raw artifacts are ignored, not included in Git.
+Regex baseline, mBERT BIO classifier and regex+mBERT hybrid policies are all implemented, and the CLI exposes all three (`--engine`). **The all-personal-information masking target (names, phones, identity numbers, addresses, ...) is NOT achieved**: no engine is assured to mask every personal value, and measured limitations are listed below. Synthetic research only; no privacy guarantee. Stage 1 and Stage 2 audited the public candidate datasets locally and produced value-free manifests; the data is **not training-ready** (provenance and annotation-quality gates open). Raw artifacts are ignored, not included in Git.
 
 ## Limitations (regex-only)
 - Detects only emails and IBANs with a valid mod-97 checksum. Names, addresses, phones, etc. are **not** detected.
@@ -11,13 +11,32 @@ The regex-only baseline and mBERT BIO classifier are implemented; hybrid compari
 - Use synthetic data only.
 
 ## Usage
-Standard library only, Python >=3.9.
+Default engine `regex` is standard library only (Python >=3.9, no torch import).
 ```
 echo "Mail anna.test@example.org und DE89370400440532013000" | env -u PYTHONPATH python3 -m privacygate
 env -u PYTHONPATH python3 -m privacygate --help
 env -u PYTHONPATH python3 smoke.py
 ```
-Output JSON: `masked_text` and `entities` (`start`, `end` offsets into the original text, `label`). Original values are never output. Overlaps: earlier start wins, then longer span.
+Output JSON: `masked_text` and `entities` (`start`, `end` offsets into the original text, `label`). Original values and confidences are never output. Overlapping detections are merged into their union before masking, so every character of every chosen detection is masked.
+
+### Engines
+```
+--engine regex|mbert|hybrid     default regex
+--model-dir PATH                local mBERT directory (default: models/full-1 in the repo); mbert/hybrid only
+--hybrid-policy union|rules_first|rules_first_thr   default union (keeps overlapping coverage; not a claim of calibrated superiority)
+--confidence F                  mBERT minimum confidence in [0,1] (default 0.0; rules_first_thr default 0.5)
+```
+mbert/hybrid need the training environment (torch, transformers; see Stage 3) and run fully offline: `HF_HUB_OFFLINE=1`, a local model directory and a pre-populated local Hugging Face cache for the pinned tokenizer. Nothing is downloaded. A missing model/cache or load failure exits 1 with a generic message; there is no silent fallback to regex. Errors never echo input.
+```
+export HF_HUB_OFFLINE=1 HF_HOME=<local-hf-cache>
+echo "<synthetic text>" | env -u PYTHONPATH <train-venv>/bin/python -m privacygate --engine hybrid --model-dir <model-dir> --hybrid-policy union
+```
+
+### Measured limitations
+- regex: only EMAIL and checksum-valid IBAN; names, phones, addresses, identity numbers are not detected (Micro dev strict F1 0.128 over 19 labels).
+- mBERT `full-1`: Micro dev strict F1 0.949 (dev only, single seed), but IBAN recall 0.000 and 100% decoy / 43% clean-sentence false positives on the synthetic challenge dev set; weakest on SURNAME, GIVENNAME, DRIVERLICENSENUM, IDCARDNUM. Quick synthetic CLI checks also showed missed items (e.g. a phone number and an email by mBERT alone), so span misses must be expected.
+- Code-like strings (order, tracking, reference codes) are not assumed safe or unsafe by format; no evaluation covers them.
+- Micro data is synthetic and provisional; results do not transfer to real text. Test splits were not evaluated. See `docs/runs/compare-dev/summary.md`.
 
 ## Stage 1 dataset audit (no model or training)
 
@@ -52,13 +71,12 @@ env -u PYTHONPATH .venv/bin/python scripts/audit_micro.py --verify   # offline r
 Pinned `ai4privacy/openpii-masking-micro-100k` @ `f95b4e1539657c3d0047d9ad3f20f26675f22c7d`. Reuses Stage 1 row checks (Mini outputs unchanged, still verify byte-identical). Measured: 100,000 rows; 38,835 EN/DE/FR/IT/ES; 442 quarantined (token/BIO/label discrepancies); 317 rows overlap Mini 10K (239 train, 34 dev, 40 test, 4 quarantined; 313 exact) and are excluded from all Micro splits; provisional 30,404 train / 3,835 dev / 3,841 test. Card says synthetic only, without Mini's internal conflict, but unverified; card label list differs from data (e.g. `TIME`). Not training-ready; see `docs/data-audit/micro/verdict.md`. Evidence in `docs/data-audit/micro/` and `data/manifests/micro/`.
 
 ## Future milestones
-1. **Chosen next dataset: `ai4privacy/openpii-masking-micro-100k`** (EN/DE/FR/IT/ES), pinned and audited in Stage 2 below. This is a dataset choice, not training authorization.
-2. (Done, Stage 2) Pin, audit schema/offsets/provenance/duplicates/Mini overlap. Do not automatically merge related datasets. No Nemotron or 1.5M dataset adoption is selected.
-3. The Mini 10K pilot audit remains completed with its recorded results above unchanged; it is not replaced or retroactively reinterpreted by this selection.
-4. mBERT BIO classifier, hybrid regex + mBERT, and evaluation remain unimplemented and unauthorized pending the relevant gates and explicit authorization.
+1. Chosen dataset: `ai4privacy/openpii-masking-micro-100k` (EN/DE/FR/IT/ES), pinned and audited in Stage 2; a dataset choice, not training authorization. The Mini 10K pilot audit stays as recorded.
+2. Implemented (see Stages 3-4): mBERT BIO classifier and hybrid regex + mBERT, dev comparison only.
+3. Open: reach and measure the all-personal-information masking target (phones, identity numbers, addresses, names, code-like identifiers), final test evaluation, and the data provenance/annotation gates. Not authorized yet.
 
 ## Provenance
-Local source note: `/Users/necatifurkancolak/AI-Workplace/Obsidian Vaults/NecatiOS/wiki/sources/privacygate-future-project-idea.md`.
+Local source note: `privacygate-future-project-idea.md` in the author's private notes (path omitted).
 
 ## Stage 3: mBERT (training pipeline; dev-only)
 Approved 2026-10-01: `google-bert/bert-base-multilingual-cased`, pinned revision `3f076fdb1ab68d5b2880cb87a0886f315b8146f8`, trained on the provisional Micro train split. Test split untouched; all tuning/reporting on dev. Not a production or privacy claim.
