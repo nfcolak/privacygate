@@ -1,0 +1,285 @@
+"""Rule-based span refinement applied after mBERT / hybrid detection (pure stdlib, deterministic).
+
+refine(text, spans) -> spans, same dict shape {start,end,label,source}. Rules, in order:
+  a. phone extension   - extend a TELEPHONENUM over a following extension keyword + digits (or "-12" style suffix)
+  b. address merge     - merge STREET/BUILDINGNUM/ZIPCODE/CITY runs into one ADDRESS span, then extend it over
+                         ISO-like postcode prefixes, a street-type word before the first STREET piece (addition beyond the
+                         original brief), adjacent unit phrases and a trailing country name
+  c. word completion   - extend any span that starts/ends inside an alphanumeric run to the whole run
+Finally overlapping/touching spans are unioned (earliest label, ADDRESS preferred over parts).
+
+Never logs or prints; errors are fixed, value-free messages. The vocabulary below is general real-world
+vocabulary (extension keywords, unit words, country names) and contains no dataset values.
+"""
+import re
+
+ADDRESS_PARTS = frozenset(("STREET", "BUILDINGNUM", "ZIPCODE", "CITY"))
+MAX_GAP_CHARS = 40
+MAX_GAP_WORDS = 4
+MAX_RUN_EXTENSION = 40  # chars added per side by word completion (guards against runaway runs)
+
+_ALNUM = r"[^\W_]"
+_NOT_AFTER_ALNUM = r"(?<!" + _ALNUM + r")"
+_NOT_BEFORE_ALNUM = r"(?!" + _ALNUM + r")"
+
+# ---- a. phone extension -------------------------------------------------------------------------------
+_EXT_KW = (r"(?:tel\.?[ ]?ext\.?|extensi[oó]n|extension|durchwahl|durchw\.?|apparat|interne|interno|anexo|extn|"
+           r"ext/|ext\.?|poste|app\.?|int\.?|dw)")
+_EXT = re.compile(
+    r"[ \t,;:(\[/\-\u2013\u2014]{0,3}(?<![^\W\d_])(?:" + _EXT_KW + r"[ \t.:\-]{0,3}|x[ \t]?)\d{1,6}" + _NOT_BEFORE_ALNUM,
+    re.I)
+_KW_TAIL = re.compile(r"(?<![^\W\d_])(?:" + _EXT_KW + r"|x)[ \t.:\-]{0,3}$", re.I)
+_DIGITS = re.compile(r"[ \t.:\-]{0,3}\d{1,6}" + _NOT_BEFORE_ALNUM)
+_DASH = re.compile(r"(?:[ \t]-[ \t]|-)\d{1,4}" + _NOT_BEFORE_ALNUM)
+
+# ---- b. address merge ---------------------------------------------------------------------------------
+_ISO = re.compile(_NOT_AFTER_ALNUM + r"(?:CH|FL|DE|AT|FR|IT|ES|NL|PL|D|A|F|I|L|B|E)-$")
+_COUNTRIES = (
+    "Switzerland", "Schweiz", "Suisse", "Svizzera", "Svizra", "Suiza",
+    "Germany", "Deutschland", "Allemagne", "Germania", "Alemania",
+    "France", "Frankreich", "Francia",
+    "Italy", "Italien", "Italie", "Italia",
+    "Spain", "Spanien", "Espagne", "Spagna", "España",
+    "Austria", "Österreich", "Autriche",
+    "United Kingdom", "UK", "Vereinigtes Königreich", "Royaume-Uni", "Regno Unito", "Reino Unido",
+    "Netherlands", "Niederlande", "Pays-Bas", "Paesi Bassi", "Países Bajos",
+    "Belgium", "Belgien", "Belgique", "Belgio", "Bélgica",
+    "Liechtenstein",
+    "Luxembourg", "Luxemburg", "Lussemburgo", "Luxemburgo",
+    "Portugal", "Portogallo",
+    "Ireland", "Irland", "Irlande", "Irlanda",
+    "Poland", "Polen", "Pologne", "Polonia",
+    "United States", "USA",
+    "Türkiye", "Turkey", "Türkei", "Turquie", "Turchia", "Turquía",
+)
+_COUNTRY_FORMS = sorted({f for c in _COUNTRIES for f in (c, c.upper())}, key=lambda f: (-len(f), f))
+_COUNTRY = re.compile(
+    r"(?:[ \t]*[,;][ \t]*|[ \t]+[\u2014\u2013-][ \t]+|[ \t]*\n[ \t]*|[ \t]*)" + _NOT_AFTER_ALNUM
+    + r"(?:" + "|".join(re.escape(f) for f in _COUNTRY_FORMS) + r")" + _NOT_BEFORE_ALNUM)
+
+_UNIT_KW = (r"(?:apartamento|appartement|apartment|apartado|casella[ ]postale|case[ ]postale|postfach|wohnung|"
+            r"interno|etage|\u00e9tage|piano|scala|suite|floor|stock|flat|unit|apt|whg|int|app|puerta|piso|og|eg)")
+_UNIT_TOKEN = r"(?:\d" + _ALNUM + r"{0,5}(?:[-/]\d" + _ALNUM + r"{0,3})?[\u00ba\u00b0\u00aa]?|(?-i:[A-Z]))" + _NOT_BEFORE_ALNUM
+_FLOOR_KW = r"(?:floor|stock|og|eg|etage|\u00e9tage|piano|piso|planta)"
+_NAME = r"[^\W\d_]" + _ALNUM + r"{0,14}"
+_UNIT = re.compile(
+    _NOT_AFTER_ALNUM + r"(?:"
+    + _UNIT_KW + r"\.?[ \t]{0,2}" + _UNIT_TOKEN
+    + r"|\d{1,2}(?:st|nd|rd|th|er|\u00e8re|\u00e8me|e|\u00ba|\u00b0|\u00aa|\.)?[ \t]{0,2}" + _FLOOR_KW + _NOT_BEFORE_ALNUM
+    + r"|c/o[ \t]+" + _NAME + r"(?:[ \t]+" + _NAME + r")?" + _NOT_BEFORE_ALNUM
+    + r")", re.I)
+# Street-type word (+ optional article/preposition) directly before a STREET piece the model started late.
+_STREET_TYPE = (r"(?:strasse|stra\u00dfe|street|avenue|boulevard|viale|via|piazza|piazzale|corso|strada|calle|avenida|paseo|plaza|"
+                r"carrer|rue|route|chemin|avenue|all\u00e9e|impasse|place|quai|ruelle|cours|weg|platz|gasse|bd|av|c/)")
+_ARTICLE = r"(?:de[ \t]+la|de[ \t]+las|de[ \t]+los|dell'|della|dello|degli|dei|del|des|du|de|di|d'|l')"
+_STREET_PREFIX = re.compile(_NOT_AFTER_ALNUM + _STREET_TYPE + r"\.?[ \t]+(?:" + _ARTICLE + r"[ \t]*)?$", re.I)
+_SEP = frozenset(" \t,;:/\n-\u2013\u2014().")
+_SENT_END = re.compile(r"[.!?]\s+")
+_BLANK_LINE = re.compile(r"\n[ \t]*\n")
+
+
+def _err():
+    raise ValueError("invalid spans for refinement") from None
+
+
+def _check(text, spans):
+    n = len(text)
+    out = []
+    for s in spans:
+        if not isinstance(s, dict) or not {"start", "end", "label"} <= s.keys():
+            _err()
+        a, b = s["start"], s["end"]
+        if type(a) is not int or type(b) is not int or not 0 <= a < b <= n or not isinstance(s["label"], str):
+            _err()
+        out.append({"start": a, "end": b, "label": s["label"], "source": s.get("source", "")})
+    return out
+
+
+def _changed(s, **kw):
+    return dict(s, source="refine", **kw)
+
+
+# ---- rule a -------------------------------------------------------------------------------------------
+def _ext_end(text, s):
+    a, b = s["start"], s["end"]
+    m = _EXT.match(text, b)
+    if m:
+        return m.end()
+    if _KW_TAIL.search(text, a, b):  # span already holds the keyword but stops before its digits
+        m = _DIGITS.match(text, b)
+        if m:
+            return m.end()
+    if text[b - 1].isdigit():
+        m = _DASH.match(text, b)
+        if m:
+            return m.end()
+    return b
+
+
+def _phone_extension(text, spans):
+    out = []
+    for s in spans:
+        if s["label"] == "TELEPHONENUM":
+            e = _ext_end(text, s)
+            if e > s["end"]:
+                s = _changed(s, end=e)
+        out.append(s)
+    return out
+
+
+# ---- rule b -------------------------------------------------------------------------------------------
+def _sentence_end(text, a, b):
+    seg = text[a:b + 1]  # include the char after the gap: it decides "uppercase follows"
+    if _BLANK_LINE.search(text[a:b]):
+        return True
+    for m in _SENT_END.finditer(seg):
+        if m.end() < len(seg) and seg[m.end()].isupper():
+            return True
+    return False
+
+
+def _zip_prefix(text, spans):
+    out = []
+    for s in spans:
+        if s["label"] == "ZIPCODE" and s["start"] > 0:
+            m = _ISO.search(text, max(0, s["start"] - 3), s["start"])
+            if m:
+                s = _changed(s, start=m.start())
+        out.append(s)
+    return out
+
+
+def _street_prefix(text, group):
+    """Pull the left edge over a street-type word that precedes the first STREET piece (e.g. 'via', 'rue de')."""
+    first = min(group, key=lambda p: p["start"])
+    if first["label"] != "STREET":
+        return first["start"]
+    m = _STREET_PREFIX.search(text, max(0, first["start"] - 16), first["start"])
+    return m.start() if m else first["start"]
+
+
+def _unit_left(text, a):
+    for k in range(4):
+        if a - k < 0 or any(ch not in _SEP for ch in text[a - k:a]):
+            break
+        if k == 0 and a > 0 and text[a - 1].isalnum() and text[a].isalnum():
+            continue
+        end = a - k
+        for p in range(max(0, end - MAX_GAP_CHARS), end):
+            m = _UNIT.match(text, p, end)
+            if m and m.end() == end:
+                return p
+    return a
+
+
+def _unit_right(text, b):
+    for k in range(4):
+        if b + k > len(text) or any(ch not in _SEP for ch in text[b:b + k]):
+            break
+        m = _UNIT.match(text, b + k)
+        if m:
+            return m.end()
+    return b
+
+
+def _extend_address(text, a, b):
+    for _ in range(4):
+        before = (a, b)
+        b = _unit_right(text, b)
+        a = _unit_left(text, a)
+        m = _COUNTRY.match(text, b)
+        if m:
+            b = m.end()
+        if (a, b) == before:
+            break
+    return a, b
+
+
+def _address_merge(text, spans):
+    spans = sorted(spans, key=lambda s: (s["start"], s["end"]))
+    others = [s for s in spans if s["label"] not in ADDRESS_PARTS]
+    groups, cur = [], []
+    for s in spans:
+        if s["label"] not in ADDRESS_PARTS:
+            continue
+        if cur:
+            prev_end = max(p["end"] for p in cur)
+            gap = text[prev_end:s["start"]] if s["start"] > prev_end else ""
+            ok = (len(gap) <= MAX_GAP_CHARS and len(gap.split()) <= MAX_GAP_WORDS
+                  and not (gap and _sentence_end(text, prev_end, s["start"]))
+                  and not any(o["start"] < s["start"] and o["end"] > prev_end for o in others))
+            if not ok:
+                groups.append(cur)
+                cur = []
+        cur.append(s)
+    if cur:
+        groups.append(cur)
+    out = list(others)
+    for g in groups:
+        if len(g) < 2:
+            out.extend(g)
+            continue
+        a, b = _extend_address(text, _street_prefix(text, g), max(p["end"] for p in g))
+        out.append({"start": a, "end": b, "label": "ADDRESS", "source": "refine"})
+    return out
+
+
+# ---- rule c -------------------------------------------------------------------------------------------
+def _word_pos(text, j):
+    if not 0 <= j < len(text):
+        return False
+    ch = text[j]
+    if ch.isalnum():
+        return True
+    return ch in "-./" and 0 < j < len(text) - 1 and text[j - 1].isalnum() and text[j + 1].isalnum()
+
+
+def _word_completion(text, spans):
+    out = []
+    for s in spans:
+        a, b = s["start"], s["end"]
+        if _word_pos(text, a - 1) and _word_pos(text, a):
+            lim = max(0, a - MAX_RUN_EXTENSION)
+            while a > lim and _word_pos(text, a - 1):
+                a -= 1
+        if _word_pos(text, b - 1) and _word_pos(text, b):
+            lim = min(len(text), b + MAX_RUN_EXTENSION)
+            while b < lim and _word_pos(text, b):
+                b += 1
+        out.append(_changed(s, start=a, end=b) if (a, b) != (s["start"], s["end"]) else s)
+    return out
+
+
+# ---- final union --------------------------------------------------------------------------------------
+def _collapse(group):
+    if len(group) == 1:
+        return dict(group[0])
+    label = "ADDRESS" if any(g["label"] == "ADDRESS" for g in group) else group[0]["label"]
+    sources = {g["source"] for g in group}
+    source = "refine" if "refine" in sources else ("both" if len(sources) > 1 else next(iter(sources)))
+    return {"start": min(g["start"] for g in group), "end": max(g["end"] for g in group), "label": label, "source": source}
+
+
+def _union(spans):
+    out, group, end = [], [], -1
+    for s in sorted(spans, key=lambda s: (s["start"], -s["end"])):
+        if group and s["start"] > end:  # touching spans (start == end) merge too
+            out.append(_collapse(group))
+            group = []
+        end = s["end"] if not group else max(end, s["end"])
+        group.append(s)
+    if group:
+        out.append(_collapse(group))
+    return out
+
+
+def refine(text, spans):
+    if not isinstance(text, str) or not isinstance(spans, (list, tuple)):
+        _err()
+    spans = _check(text, spans)
+    if not spans:
+        return []
+    spans = _phone_extension(text, spans)
+    spans = _address_merge(text, _zip_prefix(text, spans))
+    spans = _word_completion(text, spans)
+    return _union(spans)

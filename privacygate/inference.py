@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 ENGINES = ("regex", "mbert", "hybrid")
-POLICIES = ("union", "rules_first", "rules_first_thr")
+POLICIES = ("union", "rules_first", "rules_first_thr", "union_refined")
 DEFAULT_THR = 0.5  # rules_first_thr default (the dev-chosen value in the README)
 
 
@@ -61,8 +61,9 @@ def _load_mbert(model_dir):
               "torch/transformers must be installed)")
 
 
-def run(text, engine="regex", model_dir=None, policy="union", confidence=None):
-    """Return {masked_text, entities:[{start,end,label}]} for text."""
+def run(text, engine="regex", model_dir=None, policy="union", confidence=None, refine=False):
+    """Return {masked_text, entities:[{start,end,label}]} for text.
+    refine=True applies rule-based span refinement to the mbert engine (hybrid: policy union_refined)."""
     if engine == "regex":
         from .detect import mask
         return mask(text)
@@ -75,10 +76,16 @@ def run(text, engine="regex", model_dir=None, policy="union", confidence=None):
     try:
         if engine == "mbert":
             spans = mb.detect(text, confidence or 0.0)
+            if refine:
+                from .refine import refine as _refine
+                spans = _refine(text, spans)
         else:
             rx = hybrid.regex(text)
             if policy == "union":
                 spans = hybrid.union(rx, mb.detect(text, confidence or 0.0))
+            elif policy == "union_refined":
+                from .refine import refine as _refine
+                spans = _refine(text, hybrid.union(rx, mb.detect(text, confidence or 0.0)))
             elif policy == "rules_first":
                 spans = hybrid.rules_first(rx, mb.detect(text, confidence or 0.0))
             else:

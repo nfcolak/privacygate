@@ -1,0 +1,73 @@
+{
+  "clean_control_formats": {
+    "city_prose_far": 5,
+    "country_prose": 5,
+    "ext_inside_words": 5,
+    "measurement_x": 5
+  },
+  "counts": {
+    "clean_rows": 20,
+    "gold_original_characters": 3415,
+    "gold_spans": 130,
+    "per_family": {
+      "clean": 20,
+      "full_address": 35,
+      "long_text": 5,
+      "phone": 20
+    },
+    "per_label": {
+      "ADDRESS": 45,
+      "PERSONNAME": 60,
+      "TELEPHONENUM": 25
+    },
+    "per_language": {
+      "de": 16,
+      "en": 16,
+      "es": 16,
+      "fr": 16,
+      "it": 16
+    },
+    "positive_rows": 60
+  },
+  "dataset": {
+    "bytes": 36008,
+    "path": "data/augmentation/masking-stress-v2-dev.jsonl",
+    "rows": 80,
+    "sha256": "4b52ff31718ba6dd0b7e8a9fda9637f241295f782504d456179467a6b0c2f0d2"
+  },
+  "format_notes": [
+    "Formats not used in stress v1: CH-postcode lines, postcode-before-street, c/o lines, floor/Stock/etage units, x123/Apparat/DW extensions, '-12' DE phone suffix, multi-line addresses, two addresses split by a sentence.",
+    "Gold ADDRESS spans cover the whole contiguous address including unit, c/o line, separators and country; gold TELEPHONENUM spans include the extension.",
+    "Clean controls are near misses for the refinement rules (country prose, 'x' in measurements, 'ext' inside words, a city name in prose); no detector-based filtering."
+  ],
+  "generator": {
+    "deterministic": true,
+    "model_or_predictions_used": false,
+    "path": "scripts/make_masking_stress_v2.py",
+    "randomness": false,
+    "sha256": "de2cc076d0a7d6910899f1678314d508810c4dca603e0e2ec4d9c2654144c0fb"
+  },
+  "limitations": [
+    "Invented street/city/person values may collide accidentally with real ones; country names are real by design (rule vocabulary).",
+    "Rules were designed with v1 failure shapes in view; v2 formats were chosen from the rule vocabulary and general real-world conventions, not from model outputs on v2.",
+    "Annotation is mechanical per inserted slot; unannotated personal information may exist. Development diagnostic only, no privacy guarantee."
+  ],
+  "positive_formats": {
+    "addr_c_o_line": 5,
+    "addr_ch_postcode": 5,
+    "addr_ch_postcode_country": 5,
+    "addr_floor_unit": 5,
+    "addr_multiline_country": 5,
+    "addr_postcode_first_country": 5,
+    "long_text_phone_address": 5,
+    "phone_dash_suffix": 5,
+    "phone_dw_ext": 5,
+    "phone_word_ext": 5,
+    "phone_x_ext": 5,
+    "two_addresses_sentence": 5
+  },
+  "purpose": "bounded synthetic DEVELOPMENT validation of rule-based span refinement; never training or held-out final evaluation",
+  "schema": "masking-stress-six-field-v1",
+  "split": "dev",
+  "version": "masking-stress-v2"
+}
