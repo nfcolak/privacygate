@@ -10,6 +10,7 @@ import math
 import re
 
 from .augmentation_data import POSITIVE_SCHEMA_VERSION, POSITIVE_SOURCE_VERSION
+from .region_data import ERROR_CODES as REGION_ERROR_CODES
 from .window_alignment import ALIGNMENT_POLICY, ALIGNMENT_SOURCE_VERSION
 
 IDENTITY_VERSION = "run-identity-v3"
@@ -31,6 +32,47 @@ REFUSAL_CODES = frozenset(
       "without_provenance label_inventory_missing output_path_invalid history_without_checkpoint checkpoint_incomplete "
       "identity_mismatch classifier_labels_mismatch metadata_inconsistent config_mismatch metrics_mismatch").split()] +
     ["micro_manifest_malformed", "dev_label_not_in_train", "rows_missing_from_raw"])
+
+# Additive region codes; the historical Micro identity and validation stay intact.
+REFUSAL_CODES = REFUSAL_CODES | REGION_ERROR_CODES
+
+
+def build_region_identity(args, model_id, model_revision, max_len, stride, labels,
+                          train_binding, dev_binding, model_dir):
+    return {
+        "version": "region-run-identity-v1", "mode": "region", "run": args.run,
+        "model": model_id, "model_revision": model_revision,
+        "epochs": args.epochs, "batch_size": args.batch_size, "lr": args.lr, "seed": args.seed,
+        "max_len": max_len, "window_stride_tokens": stride, "encoder_version": ENCODER_VERSION,
+        "alignment_policy": ALIGNMENT_POLICY, "alignment_source_version": ALIGNMENT_SOURCE_VERSION,
+        "labels": list(labels), "region_train": train_binding, "region_dev": dev_binding,
+        "selection": "region-dev-strict-span-f1-then-character-recall-v1",
+        "output_dir": str(model_dir.resolve()),
+    }
+
+
+def check_region_existing(identity, model_dir):
+    """Region artifacts live together; incompatible/partial/Micro directories refuse.
+
+    No existing weight/metadata file is changed, even for a compatible rerun.
+    """
+    if model_dir.is_symlink() or (model_dir.exists() and not model_dir.is_dir()):
+        raise ValueError("run_output_path_invalid")
+    if not model_dir.exists():
+        return "fresh"
+    required = CHECKPOINT_FILES + ("metrics.json", "tokenizer.json", "tokenizer_config.json")
+    if any(not (model_dir / name).is_file() or (model_dir / name).is_symlink() for name in required):
+        raise ValueError("run_checkpoint_incomplete")
+    info = _read_json(model_dir / "train_info.json")
+    labels = _check_identity(info.get("run_identity"), identity, "run_identity_mismatch")
+    config = _read_json(model_dir / "config.json")
+    if (config.get("id2label") != {str(i): label for i, label in enumerate(labels)} or
+            config.get("label2id") != {label: i for i, label in enumerate(labels)} or
+            config.get("privacygate_training_mode") != "region"):
+        raise ValueError("run_classifier_labels_mismatch")
+    _check_identity(_read_json(model_dir / "metrics.json").get("run_identity"), identity,
+                    "run_metrics_mismatch")
+    return "reuse"
 
 
 def refusal_code(exc):
