@@ -1,0 +1,2018 @@
+{
+  "crossing": {
+    "hybrid_union": {
+      "cut_address": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 25,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_identifier": {
+        "crossing_fully_masked": 20,
+        "crossing_partial": 5,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_name": {
+        "crossing_fully_masked": 1,
+        "crossing_partial": 24,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_phone": {
+        "crossing_fully_masked": 25,
+        "crossing_partial": 0,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "mid_address": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_identifier": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_name": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_phone": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      }
+    },
+    "hybrid_union_refined": {
+      "cut_address": {
+        "crossing_fully_masked": 23,
+        "crossing_partial": 2,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_identifier": {
+        "crossing_fully_masked": 21,
+        "crossing_partial": 4,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_name": {
+        "crossing_fully_masked": 24,
+        "crossing_partial": 1,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_phone": {
+        "crossing_fully_masked": 25,
+        "crossing_partial": 0,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "mid_address": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_identifier": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_name": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_phone": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      }
+    },
+    "mbert": {
+      "cut_address": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 25,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_identifier": {
+        "crossing_fully_masked": 20,
+        "crossing_partial": 5,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_name": {
+        "crossing_fully_masked": 1,
+        "crossing_partial": 24,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "cut_phone": {
+        "crossing_fully_masked": 25,
+        "crossing_partial": 0,
+        "crossing_spans": 25,
+        "crossing_untouched": 0
+      },
+      "mid_address": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_identifier": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_name": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      },
+      "mid_phone": {
+        "crossing_fully_masked": 0,
+        "crossing_partial": 0,
+        "crossing_spans": 0,
+        "crossing_untouched": 0
+      }
+    }
+  },
+  "dataset_sha256": "ce617dda0a15deaa99e67a9018e317f6cc87d2ebb6ad47d2d47df3e452ea36ca",
+  "dataset_version": "window-cut-v1",
+  "forward_sweeps": 1,
+  "groups": {
+    "cut_address": {
+      "hybrid_union": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 0,
+        "covered_gold_alnum_chars": 882,
+        "covered_gold_chars": 912,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "final_mask_entities": 146,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 1213,
+        "gold_chars": 1445,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 25,
+        "leaked_gold_alnum_chars": 331,
+        "masked_chars": 912,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 25,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.0,
+          "covered_original_gold_chars": 0.6311418685121107,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 0.27287716405605933
+        },
+        "raw_detection_candidates": 161,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "partially_covered_only_different_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85871,
+        "uncovered_gold_chars": 533,
+        "untouched_gold_spans": 0
+      },
+      "hybrid_union_refined": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 23,
+        "covered_gold_alnum_chars": 1201,
+        "covered_gold_chars": 1431,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 23,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 2,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 8,
+        "gold_alnum_chars": 1213,
+        "gold_chars": 1445,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 2,
+        "leaked_gold_alnum_chars": 12,
+        "masked_chars": 1431,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 2,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.92,
+          "covered_original_gold_chars": 0.9903114186851211,
+          "fully_masked_positive_rows": 0.8,
+          "leaked_gold_alnum_chars": 0.00989282769991756
+        },
+        "raw_detection_candidates": 25,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 23,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 2,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 23,
+          "partially_covered_only_different_label_overlap": 2
+        },
+        "rows": 10,
+        "text_chars": 85871,
+        "uncovered_gold_chars": 14,
+        "untouched_gold_spans": 0
+      },
+      "mbert": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 0,
+        "covered_gold_alnum_chars": 882,
+        "covered_gold_chars": 912,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "final_mask_entities": 146,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 1213,
+        "gold_chars": 1445,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 25,
+        "leaked_gold_alnum_chars": 331,
+        "masked_chars": 912,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 25,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.0,
+          "covered_original_gold_chars": 0.6311418685121107,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 0.27287716405605933
+        },
+        "raw_detection_candidates": 161,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "partially_covered_only_different_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85871,
+        "uncovered_gold_chars": 533,
+        "untouched_gold_spans": 0
+      }
+    },
+    "cut_identifier": {
+      "hybrid_union": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 20,
+        "covered_gold_alnum_chars": 285,
+        "covered_gold_chars": 325,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 2,
+          "fully_covered_nonexact": 18,
+          "partially_covered": 5,
+          "untouched": 0
+        },
+        "final_mask_entities": 68,
+        "fully_masked_positive_rows": 6,
+        "gold_alnum_chars": 285,
+        "gold_chars": 330,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 325,
+        "nonalnum_only_incomplete_gold_spans": 5,
+        "partial_gold_spans": 5,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.8,
+          "covered_original_gold_chars": 0.9848484848484849,
+          "fully_masked_positive_rows": 0.6,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 99,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 2,
+          "fully_covered_nonexact": 18,
+          "partially_covered": 5,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 2,
+          "fully_covered_nonexact_correct_label_overlap": 5,
+          "fully_covered_nonexact_only_different_label_overlap": 13,
+          "partially_covered_correct_label_overlap": 1,
+          "partially_covered_only_different_label_overlap": 4
+        },
+        "rows": 10,
+        "text_chars": 85404,
+        "uncovered_gold_chars": 5,
+        "untouched_gold_spans": 0
+      },
+      "hybrid_union_refined": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 21,
+        "covered_gold_alnum_chars": 285,
+        "covered_gold_chars": 326,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 21,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 4,
+          "untouched": 0
+        },
+        "final_mask_entities": 29,
+        "fully_masked_positive_rows": 6,
+        "gold_alnum_chars": 285,
+        "gold_chars": 330,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 326,
+        "nonalnum_only_incomplete_gold_spans": 4,
+        "partial_gold_spans": 4,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.84,
+          "covered_original_gold_chars": 0.9878787878787879,
+          "fully_masked_positive_rows": 0.6,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 29,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 21,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 4,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 21,
+          "partially_covered_only_different_label_overlap": 4
+        },
+        "rows": 10,
+        "text_chars": 85404,
+        "uncovered_gold_chars": 4,
+        "untouched_gold_spans": 0
+      },
+      "mbert": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 20,
+        "covered_gold_alnum_chars": 285,
+        "covered_gold_chars": 325,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 2,
+          "fully_covered_nonexact": 18,
+          "partially_covered": 5,
+          "untouched": 0
+        },
+        "final_mask_entities": 68,
+        "fully_masked_positive_rows": 6,
+        "gold_alnum_chars": 285,
+        "gold_chars": 330,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 325,
+        "nonalnum_only_incomplete_gold_spans": 5,
+        "partial_gold_spans": 5,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.8,
+          "covered_original_gold_chars": 0.9848484848484849,
+          "fully_masked_positive_rows": 0.6,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 99,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 2,
+          "fully_covered_nonexact": 18,
+          "partially_covered": 5,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 2,
+          "fully_covered_nonexact_correct_label_overlap": 5,
+          "fully_covered_nonexact_only_different_label_overlap": 13,
+          "partially_covered_correct_label_overlap": 1,
+          "partially_covered_only_different_label_overlap": 4
+        },
+        "rows": 10,
+        "text_chars": 85404,
+        "uncovered_gold_chars": 5,
+        "untouched_gold_spans": 0
+      }
+    },
+    "cut_name": {
+      "hybrid_union": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 1,
+        "covered_gold_alnum_chars": 402,
+        "covered_gold_chars": 403,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 1,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 24,
+          "untouched": 0
+        },
+        "final_mask_entities": 49,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 402,
+        "gold_chars": 427,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 403,
+        "nonalnum_only_incomplete_gold_spans": 24,
+        "partial_gold_spans": 24,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.04,
+          "covered_original_gold_chars": 0.9437939110070258,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 71,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 1,
+          "partially_covered": 24,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "fully_covered_nonexact_only_different_label_overlap": 1,
+          "partially_covered_only_different_label_overlap": 24
+        },
+        "rows": 10,
+        "text_chars": 85722,
+        "uncovered_gold_chars": 24,
+        "untouched_gold_spans": 0
+      },
+      "hybrid_union_refined": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 24,
+        "covered_gold_alnum_chars": 402,
+        "covered_gold_chars": 426,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 24,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 1,
+          "untouched": 0
+        },
+        "final_mask_entities": 26,
+        "fully_masked_positive_rows": 9,
+        "gold_alnum_chars": 402,
+        "gold_chars": 427,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 426,
+        "nonalnum_only_incomplete_gold_spans": 1,
+        "partial_gold_spans": 1,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.96,
+          "covered_original_gold_chars": 0.9976580796252927,
+          "fully_masked_positive_rows": 0.9,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 26,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 24,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 1,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 24,
+          "partially_covered_only_different_label_overlap": 1
+        },
+        "rows": 10,
+        "text_chars": 85722,
+        "uncovered_gold_chars": 1,
+        "untouched_gold_spans": 0
+      },
+      "mbert": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 1,
+        "covered_gold_alnum_chars": 402,
+        "covered_gold_chars": 403,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 1,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 24,
+          "untouched": 0
+        },
+        "final_mask_entities": 49,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 402,
+        "gold_chars": 427,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 403,
+        "nonalnum_only_incomplete_gold_spans": 24,
+        "partial_gold_spans": 24,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.04,
+          "covered_original_gold_chars": 0.9437939110070258,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 71,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 1,
+          "partially_covered": 24,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "fully_covered_nonexact_only_different_label_overlap": 1,
+          "partially_covered_only_different_label_overlap": 24
+        },
+        "rows": 10,
+        "text_chars": 85722,
+        "uncovered_gold_chars": 24,
+        "untouched_gold_spans": 0
+      }
+    },
+    "cut_phone": {
+      "hybrid_union": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 25,
+        "covered_gold_alnum_chars": 280,
+        "covered_gold_chars": 370,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 10,
+        "gold_alnum_chars": 280,
+        "gold_chars": 370,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 370,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 0,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 1.0,
+          "covered_original_gold_chars": 1.0,
+          "fully_masked_positive_rows": 1.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 47,
+        "raw_detection_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_correct_label_correct_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85643,
+        "uncovered_gold_chars": 0,
+        "untouched_gold_spans": 0
+      },
+      "hybrid_union_refined": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 25,
+        "covered_gold_alnum_chars": 280,
+        "covered_gold_chars": 370,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 10,
+        "gold_alnum_chars": 280,
+        "gold_chars": 370,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 370,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 0,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 1.0,
+          "covered_original_gold_chars": 1.0,
+          "fully_masked_positive_rows": 1.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 25,
+        "raw_detection_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_correct_label_correct_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85643,
+        "uncovered_gold_chars": 0,
+        "untouched_gold_spans": 0
+      },
+      "mbert": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 25,
+        "covered_gold_alnum_chars": 280,
+        "covered_gold_chars": 370,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 10,
+        "gold_alnum_chars": 280,
+        "gold_chars": 370,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 370,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 0,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 1.0,
+          "covered_original_gold_chars": 1.0,
+          "fully_masked_positive_rows": 1.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 47,
+        "raw_detection_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_correct_label_correct_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85643,
+        "uncovered_gold_chars": 0,
+        "untouched_gold_spans": 0
+      }
+    },
+    "mid_address": {
+      "hybrid_union": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 0,
+        "covered_gold_alnum_chars": 880,
+        "covered_gold_chars": 908,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "final_mask_entities": 151,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 1213,
+        "gold_chars": 1445,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 25,
+        "leaked_gold_alnum_chars": 333,
+        "masked_chars": 908,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 25,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.0,
+          "covered_original_gold_chars": 0.6283737024221453,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 0.2745259686727123
+        },
+        "raw_detection_candidates": 151,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "partially_covered_only_different_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 86065,
+        "uncovered_gold_chars": 537,
+        "untouched_gold_spans": 0
+      },
+      "hybrid_union_refined": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 23,
+        "covered_gold_alnum_chars": 1201,
+        "covered_gold_chars": 1431,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 23,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 2,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 8,
+        "gold_alnum_chars": 1213,
+        "gold_chars": 1445,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 2,
+        "leaked_gold_alnum_chars": 12,
+        "masked_chars": 1431,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 2,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.92,
+          "covered_original_gold_chars": 0.9903114186851211,
+          "fully_masked_positive_rows": 0.8,
+          "leaked_gold_alnum_chars": 0.00989282769991756
+        },
+        "raw_detection_candidates": 25,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 23,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 2,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 23,
+          "partially_covered_only_different_label_overlap": 2
+        },
+        "rows": 10,
+        "text_chars": 86065,
+        "uncovered_gold_chars": 14,
+        "untouched_gold_spans": 0
+      },
+      "mbert": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 0,
+        "covered_gold_alnum_chars": 880,
+        "covered_gold_chars": 908,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "final_mask_entities": 151,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 1213,
+        "gold_chars": 1445,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 25,
+        "leaked_gold_alnum_chars": 333,
+        "masked_chars": 908,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 25,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.0,
+          "covered_original_gold_chars": 0.6283737024221453,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 0.2745259686727123
+        },
+        "raw_detection_candidates": 151,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "partially_covered_only_different_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 86065,
+        "uncovered_gold_chars": 537,
+        "untouched_gold_spans": 0
+      }
+    },
+    "mid_identifier": {
+      "hybrid_union": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 18,
+        "covered_gold_alnum_chars": 282,
+        "covered_gold_chars": 320,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 5,
+          "fully_covered_nonexact": 13,
+          "partially_covered": 7,
+          "untouched": 0
+        },
+        "final_mask_entities": 57,
+        "fully_masked_positive_rows": 5,
+        "gold_alnum_chars": 285,
+        "gold_chars": 330,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 1,
+        "leaked_gold_alnum_chars": 3,
+        "masked_chars": 320,
+        "nonalnum_only_incomplete_gold_spans": 6,
+        "partial_gold_spans": 7,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.72,
+          "covered_original_gold_chars": 0.9696969696969697,
+          "fully_masked_positive_rows": 0.5,
+          "leaked_gold_alnum_chars": 0.010526315789473684
+        },
+        "raw_detection_candidates": 57,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 5,
+          "fully_covered_nonexact": 13,
+          "partially_covered": 7,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 5,
+          "fully_covered_nonexact_only_different_label_overlap": 13,
+          "partially_covered_correct_label_overlap": 2,
+          "partially_covered_only_different_label_overlap": 5
+        },
+        "rows": 10,
+        "text_chars": 85645,
+        "uncovered_gold_chars": 10,
+        "untouched_gold_spans": 0
+      },
+      "hybrid_union_refined": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 21,
+        "covered_gold_alnum_chars": 285,
+        "covered_gold_chars": 326,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 21,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 4,
+          "untouched": 0
+        },
+        "final_mask_entities": 29,
+        "fully_masked_positive_rows": 6,
+        "gold_alnum_chars": 285,
+        "gold_chars": 330,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 326,
+        "nonalnum_only_incomplete_gold_spans": 4,
+        "partial_gold_spans": 4,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.84,
+          "covered_original_gold_chars": 0.9878787878787879,
+          "fully_masked_positive_rows": 0.6,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 29,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 21,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 4,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 21,
+          "partially_covered_only_different_label_overlap": 4
+        },
+        "rows": 10,
+        "text_chars": 85645,
+        "uncovered_gold_chars": 4,
+        "untouched_gold_spans": 0
+      },
+      "mbert": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 18,
+        "covered_gold_alnum_chars": 282,
+        "covered_gold_chars": 320,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 5,
+          "fully_covered_nonexact": 13,
+          "partially_covered": 7,
+          "untouched": 0
+        },
+        "final_mask_entities": 57,
+        "fully_masked_positive_rows": 5,
+        "gold_alnum_chars": 285,
+        "gold_chars": 330,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 1,
+        "leaked_gold_alnum_chars": 3,
+        "masked_chars": 320,
+        "nonalnum_only_incomplete_gold_spans": 6,
+        "partial_gold_spans": 7,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.72,
+          "covered_original_gold_chars": 0.9696969696969697,
+          "fully_masked_positive_rows": 0.5,
+          "leaked_gold_alnum_chars": 0.010526315789473684
+        },
+        "raw_detection_candidates": 57,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 5,
+          "fully_covered_nonexact": 13,
+          "partially_covered": 7,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 5,
+          "fully_covered_nonexact_only_different_label_overlap": 13,
+          "partially_covered_correct_label_overlap": 2,
+          "partially_covered_only_different_label_overlap": 5
+        },
+        "rows": 10,
+        "text_chars": 85645,
+        "uncovered_gold_chars": 10,
+        "untouched_gold_spans": 0
+      }
+    },
+    "mid_name": {
+      "hybrid_union": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 0,
+        "covered_gold_alnum_chars": 402,
+        "covered_gold_chars": 402,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "final_mask_entities": 50,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 402,
+        "gold_chars": 427,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 402,
+        "nonalnum_only_incomplete_gold_spans": 25,
+        "partial_gold_spans": 25,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.0,
+          "covered_original_gold_chars": 0.9414519906323185,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 50,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "partially_covered_only_different_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85787,
+        "uncovered_gold_chars": 25,
+        "untouched_gold_spans": 0
+      },
+      "hybrid_union_refined": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 25,
+        "covered_gold_alnum_chars": 402,
+        "covered_gold_chars": 427,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 25,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 10,
+        "gold_alnum_chars": 402,
+        "gold_chars": 427,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 427,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 0,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 1.0,
+          "covered_original_gold_chars": 1.0,
+          "fully_masked_positive_rows": 1.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 25,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 25,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_different_label_only_different_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85787,
+        "uncovered_gold_chars": 0,
+        "untouched_gold_spans": 0
+      },
+      "mbert": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 0,
+        "covered_gold_alnum_chars": 402,
+        "covered_gold_chars": 402,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "final_mask_entities": 50,
+        "fully_masked_positive_rows": 0,
+        "gold_alnum_chars": 402,
+        "gold_chars": 427,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 402,
+        "nonalnum_only_incomplete_gold_spans": 25,
+        "partial_gold_spans": 25,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 0.0,
+          "covered_original_gold_chars": 0.9414519906323185,
+          "fully_masked_positive_rows": 0.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 50,
+        "raw_detection_classification": {
+          "exact_correct_label": 0,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 25,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "partially_covered_only_different_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85787,
+        "uncovered_gold_chars": 25,
+        "untouched_gold_spans": 0
+      }
+    },
+    "mid_phone": {
+      "hybrid_union": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 25,
+        "covered_gold_alnum_chars": 280,
+        "covered_gold_chars": 370,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 10,
+        "gold_alnum_chars": 280,
+        "gold_chars": 370,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 370,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 0,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 1.0,
+          "covered_original_gold_chars": 1.0,
+          "fully_masked_positive_rows": 1.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 25,
+        "raw_detection_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_correct_label_correct_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85709,
+        "uncovered_gold_chars": 0,
+        "untouched_gold_spans": 0
+      },
+      "hybrid_union_refined": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 25,
+        "covered_gold_alnum_chars": 280,
+        "covered_gold_chars": 370,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 10,
+        "gold_alnum_chars": 280,
+        "gold_chars": 370,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 370,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 0,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 1.0,
+          "covered_original_gold_chars": 1.0,
+          "fully_masked_positive_rows": 1.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 25,
+        "raw_detection_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_correct_label_correct_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85709,
+        "uncovered_gold_chars": 0,
+        "untouched_gold_spans": 0
+      },
+      "mbert": {
+        "clean_controls": {
+          "completeness_ratio": null,
+          "masked_chars": 0,
+          "masked_rows": 0,
+          "rows": 0,
+          "text_chars": 0
+        },
+        "complete_gold_spans": 25,
+        "covered_gold_alnum_chars": 280,
+        "covered_gold_chars": 370,
+        "excess_masked_chars": 0,
+        "final_mask_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "final_mask_entities": 25,
+        "fully_masked_positive_rows": 10,
+        "gold_alnum_chars": 280,
+        "gold_chars": 370,
+        "gold_spans": 25,
+        "gold_spans_with_alnum_leakage": 0,
+        "leaked_gold_alnum_chars": 0,
+        "masked_chars": 370,
+        "nonalnum_only_incomplete_gold_spans": 0,
+        "partial_gold_spans": 0,
+        "positive_rows": 10,
+        "ratios": {
+          "complete_gold_spans": 1.0,
+          "covered_original_gold_chars": 1.0,
+          "fully_masked_positive_rows": 1.0,
+          "leaked_gold_alnum_chars": 0.0
+        },
+        "raw_detection_candidates": 25,
+        "raw_detection_classification": {
+          "exact_correct_label": 25,
+          "exact_different_label": 0,
+          "fully_covered_nonexact": 0,
+          "partially_covered": 0,
+          "untouched": 0
+        },
+        "raw_label_overlap_diagnostic": {
+          "exact_correct_label_correct_label_overlap": 25
+        },
+        "rows": 10,
+        "text_chars": 85709,
+        "uncovered_gold_chars": 0,
+        "untouched_gold_spans": 0
+      }
+    }
+  },
+  "model_sha256": "0058a5c93c2ef14c5f65daf8ae8afc061851acf8d5cf5d52ba0342f578d9cac9",
+  "overall": {
+    "hybrid_union": {
+      "clean_controls": {
+        "completeness_ratio": null,
+        "masked_chars": 0,
+        "masked_rows": 0,
+        "rows": 0,
+        "text_chars": 0
+      },
+      "complete_gold_spans": 89,
+      "covered_gold_alnum_chars": 3693,
+      "covered_gold_chars": 4010,
+      "excess_masked_chars": 0,
+      "final_mask_classification": {
+        "exact_correct_label": 50,
+        "exact_different_label": 8,
+        "fully_covered_nonexact": 31,
+        "partially_covered": 111,
+        "untouched": 0
+      },
+      "final_mask_entities": 571,
+      "fully_masked_positive_rows": 31,
+      "gold_alnum_chars": 4360,
+      "gold_chars": 5144,
+      "gold_spans": 200,
+      "gold_spans_with_alnum_leakage": 51,
+      "leaked_gold_alnum_chars": 667,
+      "masked_chars": 4010,
+      "nonalnum_only_incomplete_gold_spans": 60,
+      "partial_gold_spans": 111,
+      "positive_rows": 80,
+      "ratios": {
+        "complete_gold_spans": 0.445,
+        "covered_original_gold_chars": 0.7795489891135303,
+        "fully_masked_positive_rows": 0.3875,
+        "leaked_gold_alnum_chars": 0.15298165137614678
+      },
+      "raw_detection_candidates": 661,
+      "raw_detection_classification": {
+        "exact_correct_label": 50,
+        "exact_different_label": 7,
+        "fully_covered_nonexact": 32,
+        "partially_covered": 111,
+        "untouched": 0
+      },
+      "raw_label_overlap_diagnostic": {
+        "exact_correct_label_correct_label_overlap": 50,
+        "exact_different_label_only_different_label_overlap": 7,
+        "fully_covered_nonexact_correct_label_overlap": 5,
+        "fully_covered_nonexact_only_different_label_overlap": 27,
+        "partially_covered_correct_label_overlap": 3,
+        "partially_covered_only_different_label_overlap": 108
+      },
+      "rows": 80,
+      "text_chars": 685846,
+      "uncovered_gold_chars": 1134,
+      "untouched_gold_spans": 0
+    },
+    "hybrid_union_refined": {
+      "clean_controls": {
+        "completeness_ratio": null,
+        "masked_chars": 0,
+        "masked_rows": 0,
+        "rows": 0,
+        "text_chars": 0
+      },
+      "complete_gold_spans": 187,
+      "covered_gold_alnum_chars": 4336,
+      "covered_gold_chars": 5107,
+      "excess_masked_chars": 0,
+      "final_mask_classification": {
+        "exact_correct_label": 50,
+        "exact_different_label": 137,
+        "fully_covered_nonexact": 0,
+        "partially_covered": 13,
+        "untouched": 0
+      },
+      "final_mask_entities": 209,
+      "fully_masked_positive_rows": 67,
+      "gold_alnum_chars": 4360,
+      "gold_chars": 5144,
+      "gold_spans": 200,
+      "gold_spans_with_alnum_leakage": 4,
+      "leaked_gold_alnum_chars": 24,
+      "masked_chars": 5107,
+      "nonalnum_only_incomplete_gold_spans": 9,
+      "partial_gold_spans": 13,
+      "positive_rows": 80,
+      "ratios": {
+        "complete_gold_spans": 0.935,
+        "covered_original_gold_chars": 0.9928071539657853,
+        "fully_masked_positive_rows": 0.8375,
+        "leaked_gold_alnum_chars": 0.005504587155963303
+      },
+      "raw_detection_candidates": 209,
+      "raw_detection_classification": {
+        "exact_correct_label": 50,
+        "exact_different_label": 137,
+        "fully_covered_nonexact": 0,
+        "partially_covered": 13,
+        "untouched": 0
+      },
+      "raw_label_overlap_diagnostic": {
+        "exact_correct_label_correct_label_overlap": 50,
+        "exact_different_label_only_different_label_overlap": 137,
+        "partially_covered_only_different_label_overlap": 13
+      },
+      "rows": 80,
+      "text_chars": 685846,
+      "uncovered_gold_chars": 37,
+      "untouched_gold_spans": 0
+    },
+    "mbert": {
+      "clean_controls": {
+        "completeness_ratio": null,
+        "masked_chars": 0,
+        "masked_rows": 0,
+        "rows": 0,
+        "text_chars": 0
+      },
+      "complete_gold_spans": 89,
+      "covered_gold_alnum_chars": 3693,
+      "covered_gold_chars": 4010,
+      "excess_masked_chars": 0,
+      "final_mask_classification": {
+        "exact_correct_label": 50,
+        "exact_different_label": 8,
+        "fully_covered_nonexact": 31,
+        "partially_covered": 111,
+        "untouched": 0
+      },
+      "final_mask_entities": 571,
+      "fully_masked_positive_rows": 31,
+      "gold_alnum_chars": 4360,
+      "gold_chars": 5144,
+      "gold_spans": 200,
+      "gold_spans_with_alnum_leakage": 51,
+      "leaked_gold_alnum_chars": 667,
+      "masked_chars": 4010,
+      "nonalnum_only_incomplete_gold_spans": 60,
+      "partial_gold_spans": 111,
+      "positive_rows": 80,
+      "ratios": {
+        "complete_gold_spans": 0.445,
+        "covered_original_gold_chars": 0.7795489891135303,
+        "fully_masked_positive_rows": 0.3875,
+        "leaked_gold_alnum_chars": 0.15298165137614678
+      },
+      "raw_detection_candidates": 661,
+      "raw_detection_classification": {
+        "exact_correct_label": 50,
+        "exact_different_label": 7,
+        "fully_covered_nonexact": 32,
+        "partially_covered": 111,
+        "untouched": 0
+      },
+      "raw_label_overlap_diagnostic": {
+        "exact_correct_label_correct_label_overlap": 50,
+        "exact_different_label_only_different_label_overlap": 7,
+        "fully_covered_nonexact_correct_label_overlap": 5,
+        "fully_covered_nonexact_only_different_label_overlap": 27,
+        "partially_covered_correct_label_overlap": 3,
+        "partially_covered_only_different_label_overlap": 108
+      },
+      "rows": 80,
+      "text_chars": 685846,
+      "uncovered_gold_chars": 1134,
+      "untouched_gold_spans": 0
+    }
+  },
+  "rows_evaluated": 80,
+  "scorer_version": "masking-union-v2",
+  "scoring_scope": "development_diagnostic",
+  "tables": {
+    "hybrid_union": {
+      "address": {
+        "control": {
+          "alnum": 1213,
+          "complete": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 333,
+          "partial": 25,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 1213,
+          "complete": 0,
+          "crossing_fully_masked": 0,
+          "crossing_partial": 25,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 331,
+          "partial": 25,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "all": {
+        "control": {
+          "alnum": 2180,
+          "complete": 43,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 336,
+          "partial": 57,
+          "rows": 40,
+          "total": 100,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 2180,
+          "complete": 46,
+          "crossing_fully_masked": 46,
+          "crossing_partial": 54,
+          "crossing_spans": 100,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 331,
+          "partial": 54,
+          "rows": 40,
+          "total": 100,
+          "untouched": 0
+        }
+      },
+      "identifier": {
+        "control": {
+          "alnum": 285,
+          "complete": 18,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 3,
+          "partial": 7,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 285,
+          "complete": 20,
+          "crossing_fully_masked": 20,
+          "crossing_partial": 5,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 5,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "name": {
+        "control": {
+          "alnum": 402,
+          "complete": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 25,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 402,
+          "complete": 1,
+          "crossing_fully_masked": 1,
+          "crossing_partial": 24,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 24,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "phone": {
+        "control": {
+          "alnum": 280,
+          "complete": 25,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 0,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 280,
+          "complete": 25,
+          "crossing_fully_masked": 25,
+          "crossing_partial": 0,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 0,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      }
+    },
+    "hybrid_union_refined": {
+      "address": {
+        "control": {
+          "alnum": 1213,
+          "complete": 23,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 12,
+          "partial": 2,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 1213,
+          "complete": 23,
+          "crossing_fully_masked": 23,
+          "crossing_partial": 2,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 12,
+          "partial": 2,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "all": {
+        "control": {
+          "alnum": 2180,
+          "complete": 94,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 12,
+          "partial": 6,
+          "rows": 40,
+          "total": 100,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 2180,
+          "complete": 93,
+          "crossing_fully_masked": 93,
+          "crossing_partial": 7,
+          "crossing_spans": 100,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 12,
+          "partial": 7,
+          "rows": 40,
+          "total": 100,
+          "untouched": 0
+        }
+      },
+      "identifier": {
+        "control": {
+          "alnum": 285,
+          "complete": 21,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 4,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 285,
+          "complete": 21,
+          "crossing_fully_masked": 21,
+          "crossing_partial": 4,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 4,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "name": {
+        "control": {
+          "alnum": 402,
+          "complete": 25,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 0,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 402,
+          "complete": 24,
+          "crossing_fully_masked": 24,
+          "crossing_partial": 1,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 1,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "phone": {
+        "control": {
+          "alnum": 280,
+          "complete": 25,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 0,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 280,
+          "complete": 25,
+          "crossing_fully_masked": 25,
+          "crossing_partial": 0,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 0,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      }
+    },
+    "mbert": {
+      "address": {
+        "control": {
+          "alnum": 1213,
+          "complete": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 333,
+          "partial": 25,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 1213,
+          "complete": 0,
+          "crossing_fully_masked": 0,
+          "crossing_partial": 25,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 331,
+          "partial": 25,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "all": {
+        "control": {
+          "alnum": 2180,
+          "complete": 43,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 336,
+          "partial": 57,
+          "rows": 40,
+          "total": 100,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 2180,
+          "complete": 46,
+          "crossing_fully_masked": 46,
+          "crossing_partial": 54,
+          "crossing_spans": 100,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 331,
+          "partial": 54,
+          "rows": 40,
+          "total": 100,
+          "untouched": 0
+        }
+      },
+      "identifier": {
+        "control": {
+          "alnum": 285,
+          "complete": 18,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 3,
+          "partial": 7,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 285,
+          "complete": 20,
+          "crossing_fully_masked": 20,
+          "crossing_partial": 5,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 5,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "name": {
+        "control": {
+          "alnum": 402,
+          "complete": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 25,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 402,
+          "complete": 1,
+          "crossing_fully_masked": 1,
+          "crossing_partial": 24,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 24,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      },
+      "phone": {
+        "control": {
+          "alnum": 280,
+          "complete": 25,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 0,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        },
+        "cut": {
+          "alnum": 280,
+          "complete": 25,
+          "crossing_fully_masked": 25,
+          "crossing_partial": 0,
+          "crossing_spans": 25,
+          "crossing_untouched": 0,
+          "excess_masked_chars": 0,
+          "exposed_alnum": 0,
+          "partial": 0,
+          "rows": 10,
+          "total": 25,
+          "untouched": 0
+        }
+      }
+    }
+  },
+  "test_evaluated": false,
+  "training": false
+}
