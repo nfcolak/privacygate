@@ -1,6 +1,6 @@
 """Deterministic synthetic IBAN / decoy / clean challenge set (EN, DE, FR, IT, ES). Standard library only.
 
-python3 scripts/make_challenge.py            # write data/challenge/{dev,test}.jsonl + docs/challenge/manifest.json
+python3 scripts/make_challenge.py            # write data/challenge/{dev,test}.jsonl + artifacts/challenge/manifest.json
 python3 scripts/make_challenge.py --verify   # regenerate in memory, compare to manifest and files on disk
 Prints counts and hashes only. Dev and test use disjoint template pools.
 """
@@ -172,7 +172,7 @@ def build():
 
 def main():
     files, man = build()
-    mpath = ROOT / "docs/challenge/manifest.json"
+    mpath = ROOT / "artifacts/challenge/manifest.json"
     if "--verify" in sys.argv:
         ok = json.loads(mpath.read_text()) == man
         for s, b in files.items():

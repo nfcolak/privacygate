@@ -17,7 +17,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = Path("data/augmentation/masking-stress-v4.jsonl")
-MANIFEST_PATH = Path("docs/masking-stress-v4/manifest.json")
+MANIFEST_PATH = Path("artifacts/masking-stress-v4/manifest.json")
 GENERATOR_PATH = Path("scripts/make_masking_stress_v4.py")
 VALIDATOR_PATH = Path("privacygate/masking_metrics.py")
 SEED = 202610034817
@@ -626,7 +626,7 @@ def make_manifest(blob, summary):
             "detector_code_read": False, "training_generators_or_data_read": False,
             "research_reports_read": False, "predictions_or_measurement_files_read": False,
             "model_or_detector_run_on_v4": False, "shared_batch_problem_description_known": True,
-            "permitted_reference_reads": ["shared contract and privacy policy v1", "docs/masking-stress-v3/manifest.json", VALIDATOR_PATH.as_posix()],
+            "permitted_reference_reads": ["shared contract and privacy policy v1", "artifacts/masking-stress-v3/manifest.json", VALIDATOR_PATH.as_posix()],
             "measurement_owner": "integrator", "status": "frozen_unmeasured_by_custodian",
         },
         "reserved_families": sorted(RESERVED),

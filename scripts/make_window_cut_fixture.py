@@ -31,7 +31,7 @@ from make_masking_stress import CUES, LANGS  # noqa: E402
 from privacygate import mbert_data  # noqa: E402
 
 DATA = ROOT / "data/augmentation/window-cut-dev.jsonl"
-MANIFEST = ROOT / "docs/window-cut/manifest.json"
+MANIFEST = ROOT / "artifacts/window-cut/manifest.json"
 VERSION = "window-cut-v1"
 KEYS = frozenset(("case_id", "language", "family", "text", "gold", "split"))
 CUT_FAMILIES = ("cut_phone", "cut_address", "cut_name", "cut_identifier")

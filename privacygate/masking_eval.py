@@ -23,10 +23,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SCORER_VERSION = "pipeline-masking-v1"
 VERSIONS = ("v1", "v2", "v4", "dev2")
 MANIFEST_PATHS = {
-    "v1": "docs/masking-stress/manifest.json",
-    "v2": "docs/masking-stress-v2/manifest.json",
-    "v4": "docs/masking-stress-v4/manifest.json",
-    "dev2": "docs/train-v2/manifest.json",
+    "v1": "artifacts/masking-stress/manifest.json",
+    "v2": "artifacts/masking-stress-v2/manifest.json",
+    "v4": "artifacts/masking-stress-v4/manifest.json",
+    "dev2": "artifacts/train-v2/manifest.json",
 }
 ROW_KEYS = frozenset({"case_id", "family", "gold", "language", "split", "text"})
 SPAN_KEYS = frozenset({"start", "end", "label"})
@@ -212,7 +212,7 @@ def load_dataset(path, version, root=ROOT):
     if version == "v1" and tuple(binding[k] for k in ("rows", "positive_rows", "clean_rows", "gold_spans", "bytes")) != (110, 100, 10, 370, 137089):
         raise EvaluationError("eval_legacy_binding")
     # A different filename containing the already-consumed v3 bytes is forbidden too.
-    old_manifest = root / "docs/masking-stress-v3/manifest.json"
+    old_manifest = root / "artifacts/masking-stress-v3/manifest.json"
     if old_manifest.is_file():
         old = _json(read_bounded(old_manifest, 4 * 1024 * 1024))
         if digest == old.get("dataset", {}).get("sha256"):
@@ -365,7 +365,7 @@ class BlindCustody:
     def __init__(self, root, profile, model_sha256, dataset_sha256, check=False):
         if CHECK_RECEIPTS_ENV in os.environ and not check:
             raise EvaluationError("eval_check_override_forbidden")
-        self.path = Path(os.environ[CHECK_RECEIPTS_ENV]) if check else Path(root) / "docs/runs/blind-v4/RECEIPTS.jsonl"
+        self.path = Path(os.environ[CHECK_RECEIPTS_ENV]) if check else Path(root) / "artifacts/runs/blind-v4/RECEIPTS.jsonl"
         self.started = self.path.with_name(self.path.name + ".STARTED")
         self.profile, self.model = profile, model_sha256
         self.dataset = dataset_sha256

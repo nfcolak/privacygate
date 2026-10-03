@@ -433,12 +433,24 @@ def build(raw, source):
                              "No observed IBAN label; no IBAN model coverage claim.",
                              "Lexical group-disjointness is not proven generation-family or semantic independence.",
                              "No models, training, evaluation, label/threshold tuning, remote row submission or paid APIs."]}
-    outputs = {"docs/data-audit/audit.json": json_bytes(audit)}
+    outputs = {"artifacts/data-audit/audit.json": json_bytes(audit)}
     for name, entries in manifests.items():
         outputs["data/manifests/" + name + ".jsonl"] = b"".join((json.dumps(entry, sort_keys=True, separators=(",", ":")) + "\n").encode() for entry in entries)
     outputs["data/manifests/split-policy.json"] = json_bytes(policy)
-    outputs["docs/data-audit/output-hashes.json"] = json_bytes({name: digest(payload) for name, payload in sorted(outputs.items())})
+    outputs["artifacts/data-audit/output-hashes.json"] = json_bytes(output_hashes(outputs, ROOT / "artifacts/data-audit/output-hashes.json"))
     return outputs, audit
+
+
+def output_hashes(outputs, index_path):
+    """Preserve frozen logical hash keys while resolving relocated output files."""
+    if not index_path.is_file():
+        return {name: digest(payload) for name, payload in sorted(outputs.items())}
+    frozen = json.loads(index_path.read_text())
+    resolved = {name: "artifacts/" + name.split("/", 1)[1]
+                if name.split("/", 1)[0] == "docs" else name for name in frozen}
+    if len(resolved) != len(outputs) or set(resolved.values()) != set(outputs):
+        raise ValueError("output_hash_paths_mismatch")
+    return {name: digest(outputs[path]) for name, path in sorted(resolved.items())}
 
 
 def main():
@@ -448,7 +460,7 @@ def main():
     parser.add_argument("--verify", action="store_true", help="Force offline, recompute full audit, byte-compare committed outputs; write nothing")
     args = parser.parse_args()
     try:
-        source = json.loads((ROOT / "docs/data-audit/source.json").read_text())
+        source = json.loads((ROOT / "artifacts/data-audit/source.json").read_text())
         artifacts(args.raw_dir, source, args.offline or args.verify)
         outputs, audit = build(args.raw_dir, source)
         for name, payload in outputs.items():

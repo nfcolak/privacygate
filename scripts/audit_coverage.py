@@ -12,13 +12,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "docs/scope"
+OUT = ROOT / "artifacts/scope"
 PATHS = {
-    "mini": "docs/data-audit/audit.json",
-    "micro": "docs/data-audit/micro/audit.json",
-    "metrics": "docs/runs/compare-dev/metrics.json",
-    "run": "docs/runs/full-1/config.json",
-    "alignment": "docs/data-audit/micro/alignment.json",
+    "mini": "artifacts/data-audit/audit.json",
+    "micro": "artifacts/data-audit/micro/audit.json",
+    "metrics": "artifacts/runs/compare-dev/metrics.json",
+    "run": "artifacts/runs/full-1/config.json",
+    "alignment": "artifacts/data-audit/micro/alignment.json",
     "rules": "privacygate/detect.py",
     "challenge_generator": "scripts/make_challenge.py",
 }
@@ -219,7 +219,7 @@ def markdown(report):
     lines += ["", "Detailed gaps and measurement status are in `coverage.json#/categories`; component recall never proves whole-address or person-link recall.", "",
               "## Limits and gates", ""]
     lines.extend("- " + caveat for caveat in report["caveats"])
-    lines += ["", "Negative policy: `masking-policy.md`. Unresolved evidence and next bounded preflight/full-run boundary: `gates.md`.", "",
+    lines += ["", "Policy and open gates: ProjectOS project `10-Projects/privacygate`.", "",
               "Reproduce without corpus access or model loading:", "",
               "    env -u PYTHONPATH HF_HUB_OFFLINE=1 python3 scripts/audit_coverage.py --model-config /absolute/path/to/models/full-1/config.json", ""]
     return "\n".join(lines)
@@ -233,7 +233,6 @@ def main():
         report = build(args.model_config)
         OUT.mkdir(parents=True, exist_ok=True)
         (OUT / "coverage.json").write_text(json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
-        (OUT / "coverage.md").write_text(markdown(report), encoding="utf-8")
     except (AuditError, OSError, ValueError, KeyError, TypeError, StopIteration, SyntaxError):
         print("COVERAGE FAILED: local aggregate/config reconciliation failed; no source values emitted.", file=sys.stderr)
         return 1
@@ -241,7 +240,6 @@ def main():
     print("COVERAGE OK " + json.dumps(counts, sort_keys=True))
     print("SOURCE LABELS RECONCILED: checkpoint id2label/label2id, historical full-1, Mini and Micro supported taxonomy")
     print("OUTPUT " + str(OUT / "coverage.json"))
-    print("OUTPUT " + str(OUT / "coverage.md"))
     print("CAVEAT: historical aggregates only; no corpus, model load, training, test inspection or scoring; no privacy guarantee")
     return 0
 

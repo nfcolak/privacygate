@@ -121,18 +121,43 @@ def invented_checks(scratch):
     print("invented_eval_checks=ok blind_repeat_refused=ok")
 
 
+def existing_receipt_checks(scratch):
+    """Replay custody refusals using unchanged real receipts, never blind data."""
+    relative = Path("artifacts/runs/blind-v4/RECEIPTS.jsonl")
+    original = ROOT / relative
+    entries = [json.loads(line) for line in original.read_text(encoding="utf-8").splitlines() if line.strip()]
+    _require(len(entries) == 2)
+    before = {}
+    for name in ("RECEIPTS.jsonl", "RECEIPTS.jsonl.STARTED", "freeze.json"):
+        source = original.with_name(name)
+        before[name] = ev.sha256(source)
+        target = scratch / relative.parent / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+    for entry in entries:
+        key = (entry["profile"], entry["model_sha256"], entry["dataset_sha256"])
+        _require(ev.BlindCustody(ROOT, *key).path == original)
+        def repeat():
+            with ev.BlindCustody(scratch, *key):
+                raise ev.EvaluationError("eval_check_repeat_entered")
+        _refuses("eval_blind_repeat_forbidden", repeat)
+    _require(all(ev.sha256(original.with_name(name)) == digest for name, digest in before.items()))
+    _require(all(ev.sha256(scratch / relative.parent / name) == digest for name, digest in before.items()))
+    print("existing_receipt_repeats_refused=2/2 custody_unchanged=ok")
+
+
 def legacy_check():
     prep = ROOT.parent / "privacygate-prep-1002"
     dataset = Path(os.environ.get("PRIVACYGATE_EVAL_V1_DATASET", str(prep / "data/augmentation/masking-stress-dev.jsonl")))
     model = Path(os.environ.get("PRIVACYGATE_EVAL_MODEL_DIR", str(prep / "models/pos-neg-alignment-pilot-1002")))
-    out_parent = ROOT.parent / "_runs/pg-p1-eval"
+    out_parent = ROOT.parent / "_runs/pg-notes-out"
     out_parent.mkdir(parents=True, exist_ok=True)
     # Fresh output directory; never overwrite a historical receipt/artifact.
     unique = Path(tempfile.mkdtemp(prefix="v1-legacy-", dir=out_parent))
     args = Namespace(dataset=str(dataset), version="v1", profile="legacy_union_refined",
                      model_dir=str(model), out_dir=str(unique / "evaluation"), predictions_from="inference")
     report = runner.execute(args)
-    historical = json.loads((ROOT / "docs/runs/masking-coverage/refine-v1-1003/metrics.json").read_text(encoding="utf-8"))
+    historical = json.loads((ROOT / "artifacts/runs/masking-coverage/refine-v1-1003/metrics.json").read_text(encoding="utf-8"))
     parent = historical["engines"]["hybrid_union_refined"]["overall"]
     actual = report["overall"]
     _require((actual["complete_gold_spans"], actual["gold_spans"]) == (parent["complete_gold_spans"], parent["gold_spans"]) == (369, 370))
@@ -140,7 +165,8 @@ def legacy_check():
     written = json.loads((unique / "evaluation/metrics.json").read_text(encoding="utf-8"))
     manifest = json.loads((unique / "evaluation/manifest.json").read_text(encoding="utf-8"))
     _require(written == report and manifest["training"] is False and manifest["test_evaluated"] is False)
-    _require((unique / "evaluation/summary.md").is_file() and ev._digest(manifest["config_sha256"]))
+    _require(not list((unique / "evaluation").glob("*.md")) and ev._digest(manifest["config_sha256"]))
+    _require(manifest["policy_sha256"] == ev.sha256(ROOT / "configs/privacy-policy-v1.json"))
     print("v1_legacy_complete=369/370")
 
 
@@ -150,6 +176,7 @@ def main():
         scratch_parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="privacygate-eval-check-", dir=scratch_parent) as directory:
             invented_checks(Path(directory))
+            existing_receipt_checks(Path(directory))
         legacy_check()
         print("EVAL CHECK OK")
         return 0

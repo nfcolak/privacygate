@@ -5,7 +5,7 @@ import hashlib
 from .build import catalog
 from .checks import check_split_isolation, require, summarize
 from .spec import (LANGUAGES, MANIFEST, NEGATIVE_KINDS, OUTPUTS, POLICY, POLICY_PATH,
-                   ROOT, SEED, SIZES, TWIN_LABELS, pool_manifest)
+                   POLICY_CONFIG, ROOT, SEED, SIZES, TWIN_LABELS, pool_manifest)
 
 
 def sha256(path):
@@ -61,7 +61,5 @@ def make_manifest(observed):
         "split_method": "Held-out constructions and family-grouped value slices; no row-level split.",
         "gold_method": "Explicit whole-value placeholder assembly, including repeated occurrences.",
         "verification": "Hashes, structural checks, checksums, split isolation and exact deterministic replay.",
-        "excluded_families": ["form-style key/value records", "chat/messaging lines",
-                              "email signature blocks", "mixed-language documents",
-                              "OCR-like noise inside values"],
+        "excluded_families": POLICY_CONFIG["reserved_v4_families"],
     }
