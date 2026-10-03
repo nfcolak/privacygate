@@ -21,5 +21,6 @@ data/manifests/micro/*
 !data/manifests/micro/*.jsonl
 !data/manifests/micro/*.json
 .venv-train/
+.venv-gliner/
 data/challenge/
 data/augmentation/

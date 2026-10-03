@@ -121,6 +121,54 @@ def invented_checks(scratch):
     print("invented_eval_checks=ok blind_repeat_refused=ok")
 
 
+def invented_v5_checks(scratch):
+    """v5-shaped invented rows and temporary custody only; no real blind data."""
+    rows = [{"case_id": f"invented-v5-{i}", "family": "invented_clean",
+             "language": language, "split": "blind", "text": "Ordinary stock.", "gold": []}
+            for i, language in enumerate(("EN", "DE", "FR", "IT", "ES"))]
+    fixture = scratch / "invented-v5.jsonl"
+    fixture.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    digest = ev.sha256(fixture)
+    manifest = scratch / ev.MANIFEST_PATHS["v5"]
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    ev.json_write(manifest, {"dataset": {"path": fixture.name, "sha256": digest, "rows": 5}})
+    loaded, binding = ev.load_dataset(fixture, "v5", root=scratch)
+    _require(binding["split"] == "blind" and ev.sha256(fixture) == digest)
+    _require(loaded == [{**row, "language": row["language"].lower()} for row in rows])
+    aggregate = ev.EvaluationAggregate()
+    for row in loaded:
+        aggregate.add(row, {"status": "ok", "masked_text": row["text"], "entities": [],
+                            "completion": {"uncovered_chars": 0}})
+    _require(set(aggregate.report()["per_language"]) == ev.LANGUAGES)
+    args = runner.parser().parse_args(["--version", "v5", "--dataset", str(fixture),
+                                      "--model-dir", "invented-model", "--out-dir", "invented-output"])
+    _require(args.version == "v5")
+    key = (scratch, "full", "a" * 64, digest)
+    expected = scratch / "artifacts/runs/blind-v5/RECEIPTS.jsonl"
+    _require(ev.BlindCustody(*key, version="v5").path == expected and not expected.parent.exists())
+    receipts = scratch / "receipts-v5/RECEIPTS.jsonl"
+    previous = os.environ.get(ev.CHECK_RECEIPTS_ENV)
+    os.environ[ev.CHECK_RECEIPTS_ENV] = str(receipts)
+    try:
+        with ev.BlindCustody(*key, version="v5", check=True) as custody:
+            custody.reserve()
+            custody.finish("c" * 64)
+        entries = [json.loads(line) for line in receipts.read_text(encoding="utf-8").splitlines()]
+        _require(len(entries) == 1 and entries[0]["dataset_sha256"] == digest)
+        def repeat():
+            with ev.BlindCustody(*key, version="v5", check=True):
+                raise ev.EvaluationError("eval_check_repeat_entered")
+        _refuses("eval_blind_repeat_forbidden", repeat)
+        _refuses("eval_check_override_forbidden", lambda: ev.BlindCustody(*key, version="v5"))
+    finally:
+        if previous is None:
+            del os.environ[ev.CHECK_RECEIPTS_ENV]
+        else:
+            os.environ[ev.CHECK_RECEIPTS_ENV] = previous
+    _require(ev.sha256(fixture) == digest and not expected.parent.exists())
+    print("v5_check=ok blind_repeat_refused=ok source_bytes_unchanged=ok")
+
+
 def existing_receipt_checks(scratch):
     """Replay custody refusals using unchanged real receipts, never blind data."""
     relative = Path("artifacts/runs/blind-v4/RECEIPTS.jsonl")
@@ -179,6 +227,7 @@ def main():
         scratch_parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="privacygate-eval-check-", dir=scratch_parent) as directory:
             invented_checks(Path(directory))
+            invented_v5_checks(Path(directory))
             existing_receipt_checks(Path(directory))
         legacy_check()
         print("EVAL CHECK OK")

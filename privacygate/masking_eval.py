@@ -21,11 +21,12 @@ from . import masking_metrics as mm
 
 ROOT = Path(__file__).resolve().parents[1]
 SCORER_VERSION = "pipeline-masking-v1"
-VERSIONS = ("v1", "v2", "v4", "dev2")
+VERSIONS = ("v1", "v2", "v4", "v5", "dev2")
 MANIFEST_PATHS = {
     "v1": "artifacts/masking-stress/manifest.json",
     "v2": "artifacts/masking-stress-v2/manifest.json",
     "v4": "artifacts/masking-stress-v4/manifest.json",
+    "v5": "artifacts/masking-stress-v5/manifest.json",
     "dev2": "artifacts/train-v2/manifest.json",
 }
 ROW_KEYS = frozenset({"case_id", "family", "gold", "language", "split", "text"})
@@ -180,8 +181,12 @@ def load_dataset(path, version, root=ROOT):
             raise EvaluationError("eval_row_schema")
         if any(not isinstance(row[key], str) for key in ROW_KEYS - {"gold"}):
             raise EvaluationError("eval_row_field_type")
-        if row["split"] != "dev":
-            raise EvaluationError("eval_dev_split_required")
+        expected_split = "blind" if version == "v5" else "dev"
+        if row["split"] != expected_split:
+            raise EvaluationError("eval_blind_split_required" if version == "v5" else "eval_dev_split_required")
+        # Only the in-memory grouping key changes; hash-bound source bytes do not.
+        if version == "v5":
+            row["language"] = row["language"].lower()
         if row["language"] not in LANGUAGES:
             raise EvaluationError("eval_language")
         if not row["case_id"] or len(row["case_id"]) > 200 or row["case_id"] in ids:
@@ -199,7 +204,8 @@ def load_dataset(path, version, root=ROOT):
                 raise EvaluationError("eval_legacy_clean_family")
         ids.add(row["case_id"])
     binding = {
-        "sha256": digest, "bytes": len(raw), "rows": len(rows), "split": "dev",
+        "sha256": digest, "bytes": len(raw), "rows": len(rows),
+        "split": "blind" if version == "v5" else "dev",
         "positive_rows": sum(bool(r["gold"]) for r in rows),
         "clean_rows": sum(not r["gold"] for r in rows),
         "gold_spans": sum(len(r["gold"]) for r in rows),
@@ -362,10 +368,12 @@ class BlindCustody:
     so interruption cannot reopen the same blind arm. The check's override cannot
     be used by the CLI to redirect production custody.
     """
-    def __init__(self, root, profile, model_sha256, dataset_sha256, check=False):
+    def __init__(self, root, profile, model_sha256, dataset_sha256, check=False, version="v4"):
+        if version not in ("v4", "v5"):
+            raise EvaluationError("eval_dataset_version")
         if CHECK_RECEIPTS_ENV in os.environ and not check:
             raise EvaluationError("eval_check_override_forbidden")
-        self.path = Path(os.environ[CHECK_RECEIPTS_ENV]) if check else Path(root) / "artifacts/runs/blind-v4/RECEIPTS.jsonl"
+        self.path = Path(os.environ[CHECK_RECEIPTS_ENV]) if check else Path(root) / f"artifacts/runs/blind-{version}/RECEIPTS.jsonl"
         self.started = self.path.with_name(self.path.name + ".STARTED")
         self.profile, self.model = profile, model_sha256
         self.dataset = dataset_sha256
