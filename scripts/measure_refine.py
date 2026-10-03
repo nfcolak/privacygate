@@ -10,7 +10,7 @@ refinement is mapped to STREET for scoring input only. All reported metrics are 
 coverage and are unaffected; label-dependent diagnostics (raw/final exact-label classes) are NOT used for the
 refined arm.
 
-  measure_refine.py --dataset P --version v1|v2 --model-dir D --out-dir O
+  measure_refine.py --dataset P --version v1|v2|v3 --model-dir D --out-dir O
   measure_refine.py --summary          # write docs/runs/masking-coverage/refine-summary.md from both runs
 """
 import argparse
@@ -32,8 +32,8 @@ RUNS = ROOT / "docs/runs/masking-coverage"
 SOURCES = (
     "privacygate/masking_metrics.py", "privacygate/refine.py", "privacygate/hybrid.py", "privacygate/inference.py",
     "privacygate/detect.py", "privacygate/mbert_data.py", "scripts/measure_refine.py", "scripts/measure_masking.py",
-    "scripts/make_masking_stress.py", "scripts/make_masking_stress_v2.py",
-    "docs/masking-stress/manifest.json", "docs/masking-stress-v2/manifest.json",
+    "scripts/make_masking_stress.py", "scripts/make_masking_stress_v2.py", "scripts/make_masking_stress_v3.py",
+    "docs/masking-stress/manifest.json", "docs/masking-stress-v2/manifest.json", "docs/masking-stress-v3/manifest.json",
 )
 SCOPE = {"test_evaluated": False, "training": False, "scoring_scope": "development_diagnostic"}
 
@@ -43,7 +43,8 @@ def load_rows(path, version):
         rows, binding = mm.load_dataset(path, "stress")  # enforces the frozen v1 sha/shape
         return rows, binding
     raw = positive_data._read_bounded(path)
-    expected = json.loads((ROOT / "docs/masking-stress-v2/manifest.json").read_text(encoding="utf-8"))["dataset"]["sha256"]
+    manifest_path = ROOT / ("docs/masking-stress-v3/manifest.json" if version == "v3" else "docs/masking-stress-v2/manifest.json")
+    expected = json.loads(manifest_path.read_text(encoding="utf-8"))["dataset"]["sha256"]
     if hashlib.sha256(raw).hexdigest() != expected:
         raise MaskingError("mask_stress_binding")
     try:
@@ -85,6 +86,9 @@ def score(rows, model, raws):
 
 
 def manifest_of(args, binding):
+    frozen_refine_sha256 = "5fcfa1e688140e0ba72c3980523c5114df98a97fe8329a4dcee51abb9d6dfdaf"
+    if args.version == "v3" and mm.sha256(ROOT / "privacygate/refine.py") != frozen_refine_sha256:
+        raise MaskingError("mask_v3_rules_not_frozen")
     model_dir = Path(args.model_dir)
     files = {n: mm.sha256(model_dir / n) for n in ("config.json", "model.safetensors", "train_info.json")}
     if files["model.safetensors"] != mm.EXPECTED_MODEL:
@@ -106,7 +110,10 @@ def manifest_of(args, binding):
         },
         "definitions": DEFINITIONS, "model_forward_sweeps_requested": 1, "threshold_selection": False,
         "synthetic_only": True, "aggregate_only": True,
-        "note": "Refinement rules were written after inspecting v1 failure shapes; v1 gains are optimistic. v2 was generated before any model output on it was seen, but one rule (street-type word before a STREET piece) was added after value-free failure shapes of both v1 and v2 were viewed; v2 is not fully blind. The later tightening of refine.py (address-part validity, phone-extension guards, dimension guard) was designed after v1 and v2 failures were seen, so neither set is blind any more.",
+        "note": ("Blind synthetic dev v3: generated before any model or rule saw it; rules frozen at refine.py sha256 "
+                 + frozen_refine_sha256 + "; one sweep; no tuning. Not a privacy guarantee."
+                 if args.version == "v3" else
+                 "Refinement rules were written after inspecting v1 failure shapes; v1 gains are optimistic. v2 was generated before any model output on it was seen, but one rule (street-type word before a STREET piece) was added after value-free failure shapes of both v1 and v2 were viewed; v2 is not fully blind. The later tightening of refine.py (address-part validity, phone-extension guards, dimension guard) was designed after v1 and v2 failures were seen, so neither set is blind any more."),
         "runtime": {"python_version": sys.version.split()[0]},
     }
 
@@ -264,7 +271,7 @@ def main():
         p = SafeParser(description=__doc__)
         p.add_argument("--summary", action="store_true")
         p.add_argument("--dataset")
-        p.add_argument("--version", choices=("v1", "v2"))
+        p.add_argument("--version", choices=("v1", "v2", "v3"))
         p.add_argument("--model-dir")
         p.add_argument("--out-dir")
         args = p.parse_args()
