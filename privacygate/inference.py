@@ -4,6 +4,7 @@ mBERT/hybrid are imported lazily (torch/transformers) and run strictly offline w
 """
 import os
 from pathlib import Path
+from typing import NoReturn
 
 ENGINES = ("regex", "mbert", "hybrid")
 POLICIES = ("union", "rules_first", "rules_first_thr", "union_refined")
@@ -15,7 +16,7 @@ class InferenceError(Exception):
     """Generic, value-free error; message is safe to print."""
 
 
-def _fail(msg):
+def _fail(msg) -> NoReturn:
     raise InferenceError(msg) from None
 
 
@@ -93,27 +94,31 @@ def _load_mbert(model_dir):
               "torch/transformers must be installed)")
 
 
-def run(text, engine="regex", model_dir=None, policy="union", confidence=None, refine=False):
-    """Return {masked_text, entities:[{start,end,label}]} for text.
-    refine=True applies rule-based span refinement to the mbert engine (hybrid: policy union_refined).
-    LAST_UNCOVERED_CHARS reports unseen non-whitespace characters without changing the return shape.
+def run_with_completion(text, engine="regex", model_dir=None, policy="union", confidence=None,
+                        refine=False, _mbert=None):
+    """Legacy inference plus a per-call completion receipt (no global diagnostic reads).
+
+    _mbert is an internal adapter for the pipeline's cached model. All detection,
+    policy, refinement and rendering operations retain the legacy ordering.
     """
     global LAST_UNCOVERED_CHARS
     LAST_UNCOVERED_CHARS = 0
+    uncovered_count = 0
     if engine == "regex":
         from .detect import mask
-        return mask(text)
+        return dict(mask(text), completion={"uncovered_chars": 0})
     if engine not in ENGINES or policy not in POLICIES:
         _fail("invalid engine or policy")
     from . import hybrid  # stdlib only at import time
     if model_dir is None:
         model_dir = hybrid.DEFAULT_MODEL_DIR
-    mb = _load_mbert(model_dir)
+    mb = _mbert if _mbert is not None else _load_mbert(model_dir)
     try:
         # Use the offsets returned by actual prediction, not a separate re-encoding.
         raw = mb.raw([text])[0]
         regions = uncovered_regions(text, (o for offs, _, _ in raw for o in offs))
-        LAST_UNCOVERED_CHARS = sum(b - a for a, b in regions)
+        uncovered_count = sum(b - a for a, b in regions)
+        LAST_UNCOVERED_CHARS = uncovered_count
         coverage = [{"start": a, "end": b, "label": "UNCOVERED", "source": "coverage"}
                     for a, b in regions]
         thr = confidence or 0.0
@@ -140,4 +145,47 @@ def run(text, engine="regex", model_dir=None, policy="union", confidence=None, r
         raise
     except Exception:
         _fail("inference failed (input not shown)")
-    return apply_mask(text, merge_spans(spans, len(text)))
+    result = apply_mask(text, merge_spans(spans, len(text)))
+    result["completion"] = {"uncovered_chars": uncovered_count}
+    return result
+
+
+def run(text, engine="regex", model_dir=None, policy="union", confidence=None, refine=False):
+    """Legacy two-field result, with byte-identical masking and entity ordering.
+
+    LAST_UNCOVERED_CHARS remains a backward-compatible, non-thread-local diagnostic.
+    New callers should use the per-call receipt from run_with_completion instead.
+    """
+    result = run_with_completion(text, engine, model_dir, policy, confidence, refine)
+    return {"masked_text": result["masked_text"], "entities": result["entities"]}
+
+
+def mbert_candidates(text, model_dir=None, _mbert=None):
+    """Scored contract candidates and protected coverage from actual model windows.
+
+    The raw token/window arrays are ephemeral; only value-free candidate dicts and
+    aggregate completion leave this adapter. No confidence filtering is applied.
+    """
+    global LAST_UNCOVERED_CHARS
+    LAST_UNCOVERED_CHARS = 0
+    if not isinstance(text, str):
+        _fail("invalid inference input")
+    from . import hybrid
+    from .spans import make_candidate, validate
+    mb = _mbert if _mbert is not None else _load_mbert(
+        hybrid.DEFAULT_MODEL_DIR if model_dir is None else model_dir)
+    try:
+        raw = mb.raw([text])[0]
+        regions = uncovered_regions(text, (o for offs, _, _ in raw for o in offs))
+        count = sum(b - a for a, b in regions)
+        cands = [make_candidate(s["start"], s["end"], s["label"], "mbert", score=s["score"])
+                 for s in mb.spans_with_scores(raw)]
+        coverage = [make_candidate(a, b, "UNCOVERED", "coverage", validation="n/a",
+                                   protected=True, stage="coverage") for a, b in regions]
+        LAST_UNCOVERED_CHARS = count
+        return {"candidates": validate(text, cands), "coverage": validate(text, coverage),
+                "completion": {"uncovered_chars": count}}
+    except InferenceError:
+        raise
+    except Exception:
+        _fail("inference failed (input not shown)")

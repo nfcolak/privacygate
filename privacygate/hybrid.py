@@ -58,8 +58,35 @@ class Mbert:
             found |= md.decode(offs, names)
         return [{"start": s, "end": e, "label": l, "source": "mbert"} for s, e, l in sorted(found)]
 
+    @staticmethod
+    def spans_with_scores(raw_text, thr=0.0):
+        """The same decoded spans, with minimum contributing token confidence.
+
+        Duplicate spans from overlapping windows retain the minimum window score.
+        Scores are in-memory evidence, not calibrated privacy probabilities. The
+        original spans()/detect() output and threshold behavior remain unchanged.
+        """
+        found = {}
+        for offs, names, conf in raw_text:
+            names = [n if c >= thr else "O" for n, c in zip(names, conf)]
+            for start, end, label in md.decode(offs, names):
+                scores = [float(c) for o, n, c in zip(offs, names, conf)
+                          if o is not None and o[0] < end and start < o[1]
+                          and n != "O" and n.split("-", 1)[1] == label]
+                score = min(scores) if scores else None
+                key = (start, end, label)
+                if key not in found or found[key] is None:
+                    found[key] = score
+                elif score is not None:
+                    found[key] = min(found[key], score)
+        return [{"start": s, "end": e, "label": l, "source": "mbert", "score": found[(s, e, l)]}
+                for s, e, l in sorted(found)]
+
     def detect(self, text, thr=0.0):
         return self.spans(self.raw([text])[0], thr)
+
+    def detect_with_scores(self, text, thr=0.0):
+        return self.spans_with_scores(self.raw([text])[0], thr)
 
 
 def _overlap(a, b):

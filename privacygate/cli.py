@@ -28,13 +28,19 @@ def main(argv=None):
     p.add_argument("--hybrid-policy", "--policy", dest="hybrid_policy", choices=POLICIES, default="union",
                    help="hybrid combination policy (default: union; union_refined = union + rule-based span refinement; "
                    "not a claim of calibrated superiority)")
+    p.add_argument("--pipeline-profile", choices=("legacy_union_refined", "structured", "structured_address_names", "full"),
+                   default=None, help="opt in to the staged pipeline (overrides engine/policy/refine/confidence)")
     p.add_argument("--refine", action="store_true", help="mbert engine only: apply rule-based span refinement")
     p.add_argument("--confidence", type=_conf, default=None,
                    help="mBERT min confidence in [0,1] (default 0.0; rules_first_thr default 0.5)")
     args = p.parse_args(argv)
     try:
         text = sys.stdin.read()
-        result = run(text, args.engine, args.model_dir, args.hybrid_policy, args.confidence, args.refine)
+        if args.pipeline_profile is not None:
+            from .pipeline import run_pipeline
+            result = run_pipeline(text, args.pipeline_profile, args.model_dir)
+        else:
+            result = run(text, args.engine, args.model_dir, args.hybrid_policy, args.confidence, args.refine)
     except InferenceError as e:
         sys.stderr.write("privacygate: {} (input not shown)\n".format(e))
         return 1
@@ -43,4 +49,4 @@ def main(argv=None):
         return 1
     json.dump(result, sys.stdout, ensure_ascii=False)
     sys.stdout.write("\n")
-    return 0
+    return 1 if result.get("status") == "blocked" else 0

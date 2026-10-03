@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "policy": "privacy-policy-v1",
+  "default_profile": "full",
+  "profiles": {
+    "legacy_union_refined": {
+      "stages": ["mbert", "regex", "legacy_union", "coverage", "refine", "legacy_merge", "render"],
+      "description": "Frozen inference.run(engine=hybrid, policy=union_refined) semantics, including its legacy coverage/refinement order."
+    },
+    "structured": {
+      "stages": ["mbert", "regex", "structured.detect", "structured.check", "refine", "coverage", "union", "render"]
+    },
+    "structured_address_names": {
+      "stages": ["mbert", "regex", "structured.detect", "structured.check", "address.assemble", "names.assemble", "names.propagate", "refine", "coverage", "union", "render"]
+    },
+    "full": {
+      "stages": ["mbert", "regex", "structured.detect", "structured.check", "context.decide", "address.assemble", "names.assemble", "names.propagate", "refine", "coverage", "union", "render"]
+    }
+  }
+}
