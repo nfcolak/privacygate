@@ -67,8 +67,10 @@ def main():
     parser.add_argument("--model-dir", type=Path, default=DEFAULT_MODEL)
     args = parser.parse_args()
     invented_contracts()
-    missing = pipeline.run_pipeline("The invented panel is 3x5 cm.", profile="structured", model_dir=args.model_dir)
-    _require(missing["status"] == "blocked" and missing.get("error") == "pipeline_stage_unavailable:structured")
+    # Specialist modules exist after integration; probe a genuinely missing module.
+    with patch.dict(pipeline._REQUIRED, {"structured.detect": ("missing_pipeline_stage", "detect")}):
+        missing = pipeline.run_pipeline("The invented panel is 3x5 cm.", profile="structured", model_dir=args.model_dir)
+    _require(missing["status"] == "blocked" and missing.get("error") == "pipeline_stage_unavailable:missing_pipeline_stage")
     _require(missing["masked_text"] == "" and missing["entities"] == [])
     print("stage_unavailable=PASS")
 
