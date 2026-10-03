@@ -137,6 +137,94 @@ def covered(cands, start, end):
     return cursor >= end
 
 
+def mixed_cases():
+    """Five languages, five one-line layouts each, plus explicit recipients."""
+    from privacygate.pipeline import _address_union
+    from privacygate.spans import union
+
+    invented = (
+        ("Dr. Qéra Vezorn", "12 Zélmar Lane, VQ1 2ZX Vezford", "+44 1632 960123", "Phone", "mail", "c/o"),
+        ("Dr. Qéva Vezorn", "Qélmarstraße 12, 73145 Vezlingen", "+49 30 00001234", "Tel.", "E-Mail", "z. Hd."),
+        ("Mme Qélia Vezorn", "rue Qélmar 12, 75001 Vézonne", "+33 1 00001234", "tél.", "courriel", "à l'attention de"),
+        ("Sig.ra Qélina Vezorn", "via Qélmar 12, 73145 Vezonia", "+39 06 00001234", "cell.", "mail", "presso"),
+        ("Sra. Qélara Vezorn", "calle Qélmar 12, 73145 Vezonia", "+34 91 0001234", "Teléfono", "correo", "a la atención de"),
+    )
+    exact = total = care_exact = 0
+    contract_ok = True
+    for name, address, phone, phone_cue, email_cue, care_cue in invented:
+        n, a = (name, "PERSONNAME"), (address, "ADDRESS")
+        p, e = (phone, "TELEPHONENUM"), ("qev@invented.invalid", "EMAIL")
+        layouts = (
+            ("Name: ", n, ", ", a, ", " + phone_cue + " ", p),
+            (a, "; Name: ", n, "; " + email_cue + " ", e),
+            (email_cue + " ", e, "; Name: ", n, "; ", a),
+            ("Name: ", n, "; " + phone_cue + " ", p, "; ", a, "; " + email_cue + " ", e),
+            ("Name: ", n, ", ", a, ", ", p, ", ", e),
+        )
+        for parts in layouts:
+            text, expected, seeds = "", [], []
+            for part in parts:
+                if isinstance(part, str):
+                    text += part
+                    continue
+                value, label = part
+                start = len(text)
+                text += value
+                expected.append({"start": start, "end": len(text), "label": label})
+                if label != "ADDRESS":
+                    seeds.append(seed(start, len(text), label))
+            before = copy.deepcopy(seeds)
+            found = assemble(text, seeds)
+            result = _address_union(text, seeds + found)
+            total += 1
+            exact += result == expected
+            contract_ok &= seeds == before
+            # Simulate the real failure: one model ADDRESS envelopes all values.
+            # Semantic boundaries may retain already-masked cue/separator chars,
+            # but not one character from the old union may become exposed.
+            broad = seed(expected[0]["start"], expected[-1]["end"], "ADDRESS")
+            ledger = seeds + found + [broad]
+            split = _address_union(text, ledger)
+            old_mask = {i for c in union(ledger) for i in range(c["start"], c["end"])}
+            new_mask = {i for c in split for i in range(c["start"], c["end"])}
+            contract_ok &= old_mask == new_mask
+            contract_ok &= all(any(c["label"] == gold["label"]
+                                   and c["start"] <= gold["start"] and gold["end"] <= c["end"]
+                                   for c in split) for gold in expected)
+            contract_ok &= all(not any(c["start"] < gold["end"] and gold["start"] < c["end"]
+                                      for gold in expected if gold["label"] != "ADDRESS")
+                               for c in found)
+        care = care_cue + " " + name + ", " + address
+        text = care + ", " + phone_cue + " " + phone
+        recipient = seed(len(care_cue) + 1, len(care_cue) + 1 + len(name), "PERSONNAME")
+        contact = seed(len(text) - len(phone), len(text), "TELEPHONENUM")
+        found = assemble(text, [recipient, contact])
+        result = _address_union(text, [recipient, contact] + found)
+        care_exact += result == [
+            {"start": 0, "end": len(care), "label": "ADDRESS"},
+            {"start": contact["start"], "end": contact["end"], "label": "TELEPHONENUM"},
+        ]
+
+    # No closed taxonomy: future structured labels must also stop postal growth.
+    for label in ("PERSONNAME", "GIVENNAME", "SURNAME", "MIDDLENAME", "TITLE", "EMAIL",
+                  "TELEPHONENUM", "USERNAME", "IBAN", "ACCOUNTNUM", "FUTURE_STRUCTURED"):
+        address = "12 Zélmar Lane, VQ1 2ZX Vezford"
+        suffix = "Qéra Vezorn" if label in {"PERSONNAME", "GIVENNAME", "SURNAME", "MIDDLENAME", "TITLE"} else "QZX001"
+        text = address + ", " + suffix
+        other = seed(len(address) + 2, len(text), label)
+        other["source"] = "structured"
+        found = assemble(text, [other, seed(0, len(text), "ADDRESS")])
+        contract_ok &= found == [dict(seed(0, len(address), "ADDRESS"), source="address",
+                                     score=None, stage="assembled")]
+    # Cue words alone are barriers even with no structured/model contact seed.
+    for cue in ("Tel.", "Telefon", "Phone", "Mobil", "Handy", "tél.", "cell.", "E-Mail", "mail"):
+        address = "Qélmarstraße 12, 73145 Vezlingen"
+        text = address + ", " + cue + " +49 30 00001234"
+        found = assemble(text, [seed(0, len(text), "ADDRESS")])
+        contract_ok &= len(found) == 1 and found[0]["start"] == 0 and found[0]["end"] == len(address)
+    return exact, total, care_exact, len(invented), contract_ok
+
+
 def check():
     complete = total = nonaddr = exact = 0
     contract_ok = True
@@ -205,11 +293,16 @@ def check():
         except ValueError as exc:
             contract_ok &= str(exc) == "address_candidate_invalid"
 
+    mixed_exact, mixed_total, care_exact, care_total, mixed_ok = mixed_cases()
+    contract_ok &= mixed_ok
     print(f"addr_complete={complete}/{total}")
     print(f"nonaddr_regions={nonaddr}")
     print(f"addr_exact={exact}/{total}")
+    print(f"mixed_exact={mixed_exact}/{mixed_total}")
+    print(f"care_exact={care_exact}/{care_total}")
     print(f"address_contract_ok={int(contract_ok)}")
-    return complete * 10 >= total * 9 and nonaddr == 0 and contract_ok
+    return (complete == total and nonaddr == 0 and contract_ok
+            and mixed_exact * 10 >= mixed_total * 9 and care_exact == care_total)
 
 
 def evaluate_v1(source, model_dir):

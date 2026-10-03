@@ -13,13 +13,9 @@ import re
 
 MAX_REGION_CHARS = 200
 _ADDRESS_LABELS = frozenset({
-    "STREET", "BUILDINGNUM", "ZIPCODE", "CITY", "STATE", "COUNTY", "COUNTRY", "ADDRESS",
+    "STREET", "BUILDINGNUM", "ZIPCODE", "CITY", "STATE", "COUNTY", "COUNTRY", "ADDRESS", "POBOX",
 })
-_BARRIER_LABELS = frozenset({
-    "EMAIL", "TELEPHONENUM", "IBAN", "ACCOUNTNUM", "CREDITCARDNUMBER", "USERNAME",
-    "PASSPORTNUM", "IDCARDNUM", "DRIVERLICENSENUM", "TAXNUM", "SOCIALNUM",
-    "PERSONALREF", "DATEOFBIRTH", "AGE",
-})
+_NAME_LABELS = frozenset({"PERSONNAME", "GIVENNAME", "MIDDLENAME", "SURNAME", "TITLE"})
 _H = r"[^\S\r\n]"
 _WORD = r"[^\W\d_](?:[^\W\d_]|[\u0300-\u036f'’\-])*"
 # Lowercase function words do not become English/German street-name prefixes.
@@ -27,6 +23,7 @@ _PARTICLE = r"(?:de|del|della|dei|degli|di|da|du|des|la|le|les|el|los|las|van|vo
 _STOP_WORD = (
     r"(?:Next|Then|Please|Thanks|Thank|Contact|Email|Phone|Telephone|Invoice|Order|Date|"
     r"Room|Meeting|Product|SKU|Dear|Bonjour|Hello|Return|Send|Deliver|Visit|We|The|This|"
+    r"Tel|Tél|Mobil|Mobile|Handy|Cell|Mail|E-Mail|"
     r"Danach|Bitte|Danke|Telefon|Rechnung|Bestellung|Datum|Zimmer|Produkt|Sehr|"
     r"Ensuite|Merci|Veuillez|Téléphone|Courriel|Facture|Commande|Date|Chambre|Produit|"
     r"Poi|Grazie|Telefono|Fattura|Ordine|Data|Stanza|Prodotto|Gentile|"
@@ -103,7 +100,7 @@ _REGION = re.compile(
     rf"(?<!\w)(?:canton|Kanton|county|province|provincia|région|regione|región)"
     rf"{_H}+{_LOCALITY}(?!\w)|\((?-i:[A-Z]{{2}})\)", re.I,
 )
-_CARE_PREFIX = rf"(?:c/{_H}*o|care{_H}+of|z\.{_H}*Hd\.|zu{_H}+Händen|chez|presso|a{_H}+la{_H}+atención{_H}+de)"
+_CARE_PREFIX = rf"(?:c/{_H}*o|care{_H}+of|z\.{_H}*Hd\.|zu{_H}+Händen|chez|à{_H}+l['’]attention{_H}+de|presso|a{_H}+la{_H}+atención{_H}+de)"
 _RECIPIENT_WORD = rf"(?:(?:Dr|Prof|Herr|Frau|Mme|Mlle|Sig\.ra|Sig|Sr|Sra)\.?(?!\w)|(?-i:[A-Z])\.|{_CAP}|{_PARTICLE})"
 _CARE = re.compile(
     rf"(?<!\w){_CARE_PREFIX}{_H}*(?:\r?\n{_H}*)?"
@@ -116,6 +113,11 @@ _FIELD = re.compile(
     r"invoice|order|SKU|product|Rechnung|Bestellung|facture|commande|fattura|ordine|factura|pedido|"
     r"birth date|date of birth|Geburtsdatum|date de naissance|data di nascita|fecha de nacimiento)"
     r"[^\S\r\n]*[:=]", re.I,
+)
+_CONTACT_CUE = re.compile(
+    r"(?<![\w-])(?:e-?mail|mail|courriel|correo(?: electrónico)?|phone|telephone|"
+    r"tel(?:efon|éfono|ephone)?|tél(?:éphone)?|telefono|mobil(?:e)?|handy|cell)(?!\w)\.?",
+    re.I,
 )
 _EMAIL = re.compile(r"(?<!\w)[\w.+-]+@[\w.-]+\.[a-z]{2,}(?!\w)", re.I)
 _BLANK = re.compile(r"\r?\n[^\S\r\n]*\r?\n")
@@ -168,6 +170,35 @@ def _established(anchors):
             or {"box", "postal", "locality"} <= anchors)
 
 
+def value_boundaries(text, cands):
+    """Other-family evidence, exempting only explicitly introduced recipients.
+
+    A broad model ADDRESS can hide an honorific/cued name from the name stage.
+    For boundary/label arbitration only, recover that evidence without ADDRESS
+    blockers. This never changes the supplied candidates or their mask coverage.
+    """
+    from .names import assemble as assemble_names
+
+    care = [m.span() for m in _CARE.finditer(text)]
+    foreign = [c for c in cands if c["label"] not in _ADDRESS_LABELS
+               and c["label"] != "UNCOVERED"]
+    name_seeds = [c for c in cands if c["label"] != "ADDRESS"]
+    # Removing a broad ADDRESS must not let inverted-name grammar reinterpret
+    # an adjacent lexical street as a surname (especially German compounds).
+    for pattern in (_STREET_LAST, _STREET_FIRST, _POSTAL_FIRST, _POSTAL_LAST):
+        name_seeds.extend(dict(_candidate(*m.span()), label="STREET") for m in pattern.finditer(text))
+    foreign += assemble_names(text, name_seeds)
+    return [c for c in foreign if not (
+        c["label"] in _NAME_LABELS
+        and any(a <= c["start"] and c["end"] <= b for a, b in care)
+    )]
+
+
+def contact_cues(text):
+    """Original-coordinate contact cue boundaries, with no colon requirement."""
+    return [m.span() for m in _CONTACT_CUE.finditer(text)]
+
+
 def assemble(text, cands):
     """Return NEW whole ADDRESS candidates; never mutate, delete or shrink seeds.
 
@@ -178,7 +209,8 @@ def assemble(text, cands):
     _checked(text, cands)
     if not text:
         return []
-    barriers = [(c["start"], c["end"]) for c in cands if c["label"] in _BARRIER_LABELS]
+    barriers = [(c["start"], c["end"]) for c in value_boundaries(text, cands)]
+    barriers += contact_cues(text)
     barriers += [m.span() for m in _FIELD.finditer(text)]
     barriers += [m.span() for m in _EMAIL.finditer(text)]
     pieces = []
@@ -206,7 +238,7 @@ def assemble(text, cands):
 
     seed_anchor = {
         "STREET": ("street",), "BUILDINGNUM": ("house",), "ZIPCODE": ("postal",),
-        "CITY": ("locality",), "STATE": (), "COUNTY": (), "COUNTRY": (), "ADDRESS": (),
+        "CITY": ("locality",), "STATE": (), "COUNTY": (), "COUNTRY": (), "ADDRESS": (), "POBOX": ("box",),
     }
     for cand in cands:
         label = cand["label"]

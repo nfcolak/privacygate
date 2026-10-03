@@ -131,6 +131,56 @@ def _refined(text, ledger):
     return _checked(text, refined)
 
 
+def _address_union(text, cands):
+    """Prefer separate value labels inside ADDRESS envelopes, without unmasking.
+
+    The ordinary union remains the coverage authority. Only label arbitration
+    inside a conflicting address group changes: non-address values win their
+    own intervals, and every residual character keeps its original mask. A
+    contact cue already covered by an over-wide ADDRESS belongs to the adjacent
+    contact label, not to the postal region; it is never newly masked here.
+    """
+    from .address import contact_cues, value_boundaries
+
+    baseline = union(cands)
+    addresses = [c for c in cands if c["label"] == "ADDRESS"]
+    if not addresses:
+        return baseline
+    foreign = value_boundaries(text, cands)
+    overrides = union([c for c in foreign if any(
+        a["start"] < c["end"] and c["start"] < a["end"] for a in addresses
+    )])
+    cues = contact_cues(text)
+    out = []
+    for region in baseline:
+        lo, hi = region["start"], region["end"]
+        choices = [dict(c, start=max(lo, c["start"]), end=min(hi, c["end"]))
+                   for c in overrides if c["start"] < hi and lo < c["end"]]
+        if not choices:
+            out.append(region)
+            continue
+        for choice in choices:
+            if choice["label"] not in {"TELEPHONENUM", "EMAIL"}:
+                continue
+            for start, end in reversed(cues):
+                if (lo <= start < end <= choice["start"]
+                        and not text[end:choice["start"]].strip(" \t.:=,-;()")
+                        and any(a["start"] <= start and end <= a["end"] for a in addresses)):
+                    choice["start"] = start
+                    break
+        points = sorted({lo, hi} | {p for c in choices for p in (c["start"], c["end"])})
+        parts = []
+        for start, end in zip(points, points[1:]):
+            label = next((c["label"] for c in choices
+                          if c["start"] <= start and end <= c["end"]), "ADDRESS")
+            if parts and parts[-1]["label"] == label:
+                parts[-1]["end"] = end
+            else:
+                parts.append({"start": start, "end": end, "label": label})
+        out.extend(parts)
+    return out
+
+
 def _run(text, profile, model_dir, stages, modules):
     model = _get_mbert(model_dir)
     if profile == "legacy_union_refined":
@@ -197,7 +247,9 @@ def _run(text, profile, model_dir, stages, modules):
     diag["refined_candidates"] = len(final)
     # Coverage never enters context arbitration or semantic refinement.
     final.extend(batch["coverage"])
-    entities = union(_checked(text, final))
+    checked_final = _checked(text, final)
+    entities = (_address_union(text, checked_final) if "address.assemble" in stages
+                else union(checked_final))
     diag["protected_candidates"] = sum(c["protected"] for c in final)
     diag["final_entities"] = len(entities)
     rendered = inference.apply_mask(text, entities)
