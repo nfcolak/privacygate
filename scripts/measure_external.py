@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Frozen aggregate-only GLiNER2 PII sweep on synthetic dev v1/v2/blind v3.
+"""Frozen aggregate-only GLiNER2 PII sweep on synthetic dev v1/v2/blind v3/v4.
 
 Use the isolated requirements-external.txt environment and a local HF snapshot of
 MODEL_REVISION. No downloads, training, test split access, tuning, or row logs.
 
-  measure_external.py --version v1|v2|v3 --model-dir SNAPSHOT --device cpu|mps
+  measure_external.py --version v1|v2|v3|v4 --model-dir SNAPSHOT --device cpu|mps [--out-dir DIR]
   measure_external.py --summary
 """
 import argparse
@@ -65,6 +65,25 @@ def require(condition, code):
 
 
 def load_rows(version) -> tuple[Path, list, dict]:
+    if version == "v4":
+        from privacygate import masking_eval as ev
+        path = ROOT / "data/augmentation/masking-stress-v4.jsonl"
+        try:
+            data, binding = ev.load_dataset(path, version, root=ROOT)
+        except ev.EvaluationError as error:
+            raise MaskingError(str(error)) from None
+        frozen = json.loads((ROOT / "docs/masking-stress-v4/manifest.json").read_text(encoding="utf-8"))
+        require(all(binding[k] == frozen["counts"][k] for k in ("positive_rows", "clean_rows", "gold_spans")), "external_v4_counts")
+        # Loader compatibility only: historical scoring admits DATE, not the
+        # canonical DATEOFBIRTH alias, and only legacy stress-family names.
+        # Preserve every gold interval and input character; do not invent family
+        # mappings. Class-agnostic coverage formulas and predictions are unchanged.
+        binding.update({"gold_label_aliases": {"DATEOFBIRTH": "DATE"},
+                        "family_reporting": "omitted: v4 families are outside the historical scorer allowlist",
+                        "loader_source_sha256": mm.sha256(ROOT / "privacygate/masking_eval.py")})
+        rows = [(r["text"], [{**g, "label": "DATE" if g["label"] == "DATEOFBIRTH" else g["label"]}
+                             for g in r["gold"]], r["language"], None) for r in data]
+        return path, rows, binding
     name = "masking-stress-dev.jsonl" if version == "v1" else "masking-stress-" + version + "-dev.jsonl"
     path = ROOT / "data/augmentation" / name
     if version in ("v1", "v2"):
@@ -192,7 +211,7 @@ def execute(args):
     check_card(model_dir)
     sources = {n: mm.sha256(ROOT / n) for n in SOURCE_FILES}
     model_hashes = {n: mm.sha256(model_dir / n) for n in MODEL_FILES}
-    out = RUNS / args.version
+    out = Path(args.out_dir) if args.out_dir else RUNS / args.version
     require(not out.exists(), "external_output_exists")
     out.mkdir(parents=True)
     # Reserving the run before loading/forward prevents an accidental repeat.
@@ -365,7 +384,8 @@ def main():
     try:
         parser = mr.SafeParser(description=__doc__)
         parser.add_argument("--summary", action="store_true")
-        parser.add_argument("--version", choices=("v1", "v2", "v3"))
+        parser.add_argument("--version", choices=("v1", "v2", "v3", "v4"))
+        parser.add_argument("--out-dir")
         parser.add_argument("--model-dir")
         parser.add_argument("--device", choices=("cpu", "mps"), default="cpu")
         args = parser.parse_args()

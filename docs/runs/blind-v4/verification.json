@@ -1,0 +1,53 @@
+{
+  "aggregate_only": true,
+  "all_arms_one_invocation_exit_zero": true,
+  "all_arms_same_dataset_hash_counts_and_denominators": true,
+  "all_sources_configs_unchanged_since_pre_sweep_freeze": true,
+  "arm_artifacts_sha256": {
+    "gliner2_pii": {
+      "execution.json": "ebbf3b4ed043a853cb7b820197b75618f087d801ad96c3a3267f13e286df35a8",
+      "manifest.json": "85c4c27ab41252499a8e969579576670a4f4cdb6317a50be3b6a29048f381b99",
+      "metrics.json": "668af32ce8b27469d935a109b0957f17929a3295f03cc71f356965935e5675dc",
+      "run.log": "61dce227eabaf3968a67f937a8f4b6151f132f396e37588ca3d30bd0109036d2"
+    },
+    "old-full": {
+      "execution.json": "1307233e4c80c4f0bcb4a20012ca7c1cd2b2ee5892d3a1f9c2ebe89a69226964",
+      "manifest.json": "09bd1f06587822cfd52d9e0d964275013c0fb3aa2a4e1dfe8d0707d15ebbbb34",
+      "metrics.json": "fe1e7d7124af3d7f798180fae146c46ee27b245abd29fa6dde68dbf64053f258",
+      "run.log": "7971942b872a99c7525d524bf329c322a056e5587f3bfe5ced7e41a8fd2f85f4"
+    },
+    "old-legacy_union_refined": {
+      "execution.json": "2172f2c14a650ecacf94639c42b2736264d73bdc4351a6c684260c893b524abc",
+      "manifest.json": "b7f9e9c6e4c89cb6e1795f047fc55dc19ca1240dbce5d0292f76113e13fec068",
+      "metrics.json": "313c2105b43e772caea07f933ca879489ea71b1c4dfdfbaacc39dd9a238f36ce",
+      "run.log": "debb1904a491b2582ac9f3c84bc576870d31f533c0210836e1afc7e1456a8fa2"
+    }
+  },
+  "artifact_structural_no_rows_identifiers_or_numeric_spans_audit": "passed",
+  "dataset_manifest_unchanged": true,
+  "dataset_rows_opened_by_evidence_builder": false,
+  "external_completed_within_15_minutes": true,
+  "external_sweeps_requested_completed": [
+    1,
+    1
+  ],
+  "new_region_model_arm": "pending after training; not run here",
+  "old_full_family_totals_reconcile": true,
+  "old_receipts": 2,
+  "old_reservations": 2,
+  "per_label_totals_reconcile": true,
+  "pipeline_config_identical_to_starting_commit": true,
+  "receipt_metrics_sha256_verified": true,
+  "receipt_model_sha256_matches_checkpoint": true,
+  "receipt_profiles": [
+    "full",
+    "legacy_union_refined"
+  ],
+  "source_manifest_hashes_verified": true,
+  "status": "passed",
+  "summary_sha256": "713c453dd1935ca2749ebe99293a8353b91fad563ac2f5b1f6f2896f97233c9c",
+  "test_evaluated": false,
+  "threshold_selection": false,
+  "training": false,
+  "v4_verify": "passed before all sweeps"
+}

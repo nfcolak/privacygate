@@ -1,0 +1,26 @@
+{
+  "arm": "gliner2_pii",
+  "exit_code": 0,
+  "invocations": 1,
+  "wall_seconds": 41.24007487297058,
+  "command": [
+    "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-models-1003/.venv/bin/python",
+    "scripts/measure_external.py",
+    "--version",
+    "v4",
+    "--model-dir",
+    "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-models-1003/.cache/hf/hub/models--fastino--gliner2-privacy-filter-PII-multi/snapshots/1cb4166094dc58fa8d836429f060d6c95f62b495",
+    "--device",
+    "mps",
+    "--out-dir",
+    "docs/runs/blind-v4/gliner2_pii"
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_HOME": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.worktrees/pg-models-1003/.cache/hf"
+  },
+  "PYTHONPATH_removed": true,
+  "launcher": "nohup"
+}
