@@ -4,8 +4,10 @@ Stdlib only at import time. Required detector modules are lazy, never silently s
 Blocked calls release neither original text nor partial masks. No raw-value logging.
 """
 from functools import lru_cache
+import hashlib
 import importlib
 import json
+import math
 from pathlib import Path
 from threading import RLock
 from typing import NoReturn
@@ -15,7 +17,7 @@ from .spans import make_candidate, validate, union
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "configs" / "pipeline-v1.json"
-PROFILES = ("legacy_union_refined", "structured", "structured_address_names", "full")
+PROFILES = ("legacy_union_refined", "structured", "structured_address_names", "full", "full_calibrated")
 # A single shared model is serialized for safe process-local inference/cache use.
 _MODEL_LOCK = RLock()
 _REQUIRED = {
@@ -35,6 +37,7 @@ _EXPECTED = {
     "structured_address_names": _BASE + ("address.assemble", "names.assemble", "names.propagate") + _TAIL,
     "full": _BASE + ("context.decide", "address.assemble", "names.assemble", "names.propagate") + _TAIL,
 }
+_EXPECTED["full_calibrated"] = ("mbert", "calibrate") + _EXPECTED["full"][1:]
 
 
 class PipelineError(Exception):
@@ -88,6 +91,78 @@ def _get_mbert(model_dir):
         from .hybrid import DEFAULT_MODEL_DIR
         model_dir = DEFAULT_MODEL_DIR
     return _cached_mbert(str(Path(model_dir).expanduser().resolve()))
+
+
+@lru_cache(maxsize=8)
+def _weight_hash(path, identity):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _model_sha256(model_dir):
+    if model_dir is None:
+        from .hybrid import DEFAULT_MODEL_DIR
+        model_dir = DEFAULT_MODEL_DIR
+    path = (Path(model_dir).expanduser().resolve() / "model.safetensors")
+    stat = path.stat()
+    identity = (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+    return _weight_hash(str(path), identity)
+
+
+def _calibration(profile, model_dir):
+    """Admit thresholds before inference; errors never disclose paths or values."""
+    try:
+        config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        path = config["profiles"][profile]["threshold_file"]
+        if not isinstance(path, str) or not path:
+            _fail("pipeline_calibration_invalid")
+        path = Path(path)
+        path = path if path.is_absolute() else ROOT / path
+        if not path.is_file():
+            _fail("pipeline_calibration_unavailable")
+        data = json.loads(path.read_text(encoding="utf-8"))
+        thresholds, default = data["thresholds"], data["default"]
+        if not isinstance(thresholds, dict) or any(
+                not isinstance(label, str) or not label for label in thresholds):
+            _fail("pipeline_calibration_invalid")
+        for value in [default, *thresholds.values()]:
+            if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1:
+                _fail("pipeline_calibration_invalid")
+        digest = data["model_sha256"]
+        if (not isinstance(digest, str) or len(digest) != 64
+                or any(c not in "0123456789abcdef" for c in digest)):
+            _fail("pipeline_calibration_invalid")
+        if digest != _model_sha256(model_dir):
+            _fail("pipeline_calibration_model_mismatch")
+        return data
+    except PipelineError:
+        raise
+    except Exception:
+        _fail("pipeline_calibration_invalid")
+
+
+def _calibrate(text, ledger, calibration, structured):
+    """Drop only whole raw MODEL proposals; validation/protection always wins."""
+    kept = []
+    for cand in ledger:
+        threshold = calibration["thresholds"].get(cand["label"], calibration["default"])
+        droppable = (cand["source"] == "mbert" and cand["stage"] == "raw"
+                     and not cand["protected"] and cand["validation"] != "valid"
+                     and cand["score"] is not None and cand["score"] < threshold)
+        if droppable:
+            # The stage precedes structured.check, so check would-be drops now.
+            # Keep original metadata; the declared check stage remains unchanged.
+            checked = _checked(text, [structured.check(text, dict(cand))])[0]
+            if any(checked[k] != cand[k] for k in
+                   ("start", "end", "label", "source", "stage", "protected")):
+                _fail("pipeline_candidate_invalid")
+            droppable = checked["validation"] != "valid" and not checked["protected"]
+        if not droppable:
+            kept.append(cand)
+    return kept
 
 
 def _blocked(error):
@@ -181,7 +256,7 @@ def _address_union(text, cands):
     return out
 
 
-def _run(text, profile, model_dir, stages, modules):
+def _run(text, profile, model_dir, stages, modules, calibration=None):
     model = _get_mbert(model_dir)
     if profile == "legacy_union_refined":
         result = inference.run_with_completion(text, engine="hybrid", model_dir=model_dir,
@@ -190,14 +265,24 @@ def _run(text, profile, model_dir, stages, modules):
                 "completion": result["completion"],
                 "diagnostics": {"final_entities": len(result["entities"]), "errors": 0}}
 
-    from .hybrid import regex
     batch = inference.mbert_candidates(text, model_dir=model_dir, _mbert=model)
+    return _finish(text, batch, stages, modules, calibration)
+
+
+def _finish(text, batch, stages, modules, calibration=None):
+    """Replay only deterministic stages from an in-memory model candidate batch."""
+    from .hybrid import regex
     ledger = _checked(text, batch["candidates"])
     diag = {"model_candidates": len(ledger), "regex_candidates": 0, "structured_candidates": 0,
             "validated_candidates": 0, "context_accept": 0, "context_reject": 0,
             "context_unresolved": 0, "protected_reject_prevented": 0,
             "address_candidates": 0, "name_candidates": 0, "propagated_candidates": 0,
             "refined_candidates": 0, "coverage_candidates": len(batch["coverage"]), "errors": 0}
+    if "calibrate" in stages:
+        if calibration is None:
+            _fail("pipeline_calibration_unavailable")
+        ledger = _calibrate(text, ledger, calibration, modules["structured"])
+        diag["calibration_dropped"] = diag["model_candidates"] - len(ledger)
     rx = [make_candidate(c["start"], c["end"], c["label"], "regex", validation="n/a")
           for c in regex(text)]
     diag["regex_candidates"] = _add(text, ledger, rx, "regex", "raw")
@@ -270,7 +355,8 @@ def run_pipeline(text, profile="full", model_dir=None):
         stages = _stages(profile)
         modules = _modules(stages)
         with _MODEL_LOCK:
-            return _run(text, profile, model_dir, stages, modules)
+            calibration = _calibration(profile, model_dir) if "calibrate" in stages else None
+            return _run(text, profile, model_dir, stages, modules, calibration)
     except PipelineError as error:
         return _blocked(str(error))
     except inference.InferenceError:
