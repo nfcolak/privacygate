@@ -21,13 +21,14 @@ from . import masking_metrics as mm
 
 ROOT = Path(__file__).resolve().parents[1]
 SCORER_VERSION = "pipeline-masking-v1"
-VERSIONS = ("v1", "v2", "v4", "v5", "dev2")
+VERSIONS = ("v1", "v2", "v4", "v5", "dev2", "dev3")
 MANIFEST_PATHS = {
     "v1": "artifacts/masking-stress/manifest.json",
     "v2": "artifacts/masking-stress-v2/manifest.json",
     "v4": "artifacts/masking-stress-v4/manifest.json",
     "v5": "artifacts/masking-stress-v5/manifest.json",
     "dev2": "artifacts/train-v2/manifest.json",
+    "dev3": "artifacts/train-v3/manifest.json",
 }
 ROW_KEYS = frozenset({"case_id", "family", "gold", "language", "split", "text"})
 SPAN_KEYS = frozenset({"start", "end", "label"})
@@ -118,8 +119,9 @@ def manifest_dataset(manifest, version, basename):
             if _digest(node.get("sha256")):
                 path = node.get("path", node.get("file", ""))
                 path_match = isinstance(path, str) and Path(path).name == basename
-                dev_match = version == "dev2" and key in ("dev", "dev2", "dev-v2", "dev-v2.jsonl")
-                single_match = version != "dev2" and key == "dataset" and not path
+                dev_match = (version in ("dev2", "dev3") and not path and "rows" in node
+                             and key in ("dev", version, f"dev-v{version[-1]}", f"dev-v{version[-1]}.jsonl"))
+                single_match = version not in ("dev2", "dev3") and key == "dataset" and not path
                 if path_match or dev_match or single_match:
                     records.append(node)
             for child_key, child in node.items():
@@ -161,7 +163,9 @@ def load_dataset(path, version, root=ROOT):
         raise EvaluationError("eval_dataset_version")
     path, root = Path(path), Path(root)
     # Prevent accidentally rebranding the consumed blind v3 as another version.
-    if "v3" in path.name.lower():
+    if version == "dev3" and path.name != "dev-v3.jsonl":
+        raise EvaluationError("eval_dev_dataset_required")
+    if "v3" in path.name.lower() and version != "dev3":
         raise EvaluationError("eval_consumed_v3_forbidden")
     manifest_path = root / MANIFEST_PATHS[version]
     manifest_raw = read_bounded(manifest_path, 4 * 1024 * 1024)

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from privacygate import masking_eval as ev
 
-PROFILES = ("legacy_union_refined", "structured", "structured_address_names", "full")
+PROFILES = ("legacy_union_refined", "structured", "structured_address_names", "full", "full_calibrated")
 
 
 class SafeParser(argparse.ArgumentParser):
