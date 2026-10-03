@@ -1,4 +1,5 @@
 """Frozen generation contract; only synthetic, single-language prose."""
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -7,11 +8,9 @@ POLICY = "privacy-policy-v1"
 LANGUAGES = ("en", "de", "fr", "it", "es")
 SIZES = {"train": 16000, "dev": 2000}
 SLICES = {"train": (0, 512), "dev": (512, 640)}
-LABELS = (
-    "PERSONNAME", "ADDRESS", "EMAIL", "USERNAME", "TELEPHONENUM", "IBAN",
-    "ACCOUNTNUM", "CREDITCARDNUMBER", "PASSPORTNUM", "IDCARDNUM",
-    "DRIVERLICENSENUM", "TAXNUM", "SOCIALNUM", "PERSONALREF", "DATEOFBIRTH", "AGE",
-)
+POLICY_PATH = ROOT / "configs" / f"{POLICY}.json"
+POLICY_CONFIG = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+LABELS = tuple(POLICY_CONFIG["labels"])
 GROUPS = {
     "identity": ("PERSONNAME",), "postal": ("ADDRESS",),
     "contact": ("EMAIL", "USERNAME", "TELEPHONENUM"),
@@ -30,8 +29,7 @@ TWIN_LABELS = {
     "room": "PERSONALREF", "gate": "PERSONALREF", "platform": "PERSONALREF", "statistics": "AGE",
 }
 OUTPUTS = {s: ROOT / "data" / "augmentation" / f"{s}-v2.jsonl" for s in SIZES}
-MANIFEST = ROOT / "docs" / "train-v2" / "manifest.json"
-POLICY_PATH = ROOT / "docs" / f"{POLICY}.md"
+MANIFEST = ROOT / "artifacts" / "train-v2" / "manifest.json"
 
 
 def template_id(split, language, kind, variant=0):

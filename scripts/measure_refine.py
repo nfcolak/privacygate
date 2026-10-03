@@ -11,7 +11,7 @@ coverage and are unaffected; label-dependent diagnostics (raw/final exact-label 
 refined arm.
 
   measure_refine.py --dataset P --version v1|v2|v3 --model-dir D --out-dir O
-  measure_refine.py --summary          # write docs/runs/masking-coverage/refine-summary.md from both runs
+  measure_refine.py --summary          # print aggregate counts from both JSON runs
 """
 import argparse
 import hashlib
@@ -28,12 +28,12 @@ from privacygate import hybrid, inference, mbert_data, positive_data, refine as 
 from privacygate.masking_metrics import DEFINITIONS, EngineAggregate, MaskingError, SCORER_VERSION, validate_spans  # noqa: E402
 
 ARMS = ("mbert", "hybrid_union", "hybrid_union_refined")
-RUNS = ROOT / "docs/runs/masking-coverage"
+RUNS = ROOT / "artifacts/runs/masking-coverage"
 SOURCES = (
     "privacygate/masking_metrics.py", "privacygate/refine.py", "privacygate/hybrid.py", "privacygate/inference.py",
     "privacygate/detect.py", "privacygate/mbert_data.py", "scripts/measure_refine.py", "scripts/measure_masking.py",
     "scripts/make_masking_stress.py", "scripts/make_masking_stress_v2.py", "scripts/make_masking_stress_v3.py",
-    "docs/masking-stress/manifest.json", "docs/masking-stress-v2/manifest.json", "docs/masking-stress-v3/manifest.json",
+    "artifacts/masking-stress/manifest.json", "artifacts/masking-stress-v2/manifest.json", "artifacts/masking-stress-v3/manifest.json",
 )
 SCOPE = {"test_evaluated": False, "training": False, "scoring_scope": "development_diagnostic"}
 
@@ -43,7 +43,7 @@ def load_rows(path, version):
         rows, binding = mm.load_dataset(path, "stress")  # enforces the frozen v1 sha/shape
         return rows, binding
     raw = positive_data._read_bounded(path)
-    manifest_path = ROOT / ("docs/masking-stress-v3/manifest.json" if version == "v3" else "docs/masking-stress-v2/manifest.json")
+    manifest_path = ROOT / ("artifacts/masking-stress-v3/manifest.json" if version == "v3" else "artifacts/masking-stress-v2/manifest.json")
     expected = json.loads(manifest_path.read_text(encoding="utf-8"))["dataset"]["sha256"]
     if hashlib.sha256(raw).hexdigest() != expected:
         raise MaskingError("mask_stress_binding")
@@ -160,13 +160,12 @@ def execute(args):
         if aggs[name].overall.counts["rows"] != len(rows):
             raise MaskingError("mask_count_mismatch")
     for n, d in manifest["source_sha256"].items():
-        if mm.sha256(ROOT / n) != d:
+        if mm.sha256(mm.source_path(n)) != d:
             raise MaskingError("mask_source_changed")
     report = {**SCOPE, "scorer_version": SCORER_VERSION, "dataset_version": args.version, "dataset_sha256": binding["sha256"],
               "model_sha256": mm.EXPECTED_MODEL, "rows_evaluated": len(rows), "forward_sweeps": 1,
               "engines": {n: a.report() for n, a in aggs.items()}}
     mm.json_write(out / "metrics.json", report)
-    (out / "summary.md").write_text(summary_md(args.version, report, binding), encoding="utf-8")
     print("refine_complete version=" + args.version + " rows=" + str(len(rows)) + " sweeps=1")
     for name in ARMS:
         o = report["engines"][name]["overall"]
@@ -179,7 +178,7 @@ def _cell(a, b):
     return str(a) + " -> " + str(b)
 
 
-# hybrid_union_refined before the tightening (committed refine-summary.md of the previous commit), for the "Tightening" section.
+# Aggregate baseline from before the tightening; no historical note is read.
 BEFORE = {"v1": {"excess": 148, "clean_chars": 0, "ADDRESS": (30, 30), "TELEPHONENUM": (46, 50), "complete": (201, 370)},
           "v2": {"excess": 64, "clean_chars": 64, "ADDRESS": (45, 45), "TELEPHONENUM": (25, 25), "complete": (70, 130)}}
 
@@ -255,9 +254,12 @@ def write_summary():
               + "; masked chars " + _cell(bo["clean_controls"]["masked_chars"], ao["clean_controls"]["masked_chars"])
               + "; excess masked chars over all rows " + _cell(bo["excess_masked_chars"], ao["excess_masked_chars"]) + ".", ""]
     L += ["Per-slice excess is row-scoped (whole-row excess for rows containing the label) and not additive across slices.",
-          "Details: refine-v1/ and refine-v2/ (metrics.json, manifest.json, summary.md)."]
-    (RUNS / "refine-summary.md").write_text("\n".join(L) + "\n", encoding="utf-8")
-    print("refine_summary_written")
+          "Details: refine-v1/ and refine-v2/ (metrics.json, manifest.json)."]
+    for version, report in reports.items():
+        for name in ARMS:
+            metric = report["engines"][name]["overall"]
+            print("refine_summary version={} arm={} complete={}/{}".format(
+                version, name, metric["complete_gold_spans"], metric["gold_spans"]))
     return 0
 
 

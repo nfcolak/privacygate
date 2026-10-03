@@ -17,7 +17,7 @@ from privacygate.inference import apply_mask, merge_spans, uncovered_regions
 
 def main():
     data = ROOT / "data/augmentation/masking-stress-dev.jsonl"
-    manifest = json.loads((ROOT / "docs/masking-stress/manifest.json").read_text())
+    manifest = json.loads((ROOT / "artifacts/masking-stress/manifest.json").read_text())
     payload = data.read_bytes()
     if hashlib.sha256(payload).hexdigest() != manifest["dataset"]["sha256"]:
         raise ValueError("coverage fixture mismatch")

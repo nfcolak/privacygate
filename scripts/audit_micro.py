@@ -21,7 +21,7 @@ MICRO_REPO = "ai4privacy/openpii-masking-micro-100k"
 MICRO_REVISION = "f95b4e1539657c3d0047d9ad3f20f26675f22c7d"
 MICRO_SEED = "privacygate-stage2-micro-20261001"
 MICRO_FIELDS = ad.EXPECTED_FIELDS | {"source_dataset"}
-OUT_DOCS, OUT_MAN = "docs/data-audit/micro/", "data/manifests/micro/"
+OUT_DOCS, OUT_MAN = "artifacts/data-audit/micro/", "data/manifests/micro/"
 MINI_SPLITS = ("train", "dev", "test")
 
 
@@ -33,7 +33,7 @@ def fetch_artifacts(raw, source, offline):
 def mini_rows():
     """Recompute Mini 10K selected rows locally (hashes/templates only) and map to manifest splits."""
     import pyarrow.parquet as pq
-    source = json.loads((ROOT / "docs/data-audit/source.json").read_text())
+    source = json.loads((ROOT / "artifacts/data-audit/source.json").read_text())
     ad.REPO, ad.REVISION = MINI_REPO, MINI_REVISION
     raw = ROOT / "data/raw/openpii-masking-mini-10k"
     ad.artifacts(raw, source, True)
@@ -242,7 +242,7 @@ def build(raw, source):
     for name, entries in manifests.items():
         outputs[OUT_MAN + name + ".jsonl"] = b"".join((json.dumps(e, sort_keys=True, separators=(",", ":")) + "\n").encode() for e in entries)
     outputs[OUT_MAN + "split-policy.json"] = ad.json_bytes(policy)
-    outputs[OUT_DOCS + "output-hashes.json"] = ad.json_bytes({k: ad.digest(v) for k, v in sorted(outputs.items())})
+    outputs[OUT_DOCS + "output-hashes.json"] = ad.json_bytes(ad.output_hashes(outputs, ROOT / OUT_DOCS / "output-hashes.json"))
     return outputs, audit
 
 

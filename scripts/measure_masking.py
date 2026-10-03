@@ -35,7 +35,7 @@ SOURCES = (
     "privacygate/masking_metrics.py", "scripts/measure_masking.py",
     "privacygate/hybrid.py", "privacygate/inference.py", "privacygate/detect.py",
     "privacygate/mbert_data.py", "privacygate/positive_data.py",
-    "scripts/make_masking_stress.py", "docs/masking-stress/manifest.json",
+    "scripts/make_masking_stress.py", "artifacts/masking-stress/manifest.json",
 )
 TOKENIZER_FILES = ("config.json", "tokenizer.json", "tokenizer_config.json", "vocab.txt")
 SCOPE = {"test_evaluated": False, "training": False, "scoring_scope": "development_diagnostic"}
@@ -52,6 +52,14 @@ def sha256(path):
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             result.update(block)
     return result.hexdigest()
+
+
+def source_path(name):
+    """Resolve frozen logical artifact paths without changing bound bytes or keys."""
+    path = Path(name)
+    if path.parts and path.parts[0] == "docs":
+        path = Path("artifacts", *path.parts[1:])
+    return ROOT / path
 
 
 def json_write(path, value):
@@ -310,7 +318,7 @@ def verify_bindings(args, manifest):
         if sha256(Path(args.model_dir) / name) != digest:
             raise MaskingError("mask_input_changed")
     for name, digest in manifest["source_sha256"].items():
-        if sha256(ROOT / name) != digest:
+        if sha256(source_path(name)) != digest:
             raise MaskingError("mask_source_changed")
     snapshot = Path(os.environ["HF_HOME"]) / "hub" / "models--google-bert--bert-base-multilingual-cased" / "snapshots" / mbert_data.MODEL_REVISION
     for name, digest in manifest["tokenizer"]["file_sha256"].items():
@@ -418,8 +426,7 @@ def execute(args):
         if any(arm["overall"]["rows"] != len(rows) for arm in report["engines"].values()):
             raise MaskingError("mask_count_mismatch")
         json_write(out / "metrics.json", report)
-        (out / "summary.md").write_text(summary_text(report), encoding="utf-8")
-        receipt.update(status="complete", stage="complete", bindings_unchanged=True, metrics_sha256=sha256(out / "metrics.json"), summary_sha256=sha256(out / "summary.md"))
+        receipt.update(status="complete", stage="complete", bindings_unchanged=True, metrics_sha256=sha256(out / "metrics.json"))
         json_write(out / "receipt.json", receipt)
         print("mask_complete rows=" + str(len(rows)) + " engines=3 sweeps=1 sanity_passed=" + str(checks["passed"]))
         for name in ENGINES:

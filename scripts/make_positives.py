@@ -1,6 +1,6 @@
 """Deterministic synthetic POSITIVE PII augmentation (EN/DE/FR/IT/ES), train + dev only. Standard library only.
 
-env -u PYTHONPATH python3 scripts/make_positives.py            # write data/augmentation/positive-{train,dev}.jsonl + docs/positive-data/manifest.json
+env -u PYTHONPATH python3 scripts/make_positives.py            # write data/augmentation/positive-{train,dev}.jsonl + artifacts/positive-data/manifest.json
 env -u PYTHONPATH python3 scripts/make_positives.py --verify   # regenerate in memory; compare with manifest/files; run loader checks
 Prints counts and hashes only; generated text is gitignored. Spans are built by string assembly (no find/replace).
 Train and dev use disjoint template pools AND disjoint name/street/city/stem pools; code-like values are
@@ -21,7 +21,7 @@ from privacygate import positive_data as pd
 LANGS, VERSION = pd.LANGS, pd.GEN_VERSION
 SEED = 20261002
 OUT = {"train": ROOT / "data/augmentation/positive-train.jsonl", "dev": ROOT / "data/augmentation/positive-dev.jsonl"}
-MANIFEST = ROOT / "docs/positive-data/manifest.json"
+MANIFEST = ROOT / "artifacts/positive-data/manifest.json"
 VARIANTS = {"train": 6, "dev": 4}  # rows per template
 FAMILIES = ("names", "phone", "identity", "address", "username", "account", "personalref")
 SLOT = {"G": "GIVENNAME", "S": "SURNAME", "PH": "TELEPHONENUM", "ID": "IDCARDNUM", "PP": "PASSPORTNUM",

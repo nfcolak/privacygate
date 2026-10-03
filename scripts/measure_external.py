@@ -14,7 +14,6 @@ import json
 import os
 from pathlib import Path
 import platform
-import re
 import resource
 import sys
 import time
@@ -46,7 +45,7 @@ LABELS = (
     "sensitive_date", "document_date", "expiration_date", "transaction_date",
 )
 ARM = "gliner2_pii"
-RUNS = ROOT / "docs/runs/external-models-1003"
+RUNS = ROOT / "artifacts/runs/external-models-1003"
 SCOPE = {**mr.SCOPE, "synthetic_only": True, "aggregate_only": True}
 SOURCE_FILES = (
     "scripts/measure_external.py", "scripts/measure_refine.py", "scripts/measure_masking.py",
@@ -55,7 +54,7 @@ SOURCE_FILES = (
 )
 MODEL_FILES = (
     "config.json", "encoder_config/config.json", "model.safetensors",
-    "tokenizer.json", "tokenizer_config.json", "README.md",
+    "tokenizer.json", "tokenizer_config.json",
 )
 
 
@@ -72,7 +71,7 @@ def load_rows(version) -> tuple[Path, list, dict]:
             data, binding = ev.load_dataset(path, version, root=ROOT)
         except ev.EvaluationError as error:
             raise MaskingError(str(error)) from None
-        frozen = json.loads((ROOT / "docs/masking-stress-v4/manifest.json").read_text(encoding="utf-8"))
+        frozen = json.loads((ROOT / "artifacts/masking-stress-v4/manifest.json").read_text(encoding="utf-8"))
         require(all(binding[k] == frozen["counts"][k] for k in ("positive_rows", "clean_rows", "gold_spans")), "external_v4_counts")
         # Loader compatibility only: historical scoring admits DATE, not the
         # canonical DATEOFBIRTH alias, and only legacy stress-family names.
@@ -90,7 +89,7 @@ def load_rows(version) -> tuple[Path, list, dict]:
         rows, binding = mr.load_rows(path, version)
         return path, rows, binding
     # v3 uses the frozen six-field stress schema, not the positive corpus schema.
-    frozen = json.loads((ROOT / "docs/masking-stress-v3/manifest.json").read_text(encoding="utf-8"))
+    frozen = json.loads((ROOT / "artifacts/masking-stress-v3/manifest.json").read_text(encoding="utf-8"))
     raw = positive_data._read_bounded(path)
     expected = frozen["dataset"]
     require(hashlib.sha256(raw).hexdigest() == expected["sha256"], "external_v3_binding")
@@ -121,15 +120,6 @@ def runtime_versions():
     require(direct.get("vcs_info", {}).get("commit_id") == RUNTIME_REVISION, "external_runtime_binding")
     return {"python": platform.python_version(), "packages": {n: importlib.metadata.version(n) for n in names},
             "gliner2_direct_url": direct, "platform": platform.system(), "machine": platform.machine()}
-
-
-def check_card(model_dir):
-    card = (model_dir / "README.md").read_text(encoding="utf-8")
-    table = card.split("## Supported PII Labels", 1)[1].split("## Benchmark Results", 1)[0]
-    # Parse table rows only: retain exactly the full card label order, including aliases.
-    actual = tuple(label for line in table.splitlines() if line.startswith("| **") for label in re.findall(r"`([^`]+)`", line))
-    require(actual == LABELS, "external_card_labels_binding")
-    require("threshold=0.5" in card and "license: apache-2.0" in card, "external_card_defaults_binding")
 
 
 def chunks_for(text, model, schema, max_input_tokens):
@@ -208,7 +198,7 @@ def execute(args):
     require(model_dir.name == MODEL_REVISION, "external_snapshot_revision")
     path, rows, binding = load_rows(args.version)
     runtime = runtime_versions()
-    check_card(model_dir)
+    # The pinned model label order and threshold are declared in code; no note is read.
     sources = {n: mm.sha256(ROOT / n) for n in SOURCE_FILES}
     model_hashes = {n: mm.sha256(model_dir / n) for n in MODEL_FILES}
     out = Path(args.out_dir) if args.out_dir else RUNS / args.version
@@ -273,7 +263,7 @@ def execute(args):
     sweep_seconds = time.perf_counter() - scoring_start
     require(aggregate.overall.counts["rows"] == len(rows), "external_row_count")
     require(mm.sha256(path) == binding["sha256"], "external_dataset_changed")
-    require(all(mm.sha256(ROOT / n) == digest for n, digest in sources.items()), "external_source_changed")
+    require(all(mm.sha256(mm.source_path(n)) == digest for n, digest in sources.items()), "external_source_changed")
     total_seconds = time.perf_counter() - total_start
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     peak_rss_bytes = int(rss if platform.system() == "Darwin" else rss * 1024)
@@ -350,7 +340,7 @@ def write_summary():
                   "|---|---|---|---|---|---|---|---|---|---|",
                   table_row(ARM, report["engines"][ARM], "{:.6f}".format(report["performance"]["seconds_per_row"]))]
         if v != "v3":
-            p = ROOT / "docs/runs/masking-coverage" / ("refine-" + v) / "metrics.json"
+            p = ROOT / "artifacts/runs/masking-coverage" / ("refine-" + v) / "metrics.json"
             reference = json.loads(p.read_text(encoding="utf-8"))
             require(reference["dataset_sha256"] == report["dataset_sha256"], "external_reference_dataset")
             reference_bindings[v] = {"path": p.relative_to(ROOT).as_posix(), "sha256": mm.sha256(p)}
@@ -375,8 +365,10 @@ def write_summary():
               "Reference artifact bindings (committed starting-branch files):", ""]
     for v, b in reference_bindings.items():
         lines.append("- " + v + ": " + b["path"] + "; sha256 " + b["sha256"])
-    (RUNS / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print("external_summary_written")
+    for version, report in external_reports.items():
+        metric = report["engines"][ARM]["overall"]
+        print("external_summary version={} arm={} complete={}/{}".format(
+            version, ARM, metric["complete_gold_spans"], metric["gold_spans"]))
     return 0
 
 

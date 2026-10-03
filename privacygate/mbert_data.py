@@ -26,7 +26,7 @@ def load_rows(entries, raw_dir=RAW_DIR):
     """Return {row_id: (text, [(start,end,label)], language)} read from raw artifacts by row ID
     (SHA256(repo:revision:path:line_index), same as audit_dataset.py)."""
     need = {e["row_id"]: e["language"] for e in entries}
-    source = json.loads((ROOT / "docs/data-audit/micro/source.json").read_text())
+    source = json.loads((ROOT / "artifacts/data-audit/micro/source.json").read_text())
     out = {}
     for art in source["artifacts"]:
         if "split" not in art:

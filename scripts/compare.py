@@ -91,7 +91,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--model-dir", type=Path, default=hybrid.DEFAULT_MODEL_DIR)
     ap.add_argument("--max-micro-rows", type=int, default=None)
-    ap.add_argument("--out-dir", type=Path, default=ROOT / "docs/runs/compare-dev")
+    ap.add_argument("--out-dir", type=Path, default=ROOT / "artifacts/runs/compare-dev")
     args = ap.parse_args()
 
     mb = hybrid.Mbert(args.model_dir)
@@ -171,7 +171,6 @@ def main():
               "- mBERT (and all hybrids using it) flags many clean and decoy sentences, because it was trained on Micro, which has no clean negatives; decoy codes look like ID-like PII to it. Whether masking decoys with some label is an error depends on the use.",
               "- The confidence threshold trades Micro recall for fewer false positives: see sweep. Chosen value is dev-tuned and optimistic.",
               "", "Limitations: dev data only (tests frozen), single seed and single model, synthetic data, challenge templates are few and simple; the label sets differ (regex 2 labels vs mBERT 19), so general strict F1 is not a fair regex comparison, use the EMAIL-only column."]
-    open(args.out_dir / "summary.md", "w").write("\n".join(lines) + "\n")
     print(json.dumps({"chosen_threshold": best, "micro_rows": len(micro)}))
     return 0
 

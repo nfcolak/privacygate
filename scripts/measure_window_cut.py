@@ -27,9 +27,9 @@ from privacygate.masking_metrics import MaskingError, SCORER_VERSION, count_char
 
 ARMS = mr.ARMS
 DATASET = fx.DATA
-OUT = ROOT / "docs/runs/masking-coverage/window-cut"
+OUT = ROOT / "artifacts/runs/masking-coverage/window-cut"
 KINDS = ("phone", "address", "name", "identifier")
-EXTRA_SOURCES = ("scripts/measure_window_cut.py", "scripts/make_window_cut_fixture.py", "docs/window-cut/manifest.json")
+EXTRA_SOURCES = ("scripts/measure_window_cut.py", "scripts/make_window_cut_fixture.py", "artifacts/window-cut/manifest.json")
 NOTE = ("Synthetic and small: 40 cut rows (100 verified crossing spans) and 40 matched control rows. Controls match values, lengths and "
         "total token count, not the surrounding filler wording. Refinement rules were written before this fixture existed but after "
         "stress v1/v2 failure shapes were seen.")
@@ -37,7 +37,7 @@ NOTE = ("Synthetic and small: 40 cut rows (100 verified crossing spans) and 40 m
 
 def load_rows():
     raw = positive_data._read_bounded(DATASET)
-    committed = json.loads((ROOT / "docs/window-cut/manifest.json").read_text(encoding="utf-8"))["dataset"]["sha256"]
+    committed = json.loads((ROOT / "artifacts/window-cut/manifest.json").read_text(encoding="utf-8"))["dataset"]["sha256"]
     if hashlib.sha256(raw).hexdigest() != committed:
         raise MaskingError("mask_stress_binding")
     try:
@@ -170,7 +170,7 @@ def execute(args):
     manifest["note"] = NOTE
     for n in EXTRA_SOURCES:
         manifest["source_sha256"][n] = mm.sha256(ROOT / n)
-    wm = json.loads((ROOT / "docs/window-cut/manifest.json").read_text(encoding="utf-8"))
+    wm = json.loads((ROOT / "artifacts/window-cut/manifest.json").read_text(encoding="utf-8"))
     manifest["fixture"] = {"verified_cut_crossing_spans_total": wm["verified_cut_crossing_spans_total"], "windowing": wm["windowing"]}
     mm.json_write(out / "manifest.json", manifest)
     texts = [r["text"] for r in rows]
@@ -201,7 +201,7 @@ def execute(args):
         if total[arm].overall.counts["rows"] != len(rows):
             raise MaskingError("mask_count_mismatch")
     for n, d in manifest["source_sha256"].items():
-        if mm.sha256(ROOT / n) != d:
+        if mm.sha256(mm.source_path(n)) != d:
             raise MaskingError("mask_source_changed")
     report = {**mr.SCOPE, "scorer_version": SCORER_VERSION, "dataset_version": fx.VERSION, "dataset_sha256": binding["sha256"],
               "model_sha256": mm.EXPECTED_MODEL, "rows_evaluated": len(rows), "forward_sweeps": 1,
@@ -209,7 +209,6 @@ def execute(args):
     tables = build_tables(report)
     report["tables"] = tables
     mm.json_write(out / "metrics.json", report)
-    (out / "summary.md").write_text(summary_md(report, binding, tables), encoding="utf-8")
     print("window_cut_complete rows=" + str(len(rows)) + " sweeps=1")
     for arm in ARMS:
         a = tables[arm]["all"]

@@ -76,7 +76,7 @@ def fingerprints(args, root):
                 tokenizer_files[name] = ev.sha256(snapshot / name)
     except (ImportError, KeyError, AttributeError):
         raise ev.EvaluationError("eval_tokenizer_binding_unavailable") from None
-    policy = root / "docs/privacy-policy-v1.md"
+    policy = root / "configs/privacy-policy-v1.json"
     return {"model_sha256": model_files["model.safetensors"],
             "checkpoint_file_sha256": model_files, "source_sha256": source,
             "config_sha256": config_hash, "config_origin": config_origin,
@@ -219,7 +219,6 @@ def execute(args, root=ROOT, check_receipts=False):
                     "blind": args.version == "v4", "threshold_selection": False}
         ev.json_write(out / "metrics.json", report)
         ev.json_write(out / "manifest.json", manifest)
-        (out / "summary.md").write_text(summary(report), encoding="utf-8")
         if blind is not None:
             blind.finish(ev.sha256(out / "metrics.json"))
     return report

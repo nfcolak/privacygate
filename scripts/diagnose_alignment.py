@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from privacygate import mbert_data as md  # noqa: E402
 
-OUT = ROOT / "docs/data-audit/micro/diagnosis"
+OUT = ROOT / "artifacts/data-audit/micro/diagnosis"
 
 
 def legacy_build_windows(tok, rows, entries, label2id, train):
@@ -307,11 +307,11 @@ def execute(splits):
     if not tok.is_fast:
         raise ValueError("fast_tokenizer_required")
     paths = {
-        "alignment": ROOT / "docs/data-audit/micro/alignment.json",
-        "full": ROOT / "docs/runs/full-1/metrics.json",
-        "compare": ROOT / "docs/runs/compare-dev/metrics.json",
-        "config": ROOT / "docs/runs/full-1/config.json",
-        "source": ROOT / "docs/data-audit/micro/source.json",
+        "alignment": ROOT / "artifacts/data-audit/micro/alignment.json",
+        "full": ROOT / "artifacts/runs/full-1/metrics.json",
+        "compare": ROOT / "artifacts/runs/compare-dev/metrics.json",
+        "config": ROOT / "artifacts/runs/full-1/config.json",
+        "source": ROOT / "artifacts/data-audit/micro/source.json",
     }
     history = {k: json.loads(p.read_text()) for k, p in paths.items()}
     config = history["config"]

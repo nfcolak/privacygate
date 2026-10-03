@@ -15,7 +15,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data/augmentation/masking-stress-dev.jsonl"
-MANIFEST = ROOT / "docs/masking-stress/manifest.json"
+MANIFEST = ROOT / "artifacts/masking-stress/manifest.json"
 VERSION = "masking-stress-v1"
 LANGS = ("en", "de", "fr", "it", "es")
 FAMILIES = (

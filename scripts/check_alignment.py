@@ -46,7 +46,7 @@ def main():
         d["per_language"] = {l: dict(v, unk_rate=v["unk_wordpieces"] / max(1, v["wordpieces"])) for l, v in sorted(per_lang.items())}
         result["splits"][split] = d
         print(split, {k: v for k, v in d.items() if k != "per_language"})
-    out = md.ROOT / "docs/data-audit/micro/alignment.json"
+    out = md.ROOT / "artifacts/data-audit/micro/alignment.json"
     out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
 
 

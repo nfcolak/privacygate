@@ -1,0 +1,62 @@
+{
+  "policy_version": "privacy-policy-v1",
+  "synthetic_only": true,
+  "privacy_or_legal_guarantee": false,
+  "source_note_sha256": "430cdbb77b2f83bb12a86d8927fd138558c4e90caaca341b91664e7588b0999d",
+  "labels": [
+    "PERSONNAME", "ADDRESS", "EMAIL", "USERNAME", "TELEPHONENUM", "IBAN",
+    "ACCOUNTNUM", "CREDITCARDNUMBER", "PASSPORTNUM", "IDCARDNUM",
+    "DRIVERLICENSENUM", "TAXNUM", "SOCIALNUM", "PERSONALREF", "DATEOFBIRTH", "AGE"
+  ],
+  "mask_categories": {
+    "PERSONNAME": "Natural-person names, attached titles (Dr./Prof./Herr/Mme/Sig.ra/Sr.), initials, particles (van/von/de/di/da/del/du/le/la/dos), compound/hyphenated and reversed Surname, Given forms; not the salutation itself.",
+    "ADDRESS": "A person's complete postal routing address as one region, including c/o recipient, street, number, floor/unit, PO box, postcode, city, region and country when present.",
+    "EMAIL": "Emails.",
+    "USERNAME": "Usernames and handles, including the @ sigil.",
+    "TELEPHONENUM": "Phone numbers, including country code, trunk (0), groups and the whole extension phrase.",
+    "IBAN": "IBAN values including separators.",
+    "ACCOUNTNUM": "Account numbers including separators.",
+    "CREDITCARDNUMBER": "Card numbers including separators.",
+    "PASSPORTNUM": "Passport numbers including separators.",
+    "IDCARDNUM": "ID card numbers including separators.",
+    "DRIVERLICENSENUM": "Driving licence numbers including separators.",
+    "TAXNUM": "Tax numbers including separators.",
+    "SOCIALNUM": "Social security numbers including separators.",
+    "PERSONALREF": "Customer, patient, case or membership reference numbers tied to a person.",
+    "DATEOFBIRTH": "A person's birth date.",
+    "AGE": "A person's age."
+  },
+  "do_not_mask_categories": [
+    "generic calendar dates and times",
+    "dimensions and quantities",
+    "product, order, invoice and SKU codes with no person link",
+    "brands and organizations",
+    "public places mentioned in general",
+    "room numbers with no person link",
+    "salutations such as Dear, Sehr geehrte and Bonjour"
+  ],
+  "ambiguous": "mask",
+  "gold_boundaries": {
+    "offsets": "half-open Python str indices on original unnormalized text",
+    "include": "whole values and internal spaces, separators, initials, particles, attached titles, handle sigils and phone extension phrases",
+    "exclude": "surrounding prose, salutations and sentence punctuation",
+    "ordered": true,
+    "non_overlapping": true,
+    "repeated_mentions": "separate occurrences",
+    "uncertain_person_linkage": "mask",
+    "checksum_confidence_or_detector_disagreement_declassifies": false
+  },
+  "row_schema": ["case_id", "family", "gold", "language", "split", "text"],
+  "gold_span_schema": ["start", "end", "label"],
+  "reserved_v4_families": [
+    "form-style key/value records",
+    "chat/messaging lines",
+    "email signature blocks",
+    "mixed-language documents",
+    "OCR-like noise inside values"
+  ],
+  "reserved_v4_details": {
+    "mixed-language documents": "Text in one language with value formats of another country.",
+    "OCR-like noise inside values": "Line breaks or missing spaces inside values."
+  }
+}

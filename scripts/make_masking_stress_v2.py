@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from make_masking_stress import CUES, FILLER, LANGS, MAX_CHARS, StressError, assemble, canonical, require, sha, slot  # noqa: E402
 
 DATA = ROOT / "data/augmentation/masking-stress-v2-dev.jsonl"
-MANIFEST = ROOT / "docs/masking-stress-v2/manifest.json"
+MANIFEST = ROOT / "artifacts/masking-stress-v2/manifest.json"
 VERSION = "masking-stress-v2"
 KEYS = frozenset(("case_id", "language", "family", "text", "gold", "split"))
 FAMILIES = ("full_address", "phone", "long_text", "clean")

@@ -331,7 +331,7 @@ def main():
         pos_train, pos_train_binding, pos_dev, pos_dev_binding, neg_rows, neg_binding = ad.load_inputs(
             train_entries, dev_entries, args.positive_train_file, args.positive_dev_file, args.negative_train_file)
         model_dir = args.out_dir / args.run
-        docs_run_dir, results_run_dir = md.ROOT / "docs" / "runs" / args.run, md.ROOT / "results" / args.run
+        docs_run_dir, results_run_dir = md.ROOT / "artifacts" / "runs" / args.run, md.ROOT / "results" / args.run
         identity = tg.build_identity(
             args, md.MODEL_ID, md.MODEL_REVISION, md.MAX_LEN, md.STRIDE,
             hashlib.sha256(man_bytes["train"] + b"\0" + man_bytes["dev"]).hexdigest(), neg_binding, model_dir,
