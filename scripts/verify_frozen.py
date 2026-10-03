@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Verify frozen generators with runtime-only paths; never rewrite their sources."""
 import argparse
+import hashlib
 import importlib
+import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -49,6 +52,31 @@ def redirect_paths(module):
             setattr(module, name, ROOT / moved if value.is_absolute() else moved)
 
 
+def bind_frozen_v3_validator(module):
+    """Use hash-bound git bytes for v3's AST extraction AND manifest hashing."""
+    relative = "scripts/measure_masking.py"
+    frozen = subprocess.run(
+        ["git", "-C", str(ROOT), "show", "c258c5b:" + relative],
+        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    ).stdout
+    manifest = json.loads(module.MANIFEST.read_bytes())
+    expected = manifest["validation"]["validator_source_sha256"][relative]
+    module.require(
+        hashlib.sha256(frozen).hexdigest() == expected,
+        "stress_v3_frozen_validator_hash_mismatch",
+    )
+
+    class FrozenValidatorPath(type(ROOT)):
+        def read_bytes(self):
+            if self == ROOT / relative:
+                return frozen
+            return super().read_bytes()
+
+    # Only this generator's ROOT is replaced. Its existing AST whitelist still
+    # executes the validator; the model-bearing source module is never imported.
+    module.ROOT = FrozenValidatorPath(ROOT)
+
+
 def verify_one(name):
     module_name, data_files = SETS[name]
     if not all((ROOT / "data" / path).is_file() for path in data_files):
@@ -61,6 +89,8 @@ def verify_one(name):
     try:
         module = importlib.import_module(module_name)
         redirect_paths(module)
+        if name == "v3":
+            bind_frozen_v3_validator(module)
         if name == "challenge":
             setattr(module, "ROOT", ChallengeRoot(ROOT))
         if name == "train-v2":
