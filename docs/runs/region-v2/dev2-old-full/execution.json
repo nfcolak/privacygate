@@ -1,0 +1,15 @@
+{
+  "PYTHONPATH_removed": true,
+  "arm": "dev2-old-full",
+  "blocked_rows": 0,
+  "environment": {
+    "HF_HOME": "/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/.cache/hf",
+    "HF_HUB_OFFLINE": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "TRANSFORMERS_OFFLINE": "1"
+  },
+  "exit_code": 0,
+  "invocations": 1,
+  "launcher": "foreground terminal",
+  "wall_seconds": 18.97147079098795
+}

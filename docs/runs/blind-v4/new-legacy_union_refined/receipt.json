@@ -1,0 +1,7 @@
+{
+  "dataset_sha256": "b0b21ae034fa54eb8949e7444c882f44fa53070bb927a00485dc252056f1821e",
+  "metrics_sha256": "94ca1df3686324a18fd14d815aaba3999ed5caca58b1c1790061d55af06ddfc9",
+  "model_sha256": "8f806d8d7c25ffe1d672c0a1f485275bd986b8ae5f8dd9ffc1203311a1744df7",
+  "profile": "legacy_union_refined",
+  "time": "2026-10-03T17:42:36.215529+00:00"
+}

@@ -1,0 +1,31 @@
+{
+  "aggregate_only": true,
+  "baseline_receipts_preserved": true,
+  "blind_v4_receipts": 4,
+  "blind_v4_reservations": 4,
+  "dev2_blocked_rows": {
+    "new-full": 0,
+    "old-full": 0
+  },
+  "model_fingerprints_unchanged": true,
+  "new_arm_invocations": {
+    "new-full": 1,
+    "new-legacy_union_refined": 1
+  },
+  "receipt_metrics_hashes_verified": true,
+  "removed_evaluator_notes": [
+    "docs/runs/region-v2/dev2-new-full/summary.md",
+    "docs/runs/region-v2/dev2-old-full/summary.md",
+    "docs/runs/blind-v4/new-full/summary.md",
+    "docs/runs/blind-v4/new-legacy_union_refined/summary.md"
+  ],
+  "source_config_unchanged": true,
+  "status": "passed",
+  "synthetic_only": true,
+  "v4_pipeline_blocked_rows": {
+    "new-full": 0,
+    "new-legacy_union_refined": 0,
+    "old-full": 0,
+    "old-legacy_union_refined": 0
+  }
+}
