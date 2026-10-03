@@ -1,0 +1,320 @@
+{
+  "blind_status": {
+    "case_selection_uses_predictions": false,
+    "clean_controls_filtered_by_detector": false,
+    "generated_before_any_model_or_rule_saw_v3": true,
+    "measurement_performed_by_generator": false,
+    "previous_generators_read_only_to_avoid_reuse": true,
+    "scope": "Blind to predictions and rule implementation on v3, not to the requested stress categories or shared batch context.",
+    "shared_batch_problem_description_known": true,
+    "single_blind_measurement_owner": "integrator"
+  },
+  "clean_control_formats": {
+    "brands": 5,
+    "calendar": 5,
+    "dimensions": 5,
+    "invoice": 5,
+    "order": 5,
+    "product": 5,
+    "public_places": 5,
+    "rooms": 5
+  },
+  "counts": {
+    "clean_rows": 40,
+    "gold_original_characters": 5895,
+    "gold_spans": 155,
+    "gold_unicode_alphanumeric_characters": 4711,
+    "per_family": {
+      "account": 10,
+      "clean": 40,
+      "full_address": 20,
+      "identity": 15,
+      "long_text": 5,
+      "multiple_entities": 5,
+      "names": 25,
+      "personalref": 5,
+      "phone": 15,
+      "repeated_values": 5,
+      "username": 5
+    },
+    "per_label": {
+      "ACCOUNTNUM": 5,
+      "ADDRESS": 25,
+      "DRIVERLICENSENUM": 5,
+      "EMAIL": 10,
+      "IBAN": 5,
+      "IDCARDNUM": 5,
+      "PASSPORTNUM": 5,
+      "PERSONALREF": 10,
+      "PERSONNAME": 50,
+      "TELEPHONENUM": 30,
+      "USERNAME": 5
+    },
+    "per_language": {
+      "de": 30,
+      "en": 30,
+      "es": 30,
+      "fr": 30,
+      "it": 30
+    },
+    "positive_rows": 110
+  },
+  "dataset": {
+    "bytes": 74982,
+    "path": "data/augmentation/masking-stress-v3-dev.jsonl",
+    "rows": 150,
+    "sha256": "313a477b124c5c7f9e7aeaa35f777c85291833940254ff74f4e98c39a1f8dd61"
+  },
+  "format_notes": [
+    "Whole PERSONNAME values include internal spaces, particles, initials, compound surnames and, in two formats, the salutation title.",
+    "Each ADDRESS is one span including c/o host, postal routing, floor/unit, PO box, separators and country when present; nested names are not separately overlapped.",
+    "Phone spans include optional trunk notation, dotted/parenthesized groups and the entire extension phrase and number.",
+    "IBAN spans have valid mod97 checksums and country-specific lengths, with alternating ASCII/NBSP groups; account and identity spans include mixed separators.",
+    "Clean controls are deliberately non-personal contextual look-alikes; they are not selected by detector results. Dates and building ages have empty gold."
+  ],
+  "generator": {
+    "deterministic": true,
+    "model_or_predictions_used": false,
+    "path": "scripts/make_masking_stress_v3.py",
+    "rule_engine_imported_or_run": false,
+    "seed": 202610031503,
+    "sha256": "98278089cd74860ef70a3b8f4eebe2aa02f0a9a9124173be1f19812d334b6e76",
+    "stdlib_only": true
+  },
+  "limitations": [
+    "Invented values may accidentally coincide with real ones; phone numbers and bank identifiers are not verified unassigned, and IBAN bank/routing codes are not authority-validated.",
+    "Novelty checks compare source strings and new pools, not old generated files; semantic or translation independence is not proven.",
+    "Long texts exceed 512 whitespace-delimited words, but no exact tokenizer length or sliding-window boundary placement is claimed.",
+    "Mechanically annotated synthetic stress only; no real-data, production privacy or legal guarantee. Shared batch aims were known before construction."
+  ],
+  "long_text": {
+    "early_middle_late_gold_placements_checked": true,
+    "exact_model_token_count_verified": false,
+    "max_characters": 5942,
+    "max_whitespace_delimited_words": 958,
+    "min_characters": 5612,
+    "min_whitespace_delimited_words": 844,
+    "rows": 5,
+    "tokenizer_loaded": false,
+    "window_boundary_crossings_proven": false
+  },
+  "per_language_breakdown": {
+    "de": {
+      "clean_rows": 8,
+      "gold_spans": 31,
+      "per_family": {
+        "account": 2,
+        "clean": 8,
+        "full_address": 4,
+        "identity": 3,
+        "long_text": 1,
+        "multiple_entities": 1,
+        "names": 5,
+        "personalref": 1,
+        "phone": 3,
+        "repeated_values": 1,
+        "username": 1
+      },
+      "per_label": {
+        "ACCOUNTNUM": 1,
+        "ADDRESS": 5,
+        "DRIVERLICENSENUM": 1,
+        "EMAIL": 2,
+        "IBAN": 1,
+        "IDCARDNUM": 1,
+        "PASSPORTNUM": 1,
+        "PERSONALREF": 2,
+        "PERSONNAME": 10,
+        "TELEPHONENUM": 6,
+        "USERNAME": 1
+      },
+      "positive_rows": 22,
+      "rows": 30
+    },
+    "en": {
+      "clean_rows": 8,
+      "gold_spans": 31,
+      "per_family": {
+        "account": 2,
+        "clean": 8,
+        "full_address": 4,
+        "identity": 3,
+        "long_text": 1,
+        "multiple_entities": 1,
+        "names": 5,
+        "personalref": 1,
+        "phone": 3,
+        "repeated_values": 1,
+        "username": 1
+      },
+      "per_label": {
+        "ACCOUNTNUM": 1,
+        "ADDRESS": 5,
+        "DRIVERLICENSENUM": 1,
+        "EMAIL": 2,
+        "IBAN": 1,
+        "IDCARDNUM": 1,
+        "PASSPORTNUM": 1,
+        "PERSONALREF": 2,
+        "PERSONNAME": 10,
+        "TELEPHONENUM": 6,
+        "USERNAME": 1
+      },
+      "positive_rows": 22,
+      "rows": 30
+    },
+    "es": {
+      "clean_rows": 8,
+      "gold_spans": 31,
+      "per_family": {
+        "account": 2,
+        "clean": 8,
+        "full_address": 4,
+        "identity": 3,
+        "long_text": 1,
+        "multiple_entities": 1,
+        "names": 5,
+        "personalref": 1,
+        "phone": 3,
+        "repeated_values": 1,
+        "username": 1
+      },
+      "per_label": {
+        "ACCOUNTNUM": 1,
+        "ADDRESS": 5,
+        "DRIVERLICENSENUM": 1,
+        "EMAIL": 2,
+        "IBAN": 1,
+        "IDCARDNUM": 1,
+        "PASSPORTNUM": 1,
+        "PERSONALREF": 2,
+        "PERSONNAME": 10,
+        "TELEPHONENUM": 6,
+        "USERNAME": 1
+      },
+      "positive_rows": 22,
+      "rows": 30
+    },
+    "fr": {
+      "clean_rows": 8,
+      "gold_spans": 31,
+      "per_family": {
+        "account": 2,
+        "clean": 8,
+        "full_address": 4,
+        "identity": 3,
+        "long_text": 1,
+        "multiple_entities": 1,
+        "names": 5,
+        "personalref": 1,
+        "phone": 3,
+        "repeated_values": 1,
+        "username": 1
+      },
+      "per_label": {
+        "ACCOUNTNUM": 1,
+        "ADDRESS": 5,
+        "DRIVERLICENSENUM": 1,
+        "EMAIL": 2,
+        "IBAN": 1,
+        "IDCARDNUM": 1,
+        "PASSPORTNUM": 1,
+        "PERSONALREF": 2,
+        "PERSONNAME": 10,
+        "TELEPHONENUM": 6,
+        "USERNAME": 1
+      },
+      "positive_rows": 22,
+      "rows": 30
+    },
+    "it": {
+      "clean_rows": 8,
+      "gold_spans": 31,
+      "per_family": {
+        "account": 2,
+        "clean": 8,
+        "full_address": 4,
+        "identity": 3,
+        "long_text": 1,
+        "multiple_entities": 1,
+        "names": 5,
+        "personalref": 1,
+        "phone": 3,
+        "repeated_values": 1,
+        "username": 1
+      },
+      "per_label": {
+        "ACCOUNTNUM": 1,
+        "ADDRESS": 5,
+        "DRIVERLICENSENUM": 1,
+        "EMAIL": 2,
+        "IBAN": 1,
+        "IDCARDNUM": 1,
+        "PASSPORTNUM": 1,
+        "PERSONALREF": 2,
+        "PERSONNAME": 10,
+        "TELEPHONENUM": 6,
+        "USERNAME": 1
+      },
+      "positive_rows": 22,
+      "rows": 30
+    }
+  },
+  "positive_formats": {
+    "account_grouped": 5,
+    "account_iban": 5,
+    "address_box": 5,
+    "address_reverse": 5,
+    "address_routed": 5,
+    "address_unit": 5,
+    "identity_card": 5,
+    "identity_licence": 5,
+    "identity_passport": 5,
+    "long_correspondence": 5,
+    "name_compound": 5,
+    "name_initials": 5,
+    "name_particle": 5,
+    "name_reversed": 5,
+    "name_title": 5,
+    "online_handle": 5,
+    "online_mail": 5,
+    "personal_reference": 5,
+    "phone_dotted": 5,
+    "phone_parenthesized": 5,
+    "phone_trunk": 5,
+    "repeated_contact": 5
+  },
+  "purpose": "Frozen blind synthetic development diagnostic for one integrator measurement, not training or the corpus test split.",
+  "schema": "masking-stress-six-field-v1",
+  "source_novelty": {
+    "exact_skeletons_vs_prior_source_literals_disjoint": true,
+    "model_predictions_read": false,
+    "new_pool_entries_absent_from_prior_source_text": true,
+    "old_generated_datasets_read": false,
+    "prior_generator_source_sha256": {
+      "scripts/make_masking_stress.py": "167906957660c8d4e339f1658cce7347e112bcda688edf2462a3f65198f2a14b",
+      "scripts/make_masking_stress_v2.py": "de2cc076d0a7d6910899f1678314d508810c4dca603e0e2ec4d9c2654144c0fb",
+      "scripts/make_positives.py": "1f9ab85dad0bf489f81af13caa1d2b41e80ce6e14746d12b5324c2cd4f2adcc9",
+      "scripts/make_window_cut_fixture.py": "c68fbe120f4b32ed3d1409faf85e2eec54b606655ad7dbee902c096961248be9"
+    },
+    "refinement_diagnostics_read": false,
+    "semantic_independence_proven": false,
+    "source_only_comparison": true
+  },
+  "split": "dev",
+  "template_set_sha256": "cf2dc1a32ca1a404ef78108a7295221731100267f4d54fb0587dc0d37b5d9860",
+  "validation": {
+    "all_stress_families_present": true,
+    "check_stress_rows": "passed: exact AST-extracted implementation without module imports",
+    "dev_only": true,
+    "line_and_file_byte_limits_checked": true,
+    "ordered_nonoverlapping_whole_value_gold": true,
+    "unique_texts_and_ids": true,
+    "validator_source_sha256": {
+      "privacygate/masking_metrics.py": "5667319e84d41490c09c6d014a0e37ce7fb9df1d13514edc280aba0d7f0fdf81",
+      "privacygate/positive_data.py": "3fe6f75c77d615315986e2222d912fa824b00005072d7b10af3649080153a5be",
+      "scripts/measure_masking.py": "9dd606a3fb9df31d09b4b2138aba8d77b015c63e4a9edc3fdf5b1f400706829c"
+    }
+  },
+  "version": "masking-stress-v3"
+}
