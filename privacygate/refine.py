@@ -1,6 +1,6 @@
 """Rule-based span refinement applied after mBERT / hybrid detection (pure stdlib, deterministic).
 
-refine(text, spans) -> spans, same dict shape {start,end,label,source}. Rules, in order:
+refine(text, spans) -> spans, same dict shape {start,end,label,source}. Rules:
   a. phone extension   - extend a TELEPHONENUM (>= 6 digits) over a following extension keyword + digits (or "-12" style
                          suffix); a bare "x" extension needs whitespace/span end before it and no unit/"x"+digit after it
   b. address merge     - merge STREET/BUILDINGNUM/ZIPCODE/CITY runs into one ADDRESS span, then extend it over
@@ -9,7 +9,11 @@ refine(text, spans) -> spans, same dict shape {start,end,label,source}. Rules, i
                          alphanumeric run with a non-address span, or are not word-bounded, are not address parts; a merged
                          group needs at least one STREET or CITY piece
   c. word completion   - extend any span that starts/ends inside an alphanumeric run to the whole run (not a digit-x-digit
-                         dimension run such as "3x5")
+                         dimension run such as "3x5"); also runs before phone extension so a fragmented base is completed first
+  d. name gaps         - join name-labelled pieces over bounded whitespace/hyphens/apostrophes/name particles, never non-name pieces
+  e. value gaps        - join short separator-only gaps within the same value family; identity-document labels share one family,
+                         but phone/account/reference/email/username boundaries stay separate; include an attached username @ sigil
+  f. age near misses   - discard only isolated numeric mBERT AGE pieces without multilingual age context; retain adjacent value pieces
 Finally overlapping/touching spans are unioned (earliest label, ADDRESS preferred over parts).
 
 Never logs or prints; errors are fixed, value-free messages. The vocabulary below is general real-world
@@ -103,6 +107,76 @@ def _check(text, spans):
 
 def _changed(s, **kw):
     return dict(s, source="refine", **kw)
+
+
+# ---- name/value gaps and narrow clean-control filter ---------------------------------------------------
+NAME_PARTS = frozenset(("GIVENNAME", "SURNAME", "MIDDLENAME", "TITLE", "PERSONNAME"))
+_NAME_GAP = re.compile(r"(?:[\s\-'\u2019\u2010\u2011]|\b(?:van|von|der|de|la|di|da|del|du|le)\b)+", re.I)
+_VALUE_FAMILY = {
+    **{label: "identity" for label in ("PASSPORTNUM", "DRIVERLICENSENUM", "IDCARDNUM", "TAXNUM", "SOCIALNUM")},
+    "ACCOUNTNUM": "account", "IBAN": "account", "CREDITCARDNUMBER": "card",
+    "TELEPHONENUM": "phone", "PERSONALREF": "reference", "EMAIL": "email", "USERNAME": "username",
+}
+_VALUE_SEP = frozenset(" \t-/._")
+_AGE_CONTEXT = re.compile(
+    r"\b(?:age|aged|alter|alt|[aâ]ge|[eé]t[aà]|edad|years?|old|jahre?n?|ans?|anni|a[nñ]os?)\b", re.I)
+
+
+def _short_value_gap(gap):
+    # A full stop followed by whitespace is a sentence boundary, not an identifier separator.
+    return (len(gap) <= 3 and all(c in _VALUE_SEP for c in gap)
+            and not re.search(r"\.\s", gap))
+
+
+def _age_near_misses(text, spans):
+    out = []
+    for s in spans:
+        a, b = s["start"], s["end"]
+        if s["label"] == "AGE" and s["source"] == "mbert" and 1 <= b - a <= 2 and text[a:b].isdigit():
+            # AGE also mislabels fragments of account/identity numbers. Never remove those fragments.
+            connected = any(o is not s and o["label"] in _VALUE_FAMILY and (
+                (o["end"] <= a and _short_value_gap(text[o["end"]:a]))
+                or (b <= o["start"] and _short_value_gap(text[b:o["start"]]))
+                or (o["start"] < b and a < o["end"])) for o in spans)
+            context = text[max(0, a - 40):min(len(text), b + 40)]
+            if not connected and not _AGE_CONTEXT.search(context):
+                continue
+        out.append(s)
+    return out
+
+
+def _name_merge(text, spans):
+    out = []
+    for s in sorted(spans, key=lambda s: (s["start"], s["end"])):
+        if out and out[-1]["label"] in NAME_PARTS and s["label"] in NAME_PARTS:
+            prev = out[-1]
+            gap = text[prev["end"]:s["start"]]
+            if (prev["end"] <= s["start"] and len(gap) <= MAX_GAP_CHARS
+                    and not _BLANK_LINE.search(gap) and (not gap or _NAME_GAP.fullmatch(gap))):
+                out[-1] = _changed(prev, end=s["end"])
+                continue
+        out.append(s)
+    return out
+
+
+def _value_gaps(text, spans):
+    out = []
+    for s in sorted(spans, key=lambda s: (s["start"], s["end"])):
+        family = _VALUE_FAMILY.get(s["label"])
+        if out and family and family == _VALUE_FAMILY.get(out[-1]["label"]):
+            prev = out[-1]
+            if prev["end"] <= s["start"] and _short_value_gap(text[prev["end"]:s["start"]]):
+                out[-1] = _changed(prev, end=s["end"])
+                continue
+        a, b = s["start"], s["end"]
+        # mBERT sometimes calls an underscore username EMAIL and omits its attached @ marker.
+        # This is a lexical sigil, not free punctuation: no internal @ and no preceding run/second @.
+        if (s["label"] in ("USERNAME", "EMAIL") and a > 0 and text[a - 1] == "@"
+                and "@" not in text[a:b] and text[a:b] and all(c.isalnum() or c in "._-" for c in text[a:b])
+                and (a < 2 or not (text[a - 2].isalnum() or text[a - 2] in "._-@"))):
+            s = _changed(s, start=a - 1)
+        out.append(s)
+    return out
 
 
 # ---- rule a -------------------------------------------------------------------------------------------
@@ -281,7 +355,7 @@ def _word_pos(text, j):
     ch = text[j]
     if ch.isalnum():
         return True
-    return ch in "-./" and 0 < j < len(text) - 1 and text[j - 1].isalnum() and text[j + 1].isalnum()
+    return ch in "-./_@'\u2019\u2010\u2011" and 0 < j < len(text) - 1 and text[j - 1].isalnum() and text[j + 1].isalnum()
 
 
 _DIMENSION = re.compile(r"\d+(?:[x\u00d7]\d+)+", re.I)
@@ -340,7 +414,9 @@ def refine(text, spans):
     spans = _check(text, spans)
     if not spans:
         return []
+    spans = _age_near_misses(text, spans)
+    spans = _value_gaps(text, _union(_word_completion(text, spans)))
     spans = _phone_extension(text, spans)
     spans = _address_merge(text, _zip_prefix(text, spans))
-    spans = _word_completion(text, spans)
+    spans = _name_merge(text, _word_completion(text, spans))
     return _union(spans)
