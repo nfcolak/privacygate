@@ -156,7 +156,7 @@ def load_region_file(path, allowed_split="train", manifest_path=None):
         _fail("split")
     expected, manifest_hash = (None, None) if manifest_path is None else _manifest_sha256(
         manifest_path, path, allowed_split)
-    rows, ids, texts, size, digest = [], set(), set(), 0, hashlib.sha256()
+    rows, ids, texts, size, digest = [], set(), {}, 0, hashlib.sha256()
     try:
         with _open_bounded(path, MAX_FILE_BYTES) as handle:
             while True:
@@ -176,10 +176,15 @@ def load_region_file(path, allowed_split="train", manifest_path=None):
                 text_hash = hashlib.sha256(row["text"].encode()).digest()
                 if row["case_id"] in ids:
                     _fail("duplicate_id")
-                if text_hash in texts:
+                # Finite synthetic pools can repeat a rendered example within a
+                # split. Keep its sampling weight, but reject conflicting gold
+                # or language; check_disjoint still rejects train/dev repeats.
+                signature = (row["language"], tuple(
+                    (span["start"], span["end"], span["label"]) for span in row["gold"]))
+                if text_hash in texts and texts[text_hash] != signature:
                     _fail("duplicate_text")
                 ids.add(row["case_id"])
-                texts.add(text_hash)
+                texts[text_hash] = signature
                 rows.append(row)
     except OSError:
         _fail("path")
