@@ -1,6 +1,6 @@
 """Deterministic TRAIN-ONLY clean negatives (EN, DE, FR, IT, ES). Standard library only.
 
-python3 scripts/make_negatives.py            # write data/augmentation/negatives-train.jsonl + artifacts/augmentation/manifest.json
+python3 scripts/make_negatives.py            # write data/augmentation/negatives-train.jsonl + docs/augmentation/manifest.json
 python3 scripts/make_negatives.py --verify   # regenerate in memory; compare with manifest and file on disk
 Prints counts and hashes only; generated text is gitignored.
 """
@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT))
 from privacygate import negative_data as nd
 
 OUT = ROOT / "data/augmentation/negatives-train.jsonl"
-MANIFEST = ROOT / "artifacts/augmentation/manifest.json"
+MANIFEST = ROOT / "docs/augmentation/manifest.json"
 
 
 def manifest_of(rows):

@@ -17,7 +17,7 @@ from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data/augmentation/masking-stress-v3-dev.jsonl"
-MANIFEST = ROOT / "artifacts/masking-stress-v3/manifest.json"
+MANIFEST = ROOT / "docs/masking-stress-v3/manifest.json"
 VERSION = "masking-stress-v3"
 SEED = 202610031503
 LANGS = ("en", "de", "fr", "it", "es")

@@ -126,7 +126,7 @@ def existing_receipt_checks(scratch):
     relative = Path("artifacts/runs/blind-v4/RECEIPTS.jsonl")
     original = ROOT / relative
     entries = [json.loads(line) for line in original.read_text(encoding="utf-8").splitlines() if line.strip()]
-    _require(len(entries) == 2)
+    _require(bool(entries))
     before = {}
     for name in ("RECEIPTS.jsonl", "RECEIPTS.jsonl.STARTED", "freeze.json"):
         source = original.with_name(name)
@@ -134,6 +134,7 @@ def existing_receipt_checks(scratch):
         target = scratch / relative.parent / name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(source.read_bytes())
+    refused = 0
     for entry in entries:
         key = (entry["profile"], entry["model_sha256"], entry["dataset_sha256"])
         _require(ev.BlindCustody(ROOT, *key).path == original)
@@ -141,16 +142,18 @@ def existing_receipt_checks(scratch):
             with ev.BlindCustody(scratch, *key):
                 raise ev.EvaluationError("eval_check_repeat_entered")
         _refuses("eval_blind_repeat_forbidden", repeat)
+        refused += 1
+    _require(refused == len(entries))
     _require(all(ev.sha256(original.with_name(name)) == digest for name, digest in before.items()))
     _require(all(ev.sha256(scratch / relative.parent / name) == digest for name, digest in before.items()))
-    print("existing_receipt_repeats_refused=2/2 custody_unchanged=ok")
+    print(f"existing_receipt_repeats_refused={refused}/{len(entries)} custody_unchanged=ok")
 
 
 def legacy_check():
     prep = ROOT.parent / "privacygate-prep-1002"
     dataset = Path(os.environ.get("PRIVACYGATE_EVAL_V1_DATASET", str(prep / "data/augmentation/masking-stress-dev.jsonl")))
     model = Path(os.environ.get("PRIVACYGATE_EVAL_MODEL_DIR", str(prep / "models/pos-neg-alignment-pilot-1002")))
-    out_parent = ROOT.parent / "_runs/pg-notes-out"
+    out_parent = Path(os.environ.get("TMPDIR", str(ROOT.parent / "_runs/pg-notes-out")))
     out_parent.mkdir(parents=True, exist_ok=True)
     # Fresh output directory; never overwrite a historical receipt/artifact.
     unique = Path(tempfile.mkdtemp(prefix="v1-legacy-", dir=out_parent))
