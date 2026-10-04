@@ -409,7 +409,14 @@ def _word_completion(text, spans):
             if numeric and any(c.isalpha() for c in added):
                 from .context import phone_scope
                 operational, _ = phone_scope(text, a, b)
-                if s['label'] == 'TELEPHONENUM' or operational:
+                # An extension keyword belongs to the phone envelope, not a
+                # product-code run. Complete a split keyword only when the
+                # existing extension grammar also binds its following digits;
+                # the context gate below still vetoes clean operational fields.
+                extension = (s['label'] == 'TELEPHONENUM'
+                             and _KW_TAIL.search(text, a, b) is not None
+                             and _ext_end(text, dict(s, start=a, end=b)) > b)
+                if (s['label'] == 'TELEPHONENUM' or operational) and not extension:
                     # Preserve the seed, never grow a numeric fragment into a code.
                     a, b = s['start'], s['end']
             if numeric and (a, b) != (s['start'], s['end']):
