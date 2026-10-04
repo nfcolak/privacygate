@@ -11,6 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from privacygate.structured import check, detect
+from privacygate.context import decide
 
 _FIELDS = {
     "PASSPORTNUM": ("passport no.", "Pass-Nr.", "n° de passeport", "numero passaporto", "pasaporte n.º"),
@@ -59,6 +60,78 @@ def group(value, sizes, separator):
         pos += size
         index += 1
     return separator.join(parts)
+
+
+def _round3():
+    positives, clean_cases = [], []
+    age_keys = ("age", "Alter", "âge", "età", "edad")
+    units = ("years", "Jahre", "ans", "anni", "años")
+    for key, unit, verb in zip(age_keys, units, ("is", "beträgt", "est", "è", "es")):
+        for connector in (": ", " = ", " " + verb + " ", ":\n"):
+            positives.append((key + connector, "47 " + unit, "AGE"))
+    positives.extend((("aged ", "47", "AGE"), ("Alter: ", "47", "AGE")))
+    for key in ("Case", "Fall", "Dossier", "Caso"):
+        for separator in (" / ", "/", " - "):
+            positives.append((key + ": ", separator.join(("QRT", "ZX", "5187362")), "PERSONALREF"))
+    for key in ("Sozialversicherungsnummer", "sécurité sociale", "previdenza",
+                "seguridad social", "social security"):
+        for separator in (" ", "-", ".", ""):
+            positives.append((key + ": ", separator.join(("518", "736", "294", "861")), "SOCIALNUM"))
+    for separator in (" / ", "/"):
+        positives.append(("permis: ", "QX" + separator + "518736294", "DRIVERLICENSENUM"))
+        positives.append(("mon permis ", "QX" + separator + "518736294", "DRIVERLICENSENUM"))
+        positives.append(("Mon passeport, puis permis ", "QX" + separator + "518736294", "DRIVERLICENSENUM"))
+    for key, prefix, body in (
+        ("Telephone", "+1", "202 518 7362"), ("Telefon", "+49", "(0)30 518 7362"),
+        ("Téléphone", "+33", "1 51 87 36 29"), ("Telefono", "+39", "06 5187 3629"),
+        ("Teléfono", "+34", "612 51 87 36"),
+    ):
+        for ending in ("", " ext. 29"):
+            positives.append((key + ": ", prefix + "\n" + body + ending, "TELEPHONENUM"))
+            atoms = body.split(" ", 1)
+            positives.append((key + ": ", prefix + " " + atoms[0] + "\n" + atoms[1] + ending,
+                              "TELEPHONENUM"))
+    positive_failures, personal_rejected = Counter(), 0
+    for prefix, value, label in positives:
+        text = "Synthetic record; " + prefix + value + "; end."
+        start = len("Synthetic record; " + prefix)
+        candidates = detect(text)
+        exact = [c for c in candidates if (c["start"], c["end"], c["label"])
+                 == (start, start + len(value), label)]
+        if not exact:
+            positive_failures[label] += 1
+        personal_rejected += sum(decide(text, c, candidates)[0] == "reject" for c in candidates)
+    serial = group(iban("DE", "518736294861275938"), (4,), " ")
+    ops = ("Product serial", "Produktseriencode", "série produit", "seriale prodotto", "de serie",
+           "Order code", "Bestellcode", "non attribué", "non assegnato", "sin asignar")
+    for key in ops:
+        for value in (serial, "+49 (0)30 518 7362", "QRT / ZX / 5187362"):
+            clean_cases.append((key + ": ", value))
+    for key in ("Manufacturing date", "Herstelldatum", "Date de fabrication", "Fecha de fabricación",
+                "Wartungskalender", "Calendrier public d'entretien", "Data di manutenzione",
+                "Fecha de mantenimiento", "Maintenance date", "fabrication"):
+        clean_cases.append((key + ": ", "17.08.2037"))
+    masked_clean = 0
+    for prefix, value in clean_cases:
+        text = "Synthetic inventory; " + prefix + value + "; end."
+        candidates = detect(text)
+        masked_clean += any(decide(text, c, candidates)[0] != "reject" for c in candidates)
+    # Nonpersonal age/duration prose must not acquire AGE candidates.
+    for prefix in ("Product age: ", "Produkt Alter: ", "Produit âge: ", "Prodotto età: ", "Producto edad: "):
+        if any(c["label"] == "AGE" for c in detect(prefix + "47 years; end.")):
+            raise RuntimeError("round3_nonpersonal_age_failed")
+    # Blank lines/new field headings cannot become one OCR phone envelope.
+    for value in ("+49\n\n30 518 7362", "+49\nTelephone: 30 518 7362", "+49\n30\n518 7362"):
+        text = "Telefon: " + value + "; end."
+        if any(c["start"] == 9 and c["end"] == 9 + len(value) for c in detect(text)):
+            raise RuntimeError("round3_phone_barrier_failed")
+    print("round3_struct_complete=" + str(len(positives) - sum(positive_failures.values())) + "/" + str(len(positives)))
+    print("round3_clean_masked=" + str(masked_clean) + "/" + str(len(clean_cases)))
+    print("round3_personal_rejected=" + str(personal_rejected))
+    for label, count in sorted(positive_failures.items()):
+        print("round3_incomplete_label=" + label + " count=" + str(count))
+    if len(positives) < 30 or len(clean_cases) < 30 or positive_failures or masked_clean or personal_rejected:
+        raise RuntimeError("round3_structured_failed")
 
 
 def main():
@@ -234,6 +307,7 @@ def main():
         print("negative_shape=" + shape + " count=" + str(count))
     if complete * 10 < len(positives) * 9 or negatives_detected > 2:
         return 1
+    _round3()
     return 0
 
 
