@@ -249,6 +249,67 @@ def mechanics():
                 raise AssertionError("invalid name candidates admitted")
 
 
+def round3_cases():
+    """Fresh recipient typography plus narrow ADDRESS arbitration, all invented."""
+    cues = ("Recipient", "Empfänger", "Destinataire", "Destinatario", "Contact person",
+            "Privatkontakt:", "Contatto privato:", "Contacto privado:")
+    positives = []
+    for cue in cues:
+        for value in ("N. Q. Zévran", "N.\nQ. Zévran", "Néra\nZévran",
+                      "Zévran,\nNéra", "Dr.Zévran-Ruv Néra"):
+            positives.append((cue + " " + value + "; note follows.", value, []))
+    for title in ("Dr.", "Dott.", "Sig.ra", "Sr.", "Sra.", "Prof."):
+        value = title + "Zévran"
+        positives.append((value + " arrived.", value, []))
+    for cue in cues:
+        value = "N. Q. Zévran"
+        text = "12 Qévnar Lane, VQ8 2ZX Vezford; " + cue + " " + value + "; email: q@invented.invalid"
+        broad = seed(text, text[:-len("; email: q@invented.invalid")], "ADDRESS")
+        positives.append((text, value, [broad]))
+    for box in ("Postfach 82", "PO Box 826", "Casella postale 826"):
+        value = "Néra Zévran"
+        text = "Recipient: " + value + ", " + box + ", 73162 Vezara"
+        positives.append((text, value, [seed(text, text, "ADDRESS")]))
+    for value in ("Dr.\nZévran van Ruvorn", "Dott.\r\nNéra Zévran", "Zévran,\r\nNéra"):
+        text = "Destinatario: " + value + "\nEmail: q@invented.invalid"
+        positives.append((text, value, []))
+    clean = (
+        "brand Dr.Zévran is available.", "Product: Recipient Dr.Zévran is a model.",
+        "street Dr.Zévran is public.", "rue Dott.Zévran is public.",
+        "marca Sig.raZévran is on sale.", "department Sr.Zévran is a heading.",
+        "Recipient Sales Manager", "Empfänger Support Department", "Destinataire Service Client",
+        "Destinatario Ufficio", "Contact person Routing Desk", "Privatkontakt: Abteilung",
+        "Contatto privato: Dipartimento", "Contacto privado: Departamento",
+        "Recipient 73145 Vezford", "Empfänger VQ8 2ZX", "Destinataire: 75001, Vézford",
+        "Destinatario: Zévran Street", "Contact person: Zévran Systems",
+        "Privatkontakt:\n\nNéra Zévran", "Routing: send to recipient address only.",
+        "Dr.zévran is a product token.", "Xyz.Zévran is an abbreviation.",
+    )
+    complete = excess = 0
+    for text, value, inputs in positives:
+        outputs = run_names(text, inputs, "assemble")
+        gold = expected(text, [value])
+        exact = {(c["start"], c["end"]) for c in outputs}
+        complete += all(span in exact for span in gold)
+        excess += any(not any(a <= c["start"] < c["end"] <= b for a, b in gold) for c in outputs)
+    masked = sum(bool(run_names(text, [], "full")) for text in clean)
+    # ADDRESS is never ignored in an uncued, untitled name; a lexical street
+    # remains a barrier even when the model's ADDRESS encompasses the whole field.
+    text = "Néra Zévran"
+    safety = not assemble(text, [seed(text, text, "ADDRESS"), seed(text, "Zévran", "SURNAME")])
+    text = "Recipient: Dr.Zévran Road 12, VQ8 2ZX Vezford"
+    safety &= not assemble(text, [seed(text, text, "ADDRESS")])
+    for gap in ("\n\n", "\r\n \r\n"):
+        text = "Recipient: Néra" + gap + "Zévran"
+        safety &= all(gap not in text[c["start"]:c["end"]] for c in assemble(text, []))
+    text = "Recipient: Néra\nZévran\nRuvorn"
+    safety &= all(text[c["start"]:c["end"]].count("\n") <= 1 for c in assemble(text, []))
+    print(f"round3_name_complete={complete}/{len(positives)}")
+    print(f"round3_name_clean_masked={masked}/{len(clean)}")
+    print(f"round3_name_excess={excess} arbitration_barriers_ok={int(safety)}")
+    return complete == len(positives) and not masked and not excess and safety
+
+
 def main():
     positives, negatives = fixtures()
     complete = 0
@@ -273,7 +334,9 @@ def main():
     if complete != len(positives):
         print("family_complete=" + " ".join(f"{key}:{group_success[key]}/{groups[key]}" for key in sorted(groups)))
     mechanics()
-    if len(positives) < 60 or len(negatives) < 25 or complete * 10 < len(positives) * 9 or negatives_masked or excess:
+    round3_ok = round3_cases()
+    if (len(positives) < 60 or len(negatives) < 25 or complete != len(positives)
+            or negatives_masked or excess or not round3_ok):
         return 1
     print("name_mechanics=ok")
     return 0

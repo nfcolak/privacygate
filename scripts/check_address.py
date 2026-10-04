@@ -225,6 +225,79 @@ def mixed_cases():
     return exact, total, care_exact, len(invented), contract_ok
 
 
+def round3_cases():
+    """Invented complete regions, OCR scopes, and non-address/field barriers."""
+    positives = []
+    for care in ("a cargo de", "c/o", "presso", "chez", "z. Hd.", "à l'attention de"):
+        value = care + " Néva Zévran, via Qévnar 17, 73162 Vezonia, provincia di Vezara, Italia"
+        positives.append(("Indirizzo: " + value, value))
+    for region in ("provincia di", "provincia de", "provincia del", "provincia della",
+                   "province de", "Provinz"):
+        value = "Qévnarstraße 17, 73162 Vezonia, " + region + " Vezara, Deutschland"
+        positives.append(("Adresse: " + value, value))
+    for box, postal, town, country in (
+        ("PO Box", "VQ8 2ZX", "Vezford", "United Kingdom"),
+        ("P.O. Box", "73162", "Vezara", "United States of America"),
+        ("Postfach", "73162", "Vezara", "Deutschland"),
+        ("BP", "75062", "Vézara", "France"),
+        ("Casella postale", "73162", "Vezonia", "Italia"),
+        ("Apartado", "73162", "Vezonia", "España"),
+    ):
+        value = f"{box} 826, {postal}, {town}, {country}"
+        positives.append(("Delivery: " + value, value))
+    for cue, value in (
+        ("Delivery", "PO\nBox 826, VQ8 2ZX, Vezford, United Kingdom"),
+        ("Delivery", "17\nQévnar Lane, VQ8 2ZX Vezford, United Kingdom"),
+        ("Zustellung", "Qévnarstraße\n17, 73162 Vezara, Deutschland"),
+        ("Livraison", "rue\nQévnar 17, 75062 Vézara, France"),
+        ("Consegna", "viale\nQévnar 17, 73162 Vezonia, Italia"),
+        ("Entrega", "a\ncargo de Néva Zévran, calle Qévnar 17, 73162 Vezonia, España"),
+        ("Adresse", "Qévnarstraße\r\n17, 73162 Vezara, Deutschland"),
+        ("Dirección", "calle\nQévnar 17, 73162 Vezonia, España"),
+        ("Indirizzo", "presso\nNéva Zévran, via Qévnar 17, 73162 Vezonia, Italia"),
+        ("Livraison", "à l'attention\nde Néva Zévran, rue Qévnar 17, 75062 Vézara, France"),
+        ("Zustellung", "z.\nHd. Néva Zévran, Qévnarstraße 17, 73162 Vezara, Deutschland"),
+        ("Delivery", "c/\no Néva Zévran, 17 Qévnar Lane, VQ8 2ZX Vezford, United Kingdom"),
+    ):
+        positives.append((cue + ": " + value, value))
+    clean = (
+        "a cargo de Néva Zévran: routing instructions only.", "c/o Routing Desk",
+        "presso Ufficio", "chez Service Client", "z. Hd. Support Department",
+        "à l'attention de Routing Desk", "73162, Vezara", "VQ8 2ZX, Vezford",
+        "Adresse: 73162, Vezara, Deutschland", "Dirección: 73162 Vezonia",
+        "Indirizzo: provincia di Vezara, Italia", "Delivery: PO Box 826",
+        "Routing: PO\nBox 826, VQ8 2ZX, Vezford", "product Qévnar Lane is available.",
+        "Department: Qévnarstraße", "Delivery: Qévnarstraße\n\n17, 73162 Vezara",
+        "Delivery: Qévnarstraße\nOrder: 17, 73162 Vezara",
+        "Delivery: PO\nBox 826\n\nVQ8 2ZX, Vezford",
+        "Delivery: rue\nQévnar\n17, 75062 Vézara",
+        "Delivery: route to province de Vezara only.",
+    )
+    complete = exact = 0
+    safety = True
+    for text, value in positives:
+        saved = []
+        found = assemble(text, saved)
+        start, end = text.index(value), text.index(value) + len(value)
+        complete += contains(found, start, end)
+        exact += len(found) == 1 and found[0]["start"] == start and found[0]["end"] == end
+        safety &= saved == []
+        # Next-field and blank-line material must not be swallowed by a region.
+        for suffix in ("\nDepartment: Vezara", "\n\n73162 Vezara"):
+            bounded = assemble(text + suffix, [])
+            safety &= all(c["end"] <= end for c in bounded)
+    for cue in ("Privatkontakt:", "Contatto privato:", "Recipient:"):
+        postal = "Postfach 82, 73162 Vezara, Deutschland"
+        text = cue + " Néra Zévran, " + postal
+        found = assemble(text, [])
+        safety &= len(found) == 1 and found[0]["start"] == text.index(postal) and found[0]["end"] == len(text)
+    masked = sum(bool(assemble(text, [])) for text in clean)
+    print(f"round3_addr_complete={complete}/{len(positives)}")
+    print(f"round3_addr_exact={exact}/{len(positives)}")
+    print(f"round3_addr_clean_masked={masked}/{len(clean)} barriers_ok={int(safety)}")
+    return complete == len(positives) and exact == len(positives) and not masked and safety
+
+
 def check():
     complete = total = nonaddr = exact = 0
     contract_ok = True
@@ -301,8 +374,9 @@ def check():
     print(f"mixed_exact={mixed_exact}/{mixed_total}")
     print(f"care_exact={care_exact}/{care_total}")
     print(f"address_contract_ok={int(contract_ok)}")
-    return (complete == total and nonaddr == 0 and contract_ok
-            and mixed_exact * 10 >= mixed_total * 9 and care_exact == care_total)
+    round3_ok = round3_cases()
+    return (complete == total and exact == total and nonaddr == 0 and contract_ok and round3_ok
+            and mixed_exact == mixed_total and care_exact == care_total)
 
 
 def evaluate_v1(source, model_dir):

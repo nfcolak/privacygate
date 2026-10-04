@@ -62,7 +62,7 @@ _POSTAL = (
     r"\d{4}[^\S\r\n]*[A-Z]{2}|\d{5}-\d{4}|\d{2}[^\S\r\n]\d{3}|\d{5}|\d{4})"
 )
 _LOCALITY = rf"{_CAP}(?:{_H}+(?:{_PARTICLE}{_H}+)?{_CAP}){{0,3}}"
-_POSTAL_FIRST = re.compile(rf"(?<!\w){_POSTAL}{_H}+{_LOCALITY}(?!\w)", re.I)
+_POSTAL_FIRST = re.compile(rf"(?<!\w){_POSTAL}(?:{_H}*,{_H}*|{_H}+){_LOCALITY}(?!\w)", re.I)
 _POSTAL_LAST = re.compile(rf"(?<!\w){_LOCALITY}(?:{_H}*,{_H}*(?-i:[A-Z]{{2}}))?{_H}+{_POSTAL}(?!\w)", re.I)
 _COUNTRY = re.compile(
     r"(?<!\w)(?:United States(?: of America)?|United Kingdom|Great Britain|"
@@ -97,10 +97,10 @@ _UNIT = re.compile(
 )
 _ROUTING = re.compile(rf"(?<!\w)CEDEX(?:{_H}+\d{{1,3}})?(?!\w)", re.I)
 _REGION = re.compile(
-    rf"(?<!\w)(?:canton|Kanton|county|province|provincia|région|regione|región)"
-    rf"{_H}+{_LOCALITY}(?!\w)|\((?-i:[A-Z]{{2}})\)", re.I,
+    rf"(?<!\w)(?:canton|Kanton|county|province|provincia|Provinz|région|regione|región)"
+    rf"{_H}+(?:(?:di|de|del|della){_H}+)?{_LOCALITY}(?!\w)|\((?-i:[A-Z]{{2}})\)", re.I,
 )
-_CARE_PREFIX = rf"(?:c/{_H}*o|care{_H}+of|z\.{_H}*Hd\.|zu{_H}+Händen|chez|à{_H}+l['’]attention{_H}+de|presso|a{_H}+la{_H}+atención{_H}+de)"
+_CARE_PREFIX = rf"(?:c/{_H}*o|care{_H}+of|z\.{_H}*Hd\.|zu{_H}+Händen|chez|à{_H}+l['’]attention{_H}+de|presso|a{_H}+cargo{_H}+de|a{_H}+la{_H}+atención{_H}+de)"
 _RECIPIENT_WORD = rf"(?:(?:Dr|Prof|Herr|Frau|Mme|Mlle|Sig\.ra|Sig|Sr|Sra)\.?(?!\w)|(?-i:[A-Z])\.|{_CAP}|{_PARTICLE})"
 _CARE = re.compile(
     rf"(?<!\w){_CARE_PREFIX}{_H}*(?:\r?\n{_H}*)?"
@@ -123,6 +123,39 @@ _EMAIL = re.compile(r"(?<!\w)[\w.+-]+@[\w.-]+\.[a-z]{2,}(?!\w)", re.I)
 _BLANK = re.compile(r"\r?\n[^\S\r\n]*\r?\n")
 _CONNECTOR = re.compile(r"[\s,;:/\-–—()[\]{}]*\Z")
 _HOUSE = re.compile(rf"(?<!\w){_NUMBER}(?!\w)", re.I)
+_ADDRESS_FIELD = re.compile(
+    r"(?<!\w)(?:private[ \t]+delivery|delivery|Zustellung|Livraison|Consegna|Entrega|"
+    r"address|Adresse|Dirección(?:[ \t]+privada)?|Indirizzo)(?!\w)"
+    r"[ \t]*(?:[:=][ \t]*|[ \t]+|(?=\r?\n))", re.I,
+)
+_NEXT_FIELD = re.compile(
+    r"(?<!\w)[^\W\d_][^\n\r,;:=]{0,35}[ \t]*[:=]", re.U,
+)
+
+
+def _ocr_matches(text):
+    """Replace one field-local line break with equal-width spaces, in RAM only.
+
+    Only matches crossing that break are additions. Existing postal anchors,
+    foreign-value barriers and the final envelope budget still decide admission.
+    """
+    patterns = ((_STREET_LAST, ("street", "house"), "street"),
+                (_STREET_FIRST, ("street", "house"), "street"),
+                (_BOX, ("box",), "box"), (_CARE, (), ""))
+    for field in _ADDRESS_FIELD.finditer(text):
+        low, high = field.end(), min(len(text), field.end() + MAX_REGION_CHARS)
+        for barrier in (_BLANK, _NEXT_FIELD):
+            found = barrier.search(text, low, high)
+            if found:
+                high = min(high, found.start())
+        for br in re.finditer(r"\r?\n", text[low:high]):
+            a, b = low + br.start(), low + br.end()
+            view = text[low:a] + " " * (b - a) + text[b:high]
+            for pattern, anchors, core in patterns:
+                for match in pattern.finditer(view):
+                    start, end = low + match.start(), low + match.end()
+                    if start < a and b < end:
+                        yield start, end, anchors, core, a
 
 
 @dataclass(frozen=True)
@@ -131,6 +164,7 @@ class _Piece:
     end: int
     anchors: frozenset
     core: str = ""
+    soft_break: int = -1
 
 
 def _candidate(start, end):
@@ -180,12 +214,13 @@ def value_boundaries(text, cands):
     from .names import assemble as assemble_names
 
     care = [m.span() for m in _CARE.finditer(text)]
+    care += [(a, b) for a, b, anchors, core, br in _ocr_matches(text) if not anchors]
     foreign = [c for c in cands if c["label"] not in _ADDRESS_LABELS
                and c["label"] != "UNCOVERED"]
     name_seeds = [c for c in cands if c["label"] != "ADDRESS"]
     # Removing a broad ADDRESS must not let inverted-name grammar reinterpret
     # an adjacent lexical street as a surname (especially German compounds).
-    for pattern in (_STREET_LAST, _STREET_FIRST, _POSTAL_FIRST, _POSTAL_LAST):
+    for pattern in (_STREET_LAST, _STREET_FIRST, _BOX, _POSTAL_FIRST, _POSTAL_LAST):
         name_seeds.extend(dict(_candidate(*m.span()), label="STREET") for m in pattern.finditer(text))
     foreign += assemble_names(text, name_seeds)
     return [c for c in foreign if not (
@@ -212,14 +247,17 @@ def assemble(text, cands):
     barriers = [(c["start"], c["end"]) for c in value_boundaries(text, cands)]
     barriers += contact_cues(text)
     barriers += [m.span() for m in _FIELD.finditer(text)]
+    barriers += [m.span() for m in _NEXT_FIELD.finditer(text)]
     barriers += [m.span() for m in _EMAIL.finditer(text)]
     pieces = []
 
-    def add(start, end, anchors=(), core=""):
+    def add(start, end, anchors=(), core="", soft_break=-1):
         if (start < end and end - start <= MAX_REGION_CHARS
                 and not _overlap(start, end, barriers) and not _BLANK.search(text, start, end)):
-            pieces.append(_Piece(start, end, frozenset(anchors), core))
+            pieces.append(_Piece(start, end, frozenset(anchors), core, soft_break))
 
+    for start, end, anchors, core, br in _ocr_matches(text):
+        add(start, end, anchors, core, br)
     for pattern in (_STREET_LAST, _STREET_FIRST):
         for match in pattern.finditer(text):
             add(*match.span(), ("street", "house"), "street")
@@ -270,7 +308,9 @@ def assemble(text, cands):
                          and any(p.core == "street" for p in group))
         second_box = (piece.core == "box" and piece.start >= right
                       and any(p.core == "box" for p in group))
-        if joins and (max(right, piece.end) - left > MAX_REGION_CHARS or second_street or second_box):
+        breaks = {p.soft_break for p in group + [piece] if p.soft_break >= 0}
+        if joins and (max(right, piece.end) - left > MAX_REGION_CHARS or second_street
+                      or second_box or len(breaks) > 1):
             joins = False
         if not joins:
             if group:

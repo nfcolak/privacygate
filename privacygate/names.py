@@ -32,6 +32,8 @@ _STOP = frozenset((
     "cordiali saluti atentamente cordialmente grüße grüsse freundlichen "
     "name nom nome nombre signed gez firma email mail phone telephone tel "
     "department division team service services support manager director "
+    "recipient empfänger destinataire destinatario privatkontakt contatto contacto "
+    "delivery zustellung livraison consegna entrega routing desk office bureau ufficio oficina "
     "company corporation inc ltd llc gmbh ag sa srl sas brand product model "
     "marke produkt modell marque produit modèle marca prodotto modello producto modelo "
     "entreprise abteilung département dipartimento departamento "
@@ -47,8 +49,11 @@ _STOP = frozenset((
 ).split()) - _PARTICLES
 _CUE = re.compile(
     r"(?<!\w)(?:my\s+name\s+is|je\s+m['’]appelle|mi\s+chiamo|me\s+llamo|"
-    r"ich\s+hei(?:ß|ss)e|(?:name|nom|nome|nombre)\s*:|signed\s*:?|gez\.|firma\s*:?)"
-    r"[ \t]*(?:\n[ \t]*)?", re.I)
+    r"ich\s+hei(?:ß|ss)e|(?:name|nom|nome|nombre)\s*:|signed\s*:?|gez\.|firma\s*:?|"
+    r"(?:recipient|Empfänger|Destinataire|Destinatario|contact[ \t]+person|"
+    r"Privatkontakt|contatto[ \t]+privato|contacto[ \t]+privado)(?!\w)"
+    r"(?=[ \t:=\r\n])[ \t]*[:=]?)"
+    r"[ \t]*(?:\r?\n[ \t]*)?", re.I)
 _GREETING = re.compile(
     r"(?<!\w)(?:dear|sehr\s+geehrt(?:e|er|en)|liebe(?:r|n)?|bonjour|gentile|"
     r"estimad(?:o|a|os|as))[ \t]+", re.I)
@@ -113,8 +118,10 @@ def _tokens(text):
             continue
         start = i
         title = _TITLE.match(text, i)
+        compact = (title and "." in text[i:title.end()]
+                   and title.end() < n and text[title.end()].isupper())
         if (title and (i == 0 or not _word_char(text[i - 1]))
-                and (title.end() == n or not _word_char(text[title.end()]))):
+                and (title.end() == n or not _word_char(text[title.end()]) or compact)):
             i = title.end()
             out.append(_Token(start, i, "title", text[start:i].casefold()))
             continue
@@ -174,16 +181,22 @@ def _candidate(a, b, stage, personal=False):
 def _nonpersonal(text, a, b):
     # A punctuation/newline boundary prevents cues from leaking from other clauses.
     prefix = re.split(r"[\n;.!?]", text[max(0, a - 90):a])[-1]
+    for cue in _CUE.finditer(prefix):
+        if cue.end() == len(prefix):
+            prefix = prefix[:cue.start()]
+            break
     return bool(_NONPERSONAL_PREFIX.search(prefix) or _NONPERSONAL_SUFFIX.match(text[b:b + 50])
                 or _NONPERSONAL_ROLE.match(text[a:b + 50]))
 
 
-def _blocked(text, tokens, cands):
+def _blocked(text, tokens, cands, person_tokens=frozenset()):
     intervals = [(c["start"], c["end"]) for c in cands
-                 if c["label"] not in NAME_PARTS and c["label"] != "UNCOVERED"]
+                 if c["label"] not in NAME_PARTS and c["label"] not in {"UNCOVERED", "ADDRESS"}]
+    addresses = [(c["start"], c["end"]) for c in cands if c["label"] == "ADDRESS"]
     intervals += [(m.start(), m.end()) for m in _CONTACT.finditer(text)]
     return {i for i, t in enumerate(tokens)
             if any(a < t.end and t.start < b for a, b in intervals)
+            or (i not in person_tokens and any(a < t.end and t.start < b for a, b in addresses))
             or (t.start > 0 and (text[t.start - 1].isdigit() or text[t.start - 1] in "@_"))
             or (t.end < len(text) and (text[t.end].isdigit() or text[t.end] in "@_"))}
 
@@ -204,16 +217,23 @@ def _parse(text, tokens, start, blocked, *, soft=False, reverse=False):
     i, last, cores, titles, comma, atoms = start, None, 0, 0, False, 0
     left_cores = 0
     right_cores = 0
+    linebreaks = 0
     while i < len(tokens) and atoms < MAX_ATOMS:
         t = tokens[i]
         if i in blocked or t.end - tokens[start].start > MAX_CHARS:
             break
-        if i > start and not _gap(text, tokens[i - 1], t, soft=soft):
-            # A single reversed-name comma has no whitespace requirement.
-            if not (t.kind == "comma" or tokens[i - 1].kind == "comma"):
+        if i > start:
+            gap = text[tokens[i - 1].end:t.start]
+            breaks = gap.count("\n") + gap.count("\r") - gap.count("\r\n")
+            if breaks and (not soft or linebreaks + breaks > 1):
                 break
-            if "\n" in text[tokens[i - 1].end:t.start] or "\r" in text[tokens[i - 1].end:t.start]:
-                break
+            if not _gap(text, tokens[i - 1], t, soft=soft):
+                # A reversed-name comma still admits only whitespace between atoms.
+                if not (t.kind == "comma" or tokens[i - 1].kind == "comma"):
+                    break
+                if gap and not gap.isspace():
+                    break
+            linebreaks += breaks
         if t.kind == "title":
             if cores or titles >= 3 or comma:
                 break
@@ -247,10 +267,41 @@ def _cue_starts(text, tokens):
         for match in pattern.finditer(text):
             for i, t in enumerate(tokens):
                 if t.start >= match.end():
-                    if text[match.end():t.start].strip() == "":
+                    if not text[match.end():t.start].strip(" \t"):
                         cues[i] = soft
                     break
     return cues
+
+
+def _person_tokens(text, tokens, cands, cues):
+    """Arbitrate ADDRESS only inside a grammatical cued/titled person scope.
+
+    Other labels and lexical street/postal envelopes remain hard blockers. The
+    caller retains the original ADDRESS masks, including all residual coverage.
+    """
+    if not any(c["label"] == "ADDRESS" for c in cands):
+        return frozenset()
+    from .address import _STREET_LAST, _STREET_FIRST, _BOX, _POSTAL_FIRST, _POSTAL_LAST, _ocr_matches
+
+    bounded = [c for c in cands if c["label"] != "ADDRESS"]
+    for pattern in (_STREET_LAST, _STREET_FIRST, _BOX, _POSTAL_FIRST, _POSTAL_LAST):
+        bounded.extend({"start": m.start(), "end": m.end(), "label": "STREET"}
+                       for m in pattern.finditer(text))
+    bounded.extend({"start": a, "end": b, "label": "STREET"}
+                   for a, b, anchors, core, br in _ocr_matches(text) if anchors)
+    blocked = _blocked(text, tokens, bounded)
+    allowed = set()
+    starts = set(cues) | {i for i, t in enumerate(tokens) if t.kind == "title"}
+    for start in starts:
+        parsed = _parse(text, tokens, start, blocked, soft=cues.get(start, False),
+                        reverse=start in cues)
+        if parsed is None:
+            continue
+        _, end, cores, titles, _ = parsed
+        a, b = tokens[start].start, tokens[end].end
+        if not _nonpersonal(text, a, b) and (titles or cores <= 4):
+            allowed.update(range(start, end + 1))
+    return frozenset(allowed)
 
 
 def assemble(text, cands):
@@ -263,8 +314,8 @@ def assemble(text, cands):
     """
     _check(text, cands)
     tokens = _tokens(text)
-    blocked = _blocked(text, tokens, cands)
     cues = _cue_starts(text, tokens)
+    blocked = _blocked(text, tokens, cands, _person_tokens(text, tokens, cands, cues))
     seeds = {}
     for cand in cands:
         if cand["label"] in NAME_PARTS and cand.get("context") != "nonpersonal":
