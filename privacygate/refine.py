@@ -64,7 +64,7 @@ _COUNTRIES = (
 )
 _COUNTRY_FORMS = sorted({f for c in _COUNTRIES for f in (c, c.upper())}, key=lambda f: (-len(f), f))
 _COUNTRY = re.compile(
-    r"(?:[ \t]*[,;][ \t]*|[ \t]+[\u2014\u2013-][ \t]+|[ \t]*\n[ \t]*|[ \t]*)" + _NOT_AFTER_ALNUM
+    r"(?:[ \t]*[,;|/][ \t]*|[ \t]+[\u2014\u2013-][ \t]+|[ \t]*\n[ \t]*|[ \t]*)" + _NOT_AFTER_ALNUM
     + r"(?:" + "|".join(re.escape(f) for f in _COUNTRY_FORMS) + r")" + _NOT_BEFORE_ALNUM)
 
 _UNIT_KW = (r"(?:apartamento|appartement|apartment|apartado|casella[ ]postale|case[ ]postale|postfach|wohnung|"
@@ -272,13 +272,31 @@ def _unit_right(text, b):
     return b
 
 
-def _extend_address(text, a, b):
+_POSTAL_FIELD = re.compile(
+    r"(?<!\w)(?:address|adresse|anschrift|indirizzo|dirección|domicilio)"
+    r"(?:[ \t]+(?:private|privée?|privat\w*|privat[oa]|privad[oa]|postal))?"
+    r"[ \t]*[:=][ \t]*$", re.I)
+
+
+def _postal_scope(text, a, b, parts):
+    # A separator is a component connector only inside a typed postal value
+    # with independently classified postcode + locality, not arbitrary cells.
+    lo = max(0, a - 100)
+    if _POSTAL_FIELD.search(text, lo, a) is None:
+        return False
+    boundary = re.search(r'\n[ \t]*\n|[;\t]|\w[ \t]*[:=]', text[a:])
+    field_end = a + boundary.start() if boundary else len(text)
+    classified = {p['label'] for p in parts if a <= p['start'] < p['end'] <= field_end}
+    return b <= field_end and {'ZIPCODE', 'CITY'} <= classified
+
+
+def _extend_address(text, a, b, postal=False):
     for _ in range(4):
         before = (a, b)
         b = _unit_right(text, b)
         a = _unit_left(text, a)
         m = _COUNTRY.match(text, b)
-        if m:
+        if m and (not any(ch in text[b:m.end()] for ch in '|/') or postal):
             b = m.end()
         if (a, b) == before:
             break
@@ -332,6 +350,8 @@ def _address_merge(text, spans):
             ok = (len(gap) <= MAX_GAP_CHARS and len(gap.split()) <= MAX_GAP_WORDS
                   and not (gap and _sentence_end(text, prev_end, s["start"]))
                   and not any(o["start"] < s["start"] and o["end"] > prev_end for o in others))
+            if '|' in gap or '/' in gap or '\t' in gap:
+                ok = ok and _postal_scope(text, _street_prefix(text, cur), s['end'], parts)
             if not ok:
                 groups.append(cur)
                 cur = []
@@ -343,7 +363,8 @@ def _address_merge(text, spans):
         if len(g) < 2 or not any(p["label"] in ("STREET", "CITY") for p in g):
             out.extend(g)
             continue
-        a, b = _extend_address(text, _street_prefix(text, g), max(p["end"] for p in g))
+        start, end = _street_prefix(text, g), max(p['end'] for p in g)
+        a, b = _extend_address(text, start, end, _postal_scope(text, start, end, g))
         out.append({"start": a, "end": b, "label": "ADDRESS", "source": "refine"})
     return out
 
@@ -381,6 +402,21 @@ def _word_completion(text, spans):
             lim = min(len(text), b + MAX_RUN_EXTENSION)
             while b < lim and _word_pos(text, b):
                 b += 1
+        if (a, b) != (s['start'], s['end']):
+            numeric = s['label'] in {'TELEPHONENUM', 'AGE', 'DATE', 'DATEOFBIRTH',
+                                    'BUILDINGNUM', 'ZIPCODE', 'ACCOUNTNUM', 'CREDITCARDNUMBER'}
+            added = text[a:s['start']] + text[s['end']:b]
+            if numeric and any(c.isalpha() for c in added):
+                from .context import phone_scope
+                operational, _ = phone_scope(text, a, b)
+                if s['label'] == 'TELEPHONENUM' or operational:
+                    # Preserve the seed, never grow a numeric fragment into a code.
+                    a, b = s['start'], s['end']
+            if numeric and (a, b) != (s['start'], s['end']):
+                from .context import decide
+                final = dict(s, start=a, end=b, protected=False, context='unknown')
+                if decide(text, final, [final])[0] == 'reject':
+                    a, b = s['start'], s['end']
         out.append(_changed(s, start=a, end=b) if (a, b) != (s["start"], s["end"]) else s)
     return out
 

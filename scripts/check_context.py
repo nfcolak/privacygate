@@ -114,7 +114,7 @@ def _invariants():
     for cue in (
         "my", "me", "mein", "meine", "mon", "mio", "mi", "customer", "Kunde",
         "client", "cliente", "patient", "Patient", "paziente", "paciente",
-        "born", "geboren", "né", "nato", "nacido", "age: 28", "Alter: 28",
+        "born", "geboren", "né le 19/02/1981", "nato", "nacido", "age: 28", "Alter: 28",
         "âge: 28", "età: 28", "edad: 28", "28 years old", "28 Jahre alt",
         "28 ans", "28 anni", "28 años", "Lena's record",
     ):
@@ -243,6 +243,69 @@ def _round3():
         raise ValueError("round3_context_failed")
 
 
+def _round4():
+    from scripts.check_structured import group, iban
+    fixtures = []
+    serial = group(iban('IT', 'H' + '6842751382' + '751382684275'), (4,), ' ')
+    # Homographic surface words do not become ownership without grammar.
+    languages = (
+        ('Il controllo verifica il pezzo, né copia né assegnazione; ', 'seriale prodotto', 'mio documento'),
+        ('Los resultados son estables; ', 'Product serial', 'mi documento'),
+        ('Le catalogue classe le lot; ', 'série produit', 'mon dossier'),
+    )
+    for prose, key, owner in languages:
+        for value, label in ((serial, 'IBAN'), ('+39 06 6842 7513', 'TELEPHONENUM'),
+                              ('+99 (0) 684 275 1382', 'TELEPHONENUM')):
+            for suffix in ('', ' no.', ' code'):
+                clean = prose + key + suffix + ': ' + value + '; end.'
+                personal = prose + owner + ' — ' + key + suffix + ': ' + value + '; end.'
+                fixtures.append((clean, personal, value, label))
+    for key, owner in (('SKU', 'my record'), ('Lote', 'mi registro'),
+                        ('Seriennummer', 'mein Dokument'), ('Stock', 'mon dossier'),
+                        ('Inventario', 'mio documento')):
+        for value in ('+1 202 684 2751', '202-684-2751', '+99 684 275 1382'):
+            clean = key + ': ' + value + '; end.'
+            fixtures.append((clean, owner + ' — ' + clean, value, 'TELEPHONENUM'))
+    for roles, contact in ((('Part', 'Quantity', 'Price'), 'Phone'),
+                           (('Artikel', 'Menge', 'Preis'), 'Telefon'),
+                           (('Pièce', 'Quantité', 'Prix'), 'Téléphone'),
+                           (('Articolo', 'Quantità', 'Prezzo'), 'Telefono'),
+                           (('Pieza', 'Cantidad', 'Precio'), 'Teléfono')):
+        for delimiter in (' | ', '\t', ' / '):
+            value = '+99 684 275 1382'
+            clean = delimiter.join(roles) + '\n' + delimiter.join(('RVT', value, '7.25'))
+            personal = delimiter.join((roles[0], contact, roles[2])) + '\n' + delimiter.join(('RVT', value, '7.25'))
+            fixtures.append((clean, personal, value, 'TELEPHONENUM'))
+    rejected = personal_rejected = 0
+    for clean, personal, value, label in fixtures:
+        cand = _candidate(clean, value, label, source='structured', validation='valid')
+        action = _decision(clean, cand)[0]
+        linked = _candidate(personal, value, label, source='structured', validation='valid')
+        # An inherited explicit contact header supplies personal context even
+        # when the invalid numeric shape is not independent lexical ownership.
+        if '\n' in personal:
+            linked['context'] = 'personal'
+        rejected += action == 'reject'
+        personal_rejected += _decision(personal, linked)[0] == 'reject'
+    # Preserve authentic French subject/possessive/birth constructions despite
+    # an operational field in the same clause; neither checksum nor shape wins.
+    for owner in ('il communique', 'elle utilise', 'son téléphone', 'sa date de naissance',
+                  'né le 24/07/1983', 'née à Velora', 'né en Suisse'):
+        text = owner + ' — série produit: ' + serial + '; end.'
+        if _decision(text, _candidate(text, serial, 'IBAN'))[0] == 'reject':
+            raise ValueError('round4_french_ownership_failed')
+    # Headers do not leak ownership into adjacent numeric stock/price cells.
+    text = 'Phone | Quantity | Price\n+1 202 684 2751 | 2026842751 | 6842751382'
+    for value in ('2026842751', '6842751382'):
+        if _decision(text, _candidate(text, value, 'TELEPHONENUM'))[0] != 'reject':
+            raise ValueError('round4_table_cell_scope_failed')
+    print(f'round4_clean_rejected={rejected}/{len(fixtures)}')
+    print(f'round4_personal_rejected={personal_rejected}')
+    print(f'round4_contrastive_pairs={len(fixtures)}')
+    if len(fixtures) < 40 or rejected != len(fixtures) or personal_rejected:
+        raise ValueError('round4_context_failed')
+
+
 def main():
     fixtures = list(_fixtures())
     clean_rejected = personal_rejected = 0
@@ -261,6 +324,7 @@ def main():
     if total < 50 or clean_rejected * 5 < total * 4 or personal_rejected:
         raise ValueError("context_acceptance_failed")
     _round3()
+    _round4()
 
 
 if __name__ == "__main__":

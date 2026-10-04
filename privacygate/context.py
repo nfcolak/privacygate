@@ -31,18 +31,29 @@ _PERSONAL = _rx(
     r"(?<!\w)(?:my|me|mine|our|his|her|their|your|I|you|he|she|"
     r"mein(?:e[rmns]?|em|en|er|es)?|mir|mich|ich|dein(?:e[rmns]?|em|en|er|es)?|"
     r"sein(?:e[rmns]?|em|en|er|es)?|ihr(?:e[rmns]?|em|en|er|es)?|unser\w*|"
-    r"mon|ma|mes|moi|je|ton|ta|tes|son|sa|ses|notre|votre|leur|il|elle|"
+    r"mon|ma|mes|moi|je|ton|ta|tes|ses|notre|votre|leur|"
     r"mio|mia|miei|mie|io|tuo|tua|suoi|sua|nostro|nostra|lui|lei|"
     r"mi|mis|mío|mía|míos|mías|yo|su|sus|nuestro|nuestra|él|ella|"
     r"customers?|kund(?:e|en|in|innen)|clients?|clientes?|patients?|patienten?|"
     r"patientin(?:nen)?|patiente?s?|pazient[ei]|pacientes?|"
-    r"born|birth(?:day|date)?|geboren|geburt(?:sdatum|stag)?|né|née|naissance|"
+    r"born|birth(?:day|date)?|geboren|geburt(?:sdatum|stag)?|naissance|"
     r"nato|nata|nascita|nacido|nacida|nacimiento|"
     r"person|personal|private|privat(?:e[rmns]?|em|en|er|es)?|privé|privée|privato|privata|privado|privada|"
     r"personne|persona|recipient|empfänger|destinataire|destinatario|"
     r"resident|residente|inhaber|titulaire|holder|owner|proprietario|propietario"
     r")(?!\w)|(?<=\w)['’]s(?!\w)"
 )
+# Homographs require French syntax; Italian articles/conjunctions and Spanish
+# 'son' (are) cannot manufacture ownership evidence merely by proximity.
+_HOMOGRAPH_PERSONAL = _rx(
+    r"(?<!\w)(?:il|elle)[ \t]+(?:est|a|possède|habite|réside|communique|"
+    r"donne|utilise|fournit)(?!\w)|"
+    r"(?<!\w)(?:son|sa)[ \t]+(?:téléphone|adresse|compte|passeport|"
+    r"permis|numéro|date[ \t]+de[ \t]+naissance)(?!\w)|"
+    r"(?<!\w)née?[ \t]+(?:le[ \t]+(?=[0-9])|"
+    r"(?=[0-9]{1,2}[/.-][0-9])|(?:à|en)[ \t]+(?=[A-ZÀ-ÖØ-Þ]))"
+)
+
 # An explicit age attribute is personal evidence, not a blanket veto on 'years'.
 _AGE_CUE = _rx(
     r"(?<!\w)(?:aged|age|alter|âge|età|edad)[ \t]*(?:[:=]|(?:is|ist|est|è|es)\b)?"
@@ -59,7 +70,7 @@ _DIMENSION = _rx(
 _QUANTITY = _rx(rf"(?<![\w/.-]){_NUMBER}[ \t]*{_UNIT}(?!\w)")
 
 _CONNECTOR = (
-    r"[ \t]*(?:(?:no\.?|number|nr\.?|n[°º]|num(?:ber|éro|ero)?\.?|nummer)"
+    r"[ \t]*(?:(?:no\.?|number|nr\.?|n[°º]|num(?:ber|éro|ero)?\.?|nummer|code)"
     r"[ \t]*)?(?:[:=#][ \t]*)?"
 )
 _CODE_CUE = (
@@ -194,9 +205,87 @@ def _construction(text, start, end, label):
     return None
 
 
+# Typed roles are semantic field families, shared with the structured detector.
+# A table role is inherited by its cell, never by a nearby contact column.
+_PHONE_ROLE = _rx(r"(?<!\w)(?:phone|telephone|téléphone|tel\.?|tél\.?|"
+                 r"telefon(?:nummer)?|telefono|teléfono|mobile|mobil|fax)(?!\w)")
+_OPERATIONAL_ROLE = _rx(
+    r"(?<!\w)(?:serial(?:[ \t]+(?:number|code))?|seriale|serien(?:nummer|code)?|"
+    r"série|serie|sku|part(?:[ \t]+(?:number|no\.?))?|teil(?:enummer)?|"
+    r"pièce|pezzo|pieza|lot|lotto|lote|charge|batch|order|bestellung|bestell\w*|"
+    r"commande|ordine|pedido|invoice|rechnung\w*|facture|fattura|factura|"
+    r"inventory|inventar\w*|inventaire|inventario|stock|bestand|lager\w*|"
+    r"scorta|existencias|quantity|qty|menge|quantité|quantità|cantidad|"
+    r"price|preis|prix|prezzo|precio|cost|kosten|coût|costo|coste|"
+    r"product|produkt|produit|prodotto|producto|article|artikel|articolo|artículo|"
+    r"dimensions?|abmessungen|maße|room|zimmer|salle|stanza|habitación)(?!\w)"
+)
+_TABLE_SEP = re.compile(r"[ \t]*\|[ \t]*|\t+|[ ]+/[ ]+|[ ]{2,}")
+_TYPED_OPERATION = _rx(
+    r"(?P<key>(?:" + _OP_CUE + r"|" + _OPERATIONAL_ROLE.pattern + r"))"
+    r"[ \t]*(?:(?:number|no\.?|nr\.?|nummer|numéro|numero|número|code)"
+    r"[ \t]*)?[:=][ \t]*(?P<value>[^;|\n\r]{1,140})"
+)
+
+
+def _cells(text, lo, hi):
+    cursor, cells = lo, []
+    for sep in _TABLE_SEP.finditer(text, lo, hi):
+        cells.append((cursor, sep.start()))
+        cursor = sep.end()
+    cells.append((cursor, hi))
+    return cells
+
+
+def phone_scope(text, start, end):
+    """Return (operational, contact) from typed field/cell ownership, not shape."""
+    lo = text.rfind('\n', 0, start) + 1
+    hi = text.find('\n', end)
+    hi = len(text) if hi < 0 else hi
+    cells = _cells(text, lo, hi)
+    touched = [i for i, (a, b) in enumerate(cells) if a < end and start < b]
+    if len(cells) > 1:
+        previous = lo - 1
+        # Only contiguous rows with the same column grammar inherit a header.
+        for _ in range(24):
+            if previous <= 0:
+                break
+            header_lo = text.rfind('\n', 0, previous) + 1
+            headers = _cells(text, header_lo, previous)
+            if not text[header_lo:previous].strip() or len(headers) != len(cells):
+                break
+            roles = [(bool(_OPERATIONAL_ROLE.search(text, a, b)),
+                      bool(_PHONE_ROLE.search(text, a, b))) for a, b in headers]
+            if any(op or contact for op, contact in roles):
+                contact = len(touched) == 1 and roles[touched[0]][1]
+                operational = any(roles[i][0] and not roles[i][1] for i in touched)
+                return operational or len(touched) > 1, contact
+            previous = header_lo - 1
+    for field in _TYPED_OPERATION.finditer(text, max(0, start - 180), hi):
+        if _contains(field, start, end, 'value'):
+            return True, False
+    return False, False
+
+
+def personal_evidence(text, start, end):
+    """Clause-local independent ownership for numeric detectors/refinement."""
+    lo, hi = max(0, start - 120), min(len(text), end + 80)
+    for boundary in (';', '\n', '\r', '|', '!', '?'):
+        lo = max(lo, text.rfind(boundary, lo, start) + 1)
+        after = text.find(boundary, end, hi)
+        if after >= 0:
+            hi = min(hi, after)
+    return bool(_PERSONAL.search(text, lo, hi) or _HOMOGRAPH_PERSONAL.search(text, lo, hi)
+                or _PERSONAL_FIELD.search(text, lo, hi))
+
+
 def _operational(text, start, end, label):
     """Independent typed field evidence, not a checksum/score-based exemption."""
     lo, hi = max(0, start - 120), min(len(text), end + 120)
+    if label == 'TELEPHONENUM':
+        operational, contact = phone_scope(text, start, end)
+        if operational and not contact:
+            return 'operational_phone_scope', start, end
     for pattern in (_OP_CODE, _OP_TYPED):
         for match in pattern.finditer(text, lo, hi):
             value = match.group("value")
@@ -216,7 +305,8 @@ def _personal(text, start, end, cand, cands, ownership_only=False):
     if cand.get("context") == "personal":
         return True
     lo, hi = max(0, start - _RADIUS), min(len(text), end + _RADIUS)
-    if _PERSONAL.search(text, lo, hi) or _AGE_CUE.search(text, lo, hi):
+    if (_PERSONAL.search(text, lo, hi) or _HOMOGRAPH_PERSONAL.search(text, lo, hi)
+            or _AGE_CUE.search(text, lo, hi)):
         return True
     if ownership_only and _PERSONAL_FIELD.search(text, lo, hi):
         return True
