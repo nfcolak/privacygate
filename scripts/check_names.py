@@ -393,6 +393,50 @@ def round4_cases():
     return len(positives) >= 40 and len(clean) >= 40 and complete == len(positives) and not masked and not excess and safety
 
 
+def scope_regression_cases():
+    """Invented person/specimen twins share the postal field-scope contract."""
+    from privacygate.pipeline import _admit_additions, _refined
+    from privacygate.spans import union
+
+    value = "Neriva Talvorn"
+    prefixes = (
+        ("Firma: ", "Catalogue specimen: Name: "),
+        ("Template: empty. Name: ", "Template: Name: "),
+        ("Product: plain panel\nName: ", "Product: Name: "),
+        ("Sample: empty | Name: ", "Sample: Name: "),
+        ("Catalogue: plain panel, Recipient: ", "Catalogue specimen: Recipient: "),
+    )
+    complete = masked = 0
+    safety = True
+    for personal, clean in prefixes:
+        text = personal + value
+        # Firma is a homograph, not a new name detector: retain existing seeds.
+        inputs = [seed(text, "Neriva", "GIVENNAME")]
+        found = assemble(text, inputs)
+        complete += any(c["start"] == text.index(value) and c["end"] == len(text) for c in found)
+        twin = clean + value
+        for update in ({}, {"protected": True}, {"source": "structured"}):
+            raw = dict(seed(twin, "Neriva", "GIVENNAME"), **update)
+            ledger = [raw]
+            saved = deepcopy(ledger)
+            added = _admit_additions(twin, ledger, assemble(twin, ledger), {})
+            masked += bool(added)
+            final = union(_refined(twin, ledger + added))
+            safety &= ledger == saved and any(
+                c["start"] <= raw["start"] and raw["end"] <= c["end"] for c in final)
+    # Template closings remain specimens, but a sentence-ending period or an
+    # independently keyed personal line prevents that scope from leaking.
+    for scope in ("Catalogue specimen", "Template", "Product"):
+        personal = scope + ": empty.\nRegards\n" + value
+        clean = scope + ":\nRegards\n" + value
+        found = assemble(personal, [])
+        complete += any(c["start"] == personal.index(value) and c["end"] == len(personal) for c in found)
+        masked += bool(assemble(clean, []))
+    print(f"scope_regression_name_complete={complete}/8")
+    print(f"scope_regression_name_clean_masked={masked}/18 lower_bound_ok={int(safety)}")
+    return complete == 8 and not masked and safety
+
+
 def main():
     positives, negatives = fixtures()
     complete = 0
@@ -419,8 +463,9 @@ def main():
     mechanics()
     round3_ok = round3_cases()
     round4_ok = round4_cases()
+    regression_ok = scope_regression_cases()
     if (len(positives) < 60 or len(negatives) < 25 or complete != len(positives)
-            or negatives_masked or excess or not round3_ok or not round4_ok):
+            or negatives_masked or excess or not round3_ok or not round4_ok or not regression_ok):
         return 1
     print("name_mechanics=ok")
     return 0

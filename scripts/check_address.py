@@ -385,6 +385,78 @@ def round4_cases():
     return total >= 40 and complete == total and not clean_masked and safety
 
 
+def scope_regression_cases():
+    """Invented scope/ownership twins and row-wise mask lower-bound checks."""
+    from privacygate.pipeline import _admit_additions, _refined
+    from privacygate.spans import union
+    from types import SimpleNamespace
+
+    # Signature homographs and unrelated object fields are not nonpersonal scope.
+    value = "presso Neriva Talvorn, via Talvara 37, 68214 Zuvoria, Italia"
+    personal_prefixes = (
+        "Firma: Neriva Talvorn. Indirizzo: ",
+        "Firma Neriva Talvorn\nIndirizzo: ",
+        "Catalogue: blank form. Indirizzo: ",
+        "Product: plain panel\nIndirizzo: ",
+        "Template: empty\nProduct: blank\nIndirizzo: ",
+        "Sample: empty | Indirizzo: ",
+        "My company address: ",
+        "Catalogue: empty, my address: ",
+    )
+    clean_prefixes = (
+        "Catalogo campione: Indirizzo: ",
+        "Oggetto modello: Indirizzo: ",
+        "Template: Indirizzo: ",
+        "Product: Indirizzo: ",
+        "Sample: Indirizzo: ",
+        "My specimen delivery address: ",
+        "Company address: ",
+        "Catalogue: Indirizzo: ",
+    )
+    positives = [(prefix + value, value) for prefix in personal_prefixes]
+    negatives = [prefix + value for prefix in clean_prefixes]
+    grammars = (
+        ("Lunvera Walk 37, VZ6 3QX Talford, United Kingdom", "Public contact location: ", "Public trial exhibit: "),
+        ("Talvarastraße 37, 68214 Talberg, Deutschland", "Öffentliche Kontaktadresse: ", "Öffentlicher Versuchsraum: "),
+        ("quai Talvara 37, 68214 Talonne, France", "Adresse de contact public: ", "Public affichage: "),
+        ("vicolo Talvara 37, 68214 Taloria, Italia", "Contatto pubblico: ", "Pubblico esperimento di prova: "),
+        ("camino Talvara 37, 68214 Taloria, España", "Contacto público: ", "Público recinto de ensayo: "),
+    )
+    for postal, personal, specimen in grammars:
+        positives.append((personal + postal, postal))
+        negatives.append(specimen + postal)
+        # Ownership is independent after the object construction, not inherited
+        # from a word inside the specimen heading.
+        positives.append((specimen + "blank, Delivery: " + postal, postal))
+        negatives.append("Catalogue specimen: c/o Dr. Neriva Talvorn, " + postal)
+    complete = sum(contains(assemble(text, []), text.index(postal), len(text))
+                   for text, postal in positives)
+    masked = sum(bool(assemble(text, [])) for text in negatives)
+    safety = True
+    for text in negatives:
+        start = text.index(value) if value in text else text.index("37")
+        for update in ({}, {"protected": True}, {"source": "structured"}):
+            raw = dict(seed(start, len(text), "ADDRESS"), **update)
+            ledger = [raw]
+            saved = copy.deepcopy(ledger)
+            added = _admit_additions(text, ledger, assemble(text, ledger), {})
+            final = union(_refined(text, ledger + added))
+            safety &= ledger == saved and covered(final, raw["start"], raw["end"])
+    # A context heuristic without local object evidence cannot shrink old postal
+    # completion; this gate never arbitrates the original ledger itself.
+    text = "Delivery: " + value
+    reject = SimpleNamespace(decide=lambda *args: ("reject", "operational_code"))
+    outputs = _admit_additions(text, [], assemble(text, []), {"context": reject})
+    safety &= contains(outputs, text.index(value), len(text))
+    # Opaque broad model masks still cannot join unclassified pipe cells.
+    text = "Address: Lunvera Walk 37 | unknown item | 68214 Talford | France"
+    raw = seed(text.index("Lunvera"), len(text), "ADDRESS")
+    safety &= all(c["end"] <= text.index(" | ") for c in assemble(text, [raw]))
+    print(f"scope_regression_addr_complete={complete}/{len(positives)}")
+    print(f"scope_regression_addr_clean_masked={masked}/{len(negatives)} lower_bound_ok={int(safety)}")
+    return complete == len(positives) and not masked and safety
+
+
 def check():
     complete = total = nonaddr = exact = 0
     contract_ok = True
@@ -463,8 +535,9 @@ def check():
     print(f"address_contract_ok={int(contract_ok)}")
     round3_ok = round3_cases()
     round4_ok = round4_cases()
+    regression_ok = scope_regression_cases()
     return (complete == total and exact == total and nonaddr == 0 and contract_ok and round3_ok and round4_ok
-            and mixed_exact == mixed_total and care_exact == care_total)
+            and regression_ok and mixed_exact == mixed_total and care_exact == care_total)
 
 
 def evaluate_v1(source, model_dir):

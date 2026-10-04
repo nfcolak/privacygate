@@ -187,22 +187,16 @@ def _add(text, ledger, added, source, stage):
 
 
 def _admit_additions(text, ledger, added, modules):
-    """NEW assembler proposals get raw-proposal scope arbitration, additively."""
+    """Arbitrate only novel assembler coverage, never the accepted mask ledger.
+
+    A context rejection alone cannot revoke an old personal envelope: suppression
+    requires an explicit nonpersonal scope bound to this field/sentence. Covered
+    parts of rejected additions are still masked by the unchanged raw/protected
+    ledger, which _refined restores before final union.
+    """
     added = _checked(text, added)
     from .address import scope_allowed
-    kept = []
-    for cand in added:
-        action = "unresolved"
-        if "context" in modules:
-            decision = modules["context"].decide(text, dict(cand), [dict(c) for c in ledger])
-            if (not isinstance(decision, tuple) or len(decision) != 2
-                    or decision[0] not in ("accept", "reject", "unresolved")
-                    or not isinstance(decision[1], str) or not decision[1]):
-                _fail("pipeline_context_invalid")
-            action = decision[0]
-        if cand["protected"] or (action != "reject" and scope_allowed(text, cand, ledger)):
-            kept.append(cand)
-    return kept
+    return [cand for cand in added if scope_allowed(text, cand, ledger)]
 
 
 def _refined(text, ledger):

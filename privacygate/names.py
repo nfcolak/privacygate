@@ -442,7 +442,12 @@ def assemble(text, cands):
                         and c["start"] < b and a < c["end"]]
         if any(c["start"] < a or c["end"] > b for c in intersecting):
             continue
-        out[a, b] = _candidate(a, b, "assembled", personal)
+        cand = _candidate(a, b, "assembled", personal)
+        # The same field/sentence scope governs postal and person additions;
+        # input name masks remain untouched even when a specimen is rejected.
+        from .address import scope_allowed
+        if scope_allowed(text, cand, cands):
+            out[a, b] = cand
     return [out[key] for key in sorted(out)]
 
 

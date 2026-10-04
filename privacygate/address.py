@@ -141,8 +141,21 @@ _OBJECT_SCOPE = re.compile(
     r"campione|esempio|modello|mostra|catalogo|oggetto|"
     r"muestra|ejemplo|plantilla|exposición|catálogo|objeto|"
     r"product|Produkt|produit|prodotto|producto|"
-    r"company|business|Unternehmen|Firma|société|entreprise|azienda|impresa|empresa)"
+    # Bare Firma is also a Romance-language signature cue, not object evidence.
+    r"company|business|Unternehmen|société|entreprise|azienda|impresa|empresa|"
+    # Public TEST/DISPLAY field headings are explicit nonpersonal objects;
+    # public alone (e.g. a public contact address) is not ownership evidence.
+    r"(?:public|publique|publics|publiques|pubblic[oaie]|públic[oa]s?|"
+    r"öffentlich(?:e[rmns]?)?)[ \t]+"
+    r"(?=[^\n\r|;:=]{0,60}(?<!\w)(?:test|trial|demo|display|"
+    r"experimental|essai|d['’]essai|prova|ensayo|prüf\w*|versuchs\w*|"
+    r"affichage|esposizione|exhibición)(?!\w))"
+    r"[^\n\r|;:=]{1,60}(?=[:=]))"
     r"(?!\w)", re.I,
+)
+_SENTENCE_END = re.compile(r"[.!?](?:[ \t]+|\r?\n)")
+_SCOPE_ABBREVIATION = re.compile(
+    r"(?:\b(?:Dr|Prof|Mr|Mrs|Ms|Mme|Mlle|Sig|Sr|Sra|St|Rd|Str)|\b[A-ZÀ-ÖØ-Þ])\.$", re.I,
 )
 _OWNERSHIP = re.compile(
     r"(?<!\w)(?:my|your|his|her|our|their|mein\w*|dein\w*|unser\w*|"
@@ -154,11 +167,11 @@ _OWNERSHIP = re.compile(
 
 
 def scope_allowed(text, cand, cands):
-    """Gate only NEW regions in explicit object/business scope; keep raw masks.
+    """Suppress only novel assembler coverage in an explicit local object scope.
 
-    A nearby pronoun is not enough: independent ownership must occur outside
-    the object construction, or bind the postal field itself. Name seeds inside
-    a specimen are not independent person evidence.
+    Raw/protected masks remain the caller's ledger lower bound. A scope in an
+    earlier sentence, table cell, or separately keyed line cannot own this value;
+    nested specimen keys and a contiguous template/signature block can.
     """
     if cand.get("protected"):
         return True
@@ -169,16 +182,40 @@ def scope_allowed(text, cand, cands):
         low = blank[-1].end()
     for mark in (";", "!", "?"):
         low = max(low, text.rfind(mark, low, start) + 1)
+    cell = text.rfind("|", low, start) + 1
+    if cell > low and _NEXT_FIELD.search(text[cell:start]):
+        low = cell
+    for boundary in _SENTENCE_END.finditer(text, low, start):
+        if not _SCOPE_ABBREVIATION.search(text[max(low, boundary.start() - 12):boundary.start() + 1]):
+            low = boundary.end()
+    # New keyed lines are siblings, not descendants of a preceding object field.
+    # A key and its unkeyed continuation (e.g. a template closing) stay together.
+    line_base = low
+    for line in re.finditer(r"[\r\n]+([^\r\n]*)", text[line_base:start]):
+        if _NEXT_FIELD.search(line.group(1)):
+            low = line_base + line.start(1)
     prefix = text[low:start]
     objects = list(_OBJECT_SCOPE.finditer(prefix))
     if not objects:
         return True
     owner = list(_OWNERSHIP.finditer(prefix))
-    if owner and owner[-1].start() > objects[-1].end():
-        # "sample delivery address" is a specimen, not independent ownership.
-        between = prefix[objects[-1].end():owner[-1].start()]
-        if re.search(r",|\b(?:but|aber|mais|ma|pero)\b", between, re.I):
-            return True
+    # Ownership binding this field wins, but not a pronoun or delivery word
+    # inside a specimen key ("sample delivery address" remains a specimen).
+    for evidence in owner:
+        if evidence.start() > objects[-1].end():
+            between = prefix[objects[-1].end():evidence.start()]
+            if re.search(r",|\b(?:but|aber|mais|ma|pero)\b", between, re.I):
+                return True
+        elif evidence.end() <= objects[0].start():
+            between = prefix[evidence.end():objects[0].start()]
+            # A possessive specimen is still a specimen; business ownership,
+            # unlike ownership of a sample, can establish a real contact field.
+            business = re.fullmatch(
+                r"company|business|Unternehmen|société|entreprise|azienda|impresa|empresa",
+                objects[0].group(), re.I,
+            )
+            if business and not re.search(r"[:=,]", between):
+                return True
     return any(c.get("context") == "personal" and c.get("source") != "address"
                and c["start"] < start and low <= c["start"]
                and not any(low + m.start() <= c["start"] for m in objects)
