@@ -162,6 +162,87 @@ def _invariants():
             raise ValueError("invalid_candidate_failed")
 
 
+def _round3():
+    from scripts.check_structured import group, iban
+    # Fresh invented serials with independently calculated valid checksums.
+    serials = (
+        group(iban("DE", "639182745061928374"), (4,), " "),
+        group(iban("GB", "QXRT63918274506192"), (4,), " "),
+        group(iban("IT", "Z" + "6391827450" + "619283745061"), (4,), " "),
+    )
+    from privacygate.structured import check
+    if any(check(value, _candidate(value, value, "IBAN"))["validation"] != "valid" for value in serials):
+        raise ValueError("round3_checksum_fixture_failed")
+    fixtures = []
+    for cue in ("Product serial", "Produktseriencode", "série produit", "seriale prodotto", "de serie",
+                "Order code", "Bestellcode", "non attribué", "non assegnato", "sin asignar"):
+        for value in serials:
+            fixtures.append((cue, value, "IBAN"))
+        for value in ("+49 (0)30 639 1827", "+33\n1 63 91 82 74 ext. 36", "QXT / RP / 6391827"):
+            fixtures.append((cue, value, "TELEPHONENUM" if value.startswith("+") else "PERSONALREF"))
+    for cue in ("Manufacturing date", "Maintenance date", "Herstelldatum", "Wartungskalender",
+                "Date de fabrication", "Fecha de fabricación", "Calendrier public d'entretien",
+                "Data di manutenzione", "Fecha de mantenimiento", "fabrication"):
+        for value in ("23.09.2038", "2038-09-23"):
+            fixtures.append((cue, value, "TELEPHONENUM"))
+    clean_rejected, personal_rejected, checked = 0, 0, 0
+    for cue, value, label in fixtures:
+        clean = cue + ": " + value + "; end."
+        personal = "my personal record — " + clean
+        for source in ("regex", "structured", "mbert"):
+            for status in ("valid", "invalid", "unknown"):
+                candidate = _candidate(clean, value, label, source=source, validation=status)
+                # An overlapping checksum-valid structured proposal is not ownership.
+                other = _candidate(clean, value, label, source="structured", validation="valid")
+                result = _decision(clean, candidate, [candidate, other])
+                clean_rejected += result[0] == "reject"
+                linked = _candidate(personal, value, label, source=source, validation=status)
+                personal_rejected += _decision(personal, linked)[0] == "reject"
+                checked += 1
+                if result[0] != "reject" or _decision(personal, linked)[0] == "reject":
+                    raise ValueError("round3_contrast_failed")
+        # Every strict fragment is bound to its complete independently cued value.
+        if value.startswith("+"):
+            fragment = value[1:]
+            if _decision(clean, _candidate(clean, fragment, label, source="mbert"))[0] != "reject":
+                raise ValueError("round3_plus_fragment_failed")
+    # Explicit personal fields, names and protected evidence still win.
+    value = serials[0]
+    for owner in ("IBAN:", "Telephone:", "Telefon:", "Téléphone:", "Telefono:", "Teléfono:",
+                  "patient", "Kunde", "mon compte", "mio documento", "mi registro", "born"):
+        text = owner + " Product serial: " + value + "; end."
+        if _decision(text, _candidate(text, value, "IBAN"))[0] == "reject":
+            raise ValueError("round3_personal_field_failed")
+    clean = "Product serial: " + value + "; end."
+    for changes in ({"protected": True}, {"protected": None}, {"context": "personal"},
+                    {"source": "coverage"}, {"stage": "coverage"}):
+        if _decision(clean, _candidate(clean, value, "IBAN", **changes))[0] == "reject":
+            raise ValueError("round3_protection_failed")
+    candidate = _candidate(clean, value, "IBAN")
+    protected = _candidate(clean, value[-2:], "ACCOUNTNUM", protected=True)
+    if _decision(clean, candidate, [candidate, protected])[0] == "reject":
+        raise ValueError("round3_overlap_failed")
+    named = "Nora Velkin — " + clean
+    if _decision(named, _candidate(named, value, "IBAN"),
+                 [_candidate(named, value, "IBAN"), _candidate(named, "Nora Velkin", "PERSONNAME")])[0] == "reject":
+        raise ValueError("round3_name_failed")
+    for status in ("invalid", "unknown"):
+        if _decision(value, _candidate(value, value, "IBAN", validation=status))[0] != "accept":
+            raise ValueError("round3_validation_not_clean_failed")
+    # Neither over-wide candidates nor cross-field/newline evidence is clean.
+    for text, part in ((clean, "Product serial: " + value),
+                       ("Product serial; IBAN: " + value, value),
+                       ("Product serial\nIBAN: " + value, value),
+                       ("Order code: +49\n\n30 639 1827", "+49\n\n30 639 1827")):
+        if _decision(text, _candidate(text, part, "IBAN"))[0] == "reject":
+            raise ValueError("round3_narrow_scope_failed")
+    print(f"round3_clean_rejected={clean_rejected}/{checked}")
+    print(f"round3_personal_rejected={personal_rejected}")
+    print(f"round3_contrastive_pairs={len(fixtures)}")
+    if len(fixtures) < 30 or clean_rejected != checked or personal_rejected:
+        raise ValueError("round3_context_failed")
+
+
 def main():
     fixtures = list(_fixtures())
     clean_rejected = personal_rejected = 0
@@ -179,6 +260,7 @@ def main():
     print(f"personal_checked={total}")
     if total < 50 or clean_rejected * 5 < total * 4 or personal_rejected:
         raise ValueError("context_acceptance_failed")
+    _round3()
 
 
 if __name__ == "__main__":

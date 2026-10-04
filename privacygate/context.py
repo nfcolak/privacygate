@@ -38,7 +38,8 @@ _PERSONAL = _rx(
     r"patientin(?:nen)?|patiente?s?|pazient[ei]|pacientes?|"
     r"born|birth(?:day|date)?|geboren|geburt(?:sdatum|stag)?|né|née|naissance|"
     r"nato|nata|nascita|nacido|nacida|nacimiento|"
-    r"person|personne|persona|recipient|empfänger|destinataire|destinatario|"
+    r"person|personal|private|privat(?:e[rmns]?|em|en|er|es)?|privé|privée|privato|privata|privado|privada|"
+    r"personne|persona|recipient|empfänger|destinataire|destinatario|"
     r"resident|residente|inhaber|titulaire|holder|owner|proprietario|propietario"
     r")(?!\w)|(?<=\w)['’]s(?!\w)"
 )
@@ -67,9 +68,44 @@ _CODE_CUE = (
     r"article|artikelnummer|réf\.[ \t]*produit|référence[ \t]+produit|"
     r"codice[ \t]+articolo|referencia(?:[ \t]+(?:de[ \t]+)?producto)?"
 )
+_OP_CUE = (
+    r"product[ \t]+serial(?:[ \t]+(?:code|number))?|produktseriencode|"
+    r"série[ \t]+produit|seriale[ \t]+prodotto|(?:número[ \t]+)?de[ \t]+serie|"
+    r"order[ \t]+code|bestellcode|non[ \t]+attribué|non[ \t]+assegnato|sin[ \t]+asignar"
+)
+_H = r"[ \t\u00a0\u202f]"
+_TYPED_IBAN = rf"[A-Z]{{2}}[0-9]{{2}}(?:{_H}+[A-Z0-9]{{1,4}}){{3,8}}"
+_TYPED_PHONE = (r"\+?[0-9][0-9() \t\u00a0\u202f.\-\r\n]{5,94}[0-9)]"
+                r"(?:[ \t,;/-]*(?:extension|ext\.?|x|durchwahl|dw\.?|"
+                r"poste|interno|int\.?|anexo|#)[ \t:=.-]*[0-9]{1,8})?")
+_SERIAL = r"[A-Z0-9]+(?:[ \t]*[-./][ \t]*[A-Z0-9]+)*"
 _CODE = _rx(
+    rf"(?<!\w)(?:{_CODE_CUE}|{_OP_CUE})(?!\w){_CONNECTOR}"
+    rf"(?P<value>{_TYPED_IBAN}|{_TYPED_PHONE}|{_SERIAL})(?!\w)"
+)
+# Only these explicit operational fields may precede unconditional acceptance.
+# Generic short Order/SKU values retain the previous sensitive-label policy.
+_OP_CODE = _rx(
+    rf"(?<!\w)(?:{_OP_CUE})(?!\w){_CONNECTOR}"
+    rf"(?P<value>{_TYPED_IBAN}|{_TYPED_PHONE}|{_SERIAL})(?!\w)"
+)
+_OP_TYPED = _rx(
     rf"(?<!\w)(?:{_CODE_CUE})(?!\w){_CONNECTOR}"
-    r"(?P<value>[\w]+(?:[-./][\w]+)*)(?!\w)"
+    rf"(?P<value>{_TYPED_IBAN}|{_TYPED_PHONE})(?!\w)"
+)
+_OP_DATE_CUE = _rx(
+    r"(?<!\w)(?:manufacturing[ \t]+date|maintenance[ \t]+(?:date|calendar)|"
+    r"herstelldatum|wartungskalender|(?:date[ \t]+de[ \t]+)?fabrication|"
+    r"(?:fecha[ \t]+de[ \t]+)?fabricación|d['’]entretien|"
+    r"(?:data[ \t]+di[ \t]+)?manutenzione|(?:fecha[ \t]+de[ \t]+)?mantenimiento)"
+    r"(?!\w)[ \t]*(?:[:=][ \t]*)?"
+)
+_PERSONAL_FIELD = _rx(
+    r"(?<!\w)(?:iban|bank[ \t]+account|konto|compte[ \t]+bancaire|"
+    r"phone|telephone|téléphone|telefon(?:nummer)?|telefono|teléfono|"
+    r"date[ \t]+of[ \t]+birth|geburtsdatum|naissance|nascita|nacimiento|"
+    r"case|fall|dossier|caso|passport|reisepass|social[ \t]+security)"
+    r"(?!\w)[ \t]*[:=]"
 )
 _ROOM_CUE = (
     r"room|raum|zimmer|salle|sala|aula|gate|gleis|quai|binario|andén|"
@@ -158,11 +194,31 @@ def _construction(text, start, end, label):
     return None
 
 
-def _personal(text, start, end, cand, cands):
+def _operational(text, start, end, label):
+    """Independent typed field evidence, not a checksum/score-based exemption."""
+    lo, hi = max(0, start - 120), min(len(text), end + 120)
+    for pattern in (_OP_CODE, _OP_TYPED):
+        for match in pattern.finditer(text, lo, hi):
+            value = match.group("value")
+            if (_contains(match, start, end, "value")
+                    and any(ch.isdigit() for ch in value)
+                    and len(re.findall(r"\r\n|\r|\n", value)) <= 1):
+                return "operational_code", match.start(), match.end("value")
+    if label in _DATE_LABELS or label == "TELEPHONENUM":
+        for cue in _OP_DATE_CUE.finditer(text, lo, hi):
+            value = _DATE.match(text, cue.end())
+            if value is not None and _contains(value, start, end):
+                return "operational_date", cue.start(), value.end()
+    return None
+
+
+def _personal(text, start, end, cand, cands, ownership_only=False):
     if cand.get("context") == "personal":
         return True
     lo, hi = max(0, start - _RADIUS), min(len(text), end + _RADIUS)
     if _PERSONAL.search(text, lo, hi) or _AGE_CUE.search(text, lo, hi):
+        return True
+    if ownership_only and _PERSONAL_FIELD.search(text, lo, hi):
         return True
     for other in cands:
         bounds = _bounds(text, other)
@@ -174,7 +230,9 @@ def _personal(text, start, end, cand, cands):
         # Independent sensitive evidence wins even when a clean construction overlaps.
         if a < end and b > start and (
             other.get("protected") is True
-            or (other.get("source") == "structured" and other.get("validation") == "valid")
+            or (ownership_only and other.get("context") == "personal")
+            or (not ownership_only and other.get("source") == "structured"
+                and other.get("validation") == "valid")
         ):
             return True
     return False
@@ -196,12 +254,18 @@ def decide(text, cand, cands):
     label = cand["label"].upper()
     if cand.get("protected") is not False:
         return "accept", "protected_or_unknown"
+    if cand.get("source") == "coverage" or cand.get("stage") == "coverage":
+        return "accept", "coverage"
+    operational = _operational(text, start, end, label)
+    if operational is not None and label not in _NAME_LABELS | {"EMAIL", "USERNAME"}:
+        reason, value_start, value_end = operational
+        if _personal(text, value_start, value_end, cand, cands, ownership_only=True):
+            return "unresolved", "conflicting_context"
+        return "reject", reason
     if label in _NEVER_REJECT:
         return "accept", "sensitive_label"
     if cand.get("source") == "structured" and cand.get("validation") == "valid":
         return "accept", "structured_valid"
-    if cand.get("source") == "coverage" or cand.get("stage") == "coverage":
-        return "accept", "coverage"
     reason = _construction(text, start, end, label)
     if reason is None:
         return "accept", "default"

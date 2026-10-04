@@ -41,11 +41,14 @@ _KEYS = {
                   r"dni|nie|nif"),
     "DRIVERLICENSENUM": (r"führerschein(?:nummer)?|driv(?:ing|er['’]?s?)\s+"
                          r"licen[cs]e|permis\s+de\s+conduire|"
+                         r"permis(?=[ \t]*(?:[:=]|n[°º]|numéro|[A-Z]{1,4}[ \t]*/[ \t]*[0-9]{5,12}(?![0-9])))|"
                          r"patente(?:\s+di\s+guida)?|permiso\s+de\s+conducir"),
     "TAXNUM": (r"steuer[ -]*id|idnr\.?|steuernummer|tax(?:payer)?\s+"
                r"(?:id|number|no\.?)|numéro\s+fiscal|codice\s+fiscale"),
-    "SOCIALNUM": (r"svnr\.?|ahv(?:[ -]*(?:nummer|nr\.?))?|nir|"
-                  r"numéro\s+de\s+sécurité\s+sociale|social\s+security"
+    "SOCIALNUM": (r"svnr\.?|sozialversicherungsnummer|ahv(?:[ -]*(?:nummer|nr\.?))?|nir|"
+                  r"(?:numéro\s+de\s+)?sécurité\s+sociale|"
+                  r"(?:numero\s+di\s+)?previdenza|(?:número\s+de\s+)?seguridad\s+social|"
+                  r"social\s+security"
                   r"(?:\s+(?:number|no\.?))?|nss|nuss|ssn|"
                   r"ni\s+(?:number|no\.?)|national\s+insurance(?:\s+number)?"),
     "ACCOUNTNUM": (r"kontonummer|konto(?:[ -]*nr\.?)?|"
@@ -61,7 +64,9 @@ _KEYS = {
     "PERSONALREF": (r"kundennummer|kunden[ -]*nr\.?|customer|"
                     r"n[°º]\s+client|(?:numéro\s+de\s+)?client|"
                     r"codice\s+cliente|n\.[º°]\s+de\s+cliente|"
-                    r"número\s+de\s+cliente|aktenzeichen|case|patient(?:en)?|"
+                    r"número\s+de\s+cliente|aktenzeichen|case|"
+                    r"(?:fall|dossier|caso)(?=[ \t]*(?:[:=]|nummer|number|no\.?|n[°º]))|"
+                    r"patient(?:en)?|"
                     r"paziente|paciente|membership|member|mitgliedsnummer"),
 }
 _CUES = re.compile(r"(?<!\w)(?:" + "|".join(
@@ -82,6 +87,19 @@ _EXT = re.compile(r"[ \t,;/-]*(?:extension|ext\.?|x|durchwahl|dw\.?|"
                   re.IGNORECASE)
 _PHONE_BASE = re.compile(r"(?<![A-Za-z0-9])(?:\+|\()?[0-9]"
                          r"[0-9() \t\u00a0\u202f.\-]{4,94}[0-9)](?![A-Za-z0-9])")
+_PHONE_FIELD = re.compile(r"(?<![A-Za-z0-9])(?:\+|\()?[0-9]"
+                          r"[0-9() \t\u00a0\u202f.\-\r\n]{4,94}[0-9)](?![A-Za-z0-9])")
+_AGE = re.compile(
+    r"(?<!\w)(?:aged|age|alter|âge|età|edad)(?!\w)"
+    r"[ \t]*(?:(?:[:=]|is|ist|est|è|es|beträgt)[ \t]*)?"
+    r"(?:\r?\n[ \t]*)?(?P<value>[0-9]{1,3}(?![0-9])"
+    r"(?:[ \t]+(?:years?|jahre?|ans|anni|años)(?!\w))?)(?!\w)", re.IGNORECASE)
+_AGE_OBJECT = re.compile(
+    r"(?<!\w)(?:product|produkt|produit|prodotto|producto|warranty|garantie|"
+    r"duration|durée|machine|maschine|equipment)(?:['’]s)?[ \t]+$", re.IGNORECASE)
+_DOC_PERSONAL = re.compile(
+    r"(?<!\w)(?:mon|ma|mes|notre|votre|son|sa|ses|titulaire|conducteur|"
+    r"personnel|personnelle|privé|privée|passeport|identité)(?!\w)", re.IGNORECASE)
 _ISEP = r"[ \t\u00a0\u202f.\-\u2010\u2011\u2013]{0,6}"
 _IBAN_START = re.compile(r"(?<![A-Za-z0-9])([A-Za-z])" + _ISEP +
                          r"([A-Za-z])" + _ISEP + r"[0-9]" + _ISEP + r"[0-9]")
@@ -204,6 +222,8 @@ def _phone_library():
 def _phone_status(value, phones):
     ext = _EXT.search(value)
     base = value[:ext.start()] if ext else value
+    # Parsing-only normalization; candidate envelopes stay in original offsets.
+    base = re.sub(r"\r\n|\r|\n", " ", base)
     # Optional international trunk display marker: NOT Italy's leading zero.
     base = re.sub(r"^(\+|00)(49|43|41|33|34|44|1)([ \t.\-]*)\(0\)",
                   r"\1\2\3", base.strip())
@@ -303,16 +323,32 @@ def _phone_end(text, end):
 
 def _phone_candidates(text, fields, phones):
     result, seen = [], set()
+    envelopes = [(m.start(), m.end(), False) for m in _PHONE_BASE.finditer(text)]
+    for start in fields:
+        match = _PHONE_FIELD.match(text, start)
+        if match is None or len(re.findall(r"\r\n|\r|\n", match.group())) > 1:
+            match = _PHONE_BASE.match(text, start)
+        if match is not None:
+            envelopes.append((match.start(), match.end(), True))
 
     def add(start, end, anchored=False):
+        # Bind library fragments after '+' to the full original typed value.
+        # This also prevents fragments from bypassing an operational field cue.
+        covering = [(a, b, field) for a, b, field in envelopes
+                    if a <= start < end <= b
+                    and 7 <= sum(ch.isdigit() for ch in text[a:b]) <= 17]
+        if covering:
+            start, end, field = max(covering, key=lambda item: item[1] - item[0])
+            anchored = anchored or field
         end = _phone_end(text, end)
         key = (start, end)
         if key in seen:
             return
         seen.add(key)
         value = text[start:end]
-        base = value.split("\n", 1)[0]
-        digit_count = sum(c.isdigit() for c in (_EXT.split(base, 1)[0]))
+        extension = _EXT.search(value)
+        base = value[:extension.start()] if extension is not None else value
+        digit_count = sum(c.isdigit() for c in base)
         if not 7 <= digit_count <= 17:
             return
         if _bound_key(text, start, clean=True) and not anchored:
@@ -324,15 +360,9 @@ def _phone_candidates(text, fields, phones):
             return
         result.append(_candidate(text, start, end, "TELEPHONENUM", status))
 
-    for start in fields:
-        match = _PHONE_BASE.match(text, start)
-        if match:
-            add(match.start(), match.end(), anchored=True)
-    # Boundary pass completes trunk markers, parentheses, dots and extensions;
-    # only explicit international shapes are promoted without a field here.
-    for match in _PHONE_BASE.finditer(text):
-        if match.group().startswith(("+", "00")):
-            add(match.start(), match.end())
+    for start, end, anchored in envelopes:
+        if anchored or text[start:end].startswith(("+", "00")):
+            add(start, end, anchored)
     for leniency in (phones.Leniency.VALID, phones.Leniency.POSSIBLE):
         for region in _REGIONS:
             matcher = phones.PhoneNumberMatcher(text, region, leniency=leniency, max_tries=1000)
@@ -353,9 +383,20 @@ def detect(text):
     phones = _phone_library()
     try:
         result, fields = _iban_candidates(text), []
+        for age in _AGE.finditer(text):
+            if _AGE_OBJECT.search(text[max(0, age.start() - 50):age.start()]):
+                continue
+            start, end = age.span("value")
+            candidate = _candidate(text, start, end, "AGE", "n/a")
+            candidate["context"] = "personal"
+            result.append(candidate)
         for match in _CUES.finditer(text):
             start = _GAP_RE.match(text, match.end()).end()
             label = match.lastgroup
+            if (label == "DRIVERLICENSENUM" and match.group().lower() == "permis"
+                    and not re.search(r"[:=]", text[match.end():start])
+                    and _DOC_PERSONAL.search(text, max(0, match.start() - 120), match.start()) is None):
+                continue  # Bare shorthand requires independent personal-document evidence.
             if label == "TELEPHONENUM":
                 fields.append(start)
                 continue

@@ -32,6 +32,7 @@ def parser():
     p.add_argument("--model-dir", required=True)
     p.add_argument("--out-dir", required=True)
     p.add_argument("--predictions-from", choices=("pipeline", "inference"), default="pipeline")
+    p.add_argument("--dev", action="store_true", help="Evaluate development v5 outside artifacts/runs without blind custody")
     return p
 
 
@@ -167,6 +168,16 @@ def summary(report):
 
 def execute(args, root=ROOT, check_receipts=False):
     root = Path(root)
+    dev = getattr(args, "dev", False)
+    if dev:
+        if args.version != "v5" or check_receipts:
+            raise ev.EvaluationError("eval_dev_v5_only")
+        # Reject reserved outputs before any dataset/model/custody access.
+        # Check both spelling and symlink resolution, including other worktrees.
+        for path in (Path(args.out_dir).absolute(), Path(args.out_dir).resolve()):
+            if any(path.parts[i:i + 2] == ("artifacts", "runs")
+                   for i in range(len(path.parts) - 1)):
+                raise ev.EvaluationError("eval_dev_reserved_output")
     if args.profile is None:
         args.profile = "legacy_union_refined" if args.predictions_from == "inference" else "full"
     if args.profile not in PROFILES or args.predictions_from not in ("pipeline", "inference"):
@@ -184,7 +195,7 @@ def execute(args, root=ROOT, check_receipts=False):
     if out.exists():
         raise ev.EvaluationError("eval_output_exists")
     custody = ev.BlindCustody(root, args.profile, frozen["model_sha256"], binding["sha256"],
-                              check=check_receipts, version=args.version) if args.version in ("v4", "v5") else nullcontext()
+                              check=check_receipts, version=args.version) if args.version in ("v4", "v5") and not dev else nullcontext()
     with custody as blind:
         # Module availability is checked before custody is consumed; an inference
         # or scoring failure after reservation consumes this blind arm.
@@ -217,7 +228,8 @@ def execute(args, root=ROOT, check_receipts=False):
                     "started_at": started_at, "finished_at": ev.utc_now(), "wall_time_seconds": wall_time,
                     "model_load_reused": args.predictions_from == "inference",
                     "predictions_cached": False, "human_review_performed": False,
-                    "blind": args.version in ("v4", "v5"), "threshold_selection": False}
+                    "blind": args.version in ("v4", "v5") and not dev,
+                    "development": dev, "threshold_selection": False}
         ev.json_write(out / "metrics.json", report)
         ev.json_write(out / "manifest.json", manifest)
         if blind is not None:
