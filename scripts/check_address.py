@@ -298,6 +298,93 @@ def round3_cases():
     return complete == len(positives) and exact == len(positives) and not masked and safety
 
 
+def round4_cases():
+    """Invented multilingual grammar/scope pairs; no development rows replayed."""
+    from privacygate import context
+    from privacygate.pipeline import _admit_additions, _refined
+    from privacygate.spans import union
+
+    grammars = (
+        ("Home address", "Walk", "VZ4 8QX Luvarton", "United Kingdom", "flat 8", "Catalogue specimen"),
+        ("Delivery", "Close", "VZ4 8QX Luvarton", "United Kingdom", "floor 2", "Sample template"),
+        ("Address", "Row", "VZ4 8QX Luvarton", "United Kingdom", "unit B", "Exhibit object"),
+        ("Home address", "Mews", "VZ4 8QX Luvarton", "United Kingdom", "suite 3", "Business catalogue"),
+        ("Wohnadresse", "Gasse", "68429 Luvarton", "Deutschland", "Wohnung 8", "Katalog Muster"),
+        ("Postadresse", "Weg", "68429 Luvarton", "Deutschland", "2. Stock", "Objekt Vorlage"),
+        ("Adresse", "Ring", "68429 Luvarton", "Deutschland", "Whg. 8", "Exponat Beispiel"),
+        ("Zustellung", "Allee", "68429 Luvarton", "Deutschland", "Etg. 2", "Unternehmen Katalog"),
+        ("Adresse privée", "Chemin", "68429 Luvarton", "France", "étage 2", "Catalogue spécimen"),
+        ("Livraison", "Impasse", "68429 Luvarton", "France", "appartement 8", "Objet gabarit"),
+        ("Adresse", "Quai", "68429 Luvarton", "France", "bâtiment B", "Exposition exemple"),
+        ("Adresse privée", "Rue", "68429 Luvarton", "France", "escalier 2", "Entreprise catalogue"),
+        ("Indirizzo privato", "Vicolo", "68429 Luvarton", "Italia", "piano 2", "Catalogo campione"),
+        ("Consegna", "Strada", "68429 Luvarton", "Italia", "interno 8", "Oggetto modello"),
+        ("Indirizzo", "Via", "68429 Luvarton", "Italia", "scala B", "Mostra esempio"),
+        ("Indirizzo privato", "Viale", "68429 Luvarton", "Italia", "palazzina B", "Azienda catalogo"),
+        ("Domicilio privado", "Calle", "68429 Luvarton", "España", "piso 2", "Catálogo muestra"),
+        ("Entrega", "Paseo", "68429 Luvarton", "España", "puerta B", "Objeto plantilla"),
+        ("Dirección", "Camino", "68429 Luvarton", "España", "planta 2", "Exposición ejemplo"),
+        ("Domicilio privado", "Avenida", "68429 Luvarton", "España", "escalera 2", "Empresa catálogo"),
+    )
+    complete = clean_masked = total = 0
+    safety = True
+    for cue, road, postal, country, unit, object_scope in grammars:
+        street = (f"{road} Luvarel 28" if road.casefold() in {
+            "chemin", "impasse", "quai", "rue", "vicolo", "strada", "via", "viale",
+            "calle", "paseo", "camino", "avenida"} else f"Luvarel {road} 28")
+        for separator in (" | ", " / ", "\n"):
+            value = separator.join((street, unit, postal, country))
+            text = cue + " = " + value
+            found = assemble(text, [])
+            found = _admit_additions(text, [], found, {"context": context})
+            start = text.index(value)
+            complete += len(found) == 1 and contains(found, start, len(text))
+            total += 1
+            clean = object_scope + ": " + cue + " = " + value
+            clean_found = assemble(clean, [])
+            clean_found = _admit_additions(clean, [], clean_found, {"context": context})
+            clean_masked += bool(clean_found)
+            # Existing personal/protected masks remain untouched on scope rejection.
+            original = seed(clean.index(value), len(clean), "ADDRESS")
+            original["protected"] = True
+            ledger = [original]
+            before = copy.deepcopy(ledger)
+            additions = _admit_additions(clean, ledger, assemble(clean, ledger), {"context": context})
+            final = union(_refined(clean, ledger + additions))
+            safety &= ledger == before and covered(final, original["start"], original["end"])
+    # Table cells are not a postal field. A broad model proposal cannot connect them.
+    for scope in ("Company", "Unternehmen", "Entreprise", "Azienda", "Empresa"):
+        text = scope + " | Luvarel Walk 28 | Price: 19 | 68429 Luvarton | France"
+        safety &= not assemble(text, [])
+        raw = seed(0, len(text), "ADDRESS")
+        safety &= not assemble(text, [raw])
+    # Even in an address field, an unknown cell or new field breaks joining.
+    for foreign in ("QZ48", "amount 19", "Phone: +44 1632 960321", "Reference: AB-928"):
+        value = "Luvarel Walk 28 | " + foreign + " | 68429 Luvarton | France"
+        text = "Address: " + value
+        found = assemble(text, [seed(text.index(value), len(text), "ADDRESS")])
+        safety &= all(c["end"] <= text.index(" | ") for c in found)
+    # Foreign raw phone fragments in postcode components are not lexical phone fields.
+    for cue in ("Address", "Adresse", "Indirizzo", "Dirección", "Delivery"):
+        value = "68429 Luvarton / via Luvarel 28 / Italia"
+        text = cue + ": " + value
+        phone = seed(text.index("68429"), text.index("68429") + 5, "TELEPHONENUM")
+        found = assemble(text, [phone])
+        safety &= contains(found, text.index(value), len(text))
+        for update in ({"protected": True}, {"validation": "valid"}, {"source": "structured"}):
+            found = assemble(text, [dict(phone, **update)])
+            safety &= all(not (c["start"] <= phone["start"] and phone["end"] <= c["end"]) for c in found)
+        labelled = cue + ": " + value.replace("68429", "Phone: 68429")
+        safety &= all("Phone:" not in labelled[c["start"]:c["end"]] for c in assemble(labelled, []))
+    # Independent delivery ownership survives a preceding example discussion.
+    text = "Template: blank layout, Delivery: Luvarel Walk 28, 68429 Luvarton, France"
+    value = "Luvarel Walk 28, 68429 Luvarton, France"
+    safety &= contains(assemble(text, []), text.index(value), len(text))
+    print(f"round4_addr_complete={complete}/{total}")
+    print(f"round4_addr_clean_masked={clean_masked}/{total} barriers_ok={int(safety)}")
+    return total >= 40 and complete == total and not clean_masked and safety
+
+
 def check():
     complete = total = nonaddr = exact = 0
     contract_ok = True
@@ -375,7 +462,8 @@ def check():
     print(f"care_exact={care_exact}/{care_total}")
     print(f"address_contract_ok={int(contract_ok)}")
     round3_ok = round3_cases()
-    return (complete == total and exact == total and nonaddr == 0 and contract_ok and round3_ok
+    round4_ok = round4_cases()
+    return (complete == total and exact == total and nonaddr == 0 and contract_ok and round3_ok and round4_ok
             and mixed_exact == mixed_total and care_exact == care_total)
 
 

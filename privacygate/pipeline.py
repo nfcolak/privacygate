@@ -186,6 +186,25 @@ def _add(text, ledger, added, source, stage):
     return len(added)
 
 
+def _admit_additions(text, ledger, added, modules):
+    """NEW assembler proposals get raw-proposal scope arbitration, additively."""
+    added = _checked(text, added)
+    from .address import scope_allowed
+    kept = []
+    for cand in added:
+        action = "unresolved"
+        if "context" in modules:
+            decision = modules["context"].decide(text, dict(cand), [dict(c) for c in ledger])
+            if (not isinstance(decision, tuple) or len(decision) != 2
+                    or decision[0] not in ("accept", "reject", "unresolved")
+                    or not isinstance(decision[1], str) or not decision[1]):
+                _fail("pipeline_context_invalid")
+            action = decision[0]
+        if cand["protected"] or (action != "reject" and scope_allowed(text, cand, ledger)):
+            kept.append(cand)
+    return kept
+
+
 def _refined(text, ledger):
     from .refine import refine
     # The legacy refiner strips metadata. Keep ledger/protected seeds separately
@@ -319,13 +338,13 @@ def _finish(text, batch, stages, modules, calibration=None):
         ledger = accepted
 
     if "address.assemble" in stages:
-        added = modules["address"].assemble(text, [dict(c) for c in ledger])
+        added = _admit_additions(text, ledger, modules["address"].assemble(text, [dict(c) for c in ledger]), modules)
         diag["address_candidates"] = _add(text, ledger, added, "address", "assembled")
     if "names.assemble" in stages:
-        added = modules["names"].assemble(text, [dict(c) for c in ledger])
+        added = _admit_additions(text, ledger, modules["names"].assemble(text, [dict(c) for c in ledger]), modules)
         diag["name_candidates"] = _add(text, ledger, added, "names", "assembled")
     if "names.propagate" in stages:
-        added = modules["names"].propagate(text, [dict(c) for c in ledger])
+        added = _admit_additions(text, ledger, modules["names"].propagate(text, [dict(c) for c in ledger]), modules)
         diag["propagated_candidates"] = _add(text, ledger, added, "names", "propagated")
 
     final = _refined(text, ledger)

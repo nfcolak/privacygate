@@ -24,8 +24,8 @@ _TITLE = re.compile("(?:" + "|".join(re.escape(t) for t in sorted(_TITLES, key=l
 _PARTICLES = frozenset("van der den von de la las los del della di da dos das du le ten ter zu des degli dei".split())
 # These are structural/cue/common prose words, not given-name/surname lists.
 _STOP = frozenset((
-    "dear sehr geehrte geehrter geehrten liebe lieber lieben bonjour gentile "
-    "estimado estimada estimados estimadas hello hi hallo salut ciao hola "
+    "dear sehr geehrte geehrter geehrten liebe lieber lieben bonjour cher chère gentile caro cara "
+    "querido querida estimado estimada estimados estimadas hello hi hallo salut ciao hola "
     "sir madam customer customers client clients cliente clientes kunden kunde "
     "and or und oder et ou e ed o y con mit with avec pour per para "
     "thanks thank regards sincerely best kind cordialement salutations "
@@ -37,8 +37,8 @@ _STOP = frozenset((
     "company corporation inc ltd llc gmbh ag sa srl sas brand product model "
     "marke produkt modell marque produit modèle marca prodotto modello producto modelo "
     "entreprise abteilung département dipartimento departamento "
-    "street road avenue lane boulevard way strasse straße platz gasse weg "
-    "rue route chemin via viale piazza corso calle avenida plaza paseo "
+    "street road avenue lane boulevard way walk close row mews crescent terrace strasse straße platz gasse weg ring allee "
+    "rue route chemin impasse quai via viale piazza corso vicolo strada calle avenida plaza paseo camino "
     "university institute museum park hotel store shop systems software "
     "heute morgen tomorrow yesterday today "
     "please merci bitte grazie gracias confidential meeting invoice order "
@@ -55,8 +55,22 @@ _CUE = re.compile(
     r"(?=[ \t:=\r\n])[ \t]*[:=]?)"
     r"[ \t]*(?:\r?\n[ \t]*)?", re.I)
 _GREETING = re.compile(
-    r"(?<!\w)(?:dear|sehr\s+geehrt(?:e|er|en)|liebe(?:r|n)?|bonjour|gentile|"
-    r"estimad(?:o|a|os|as))[ \t]+", re.I)
+    r"(?<!\w)(?:dear|sehr\s+geehrt(?:e|er|en)|liebe(?:r|n)?|bonjour|cher|chère|"
+    r"gentile|car[oa]|querid[oa]|estimad[oa])[ \t]+", re.I)
+_SIGNOFF = re.compile(
+    r"(?:^|\n)[ \t]*(?:(?:kind|best|warm)[ \t]+)?(?:regards|sincerely|"
+    r"mit[ \t]+(?:besten|freundlichen|herzlichen)[ \t]+gr(?:ü|u)(?:ß|ss)en|"
+    r"(?:beste|freundliche|herzliche|liebe|viele)[ \t]+gr(?:ü|u)(?:ß|ss)e|"
+    r"cordialement|bien[ \t]+cordialement|cordiali[ \t]+saluti|"
+    r"distinti[ \t]+saluti|saludos(?:[ \t]+cordiales)?|atentamente)"
+    r"[ \t]*[,!.]?[ \t]*\r?\n[ \t]*", re.I)
+_COLLECTIVE = re.compile(
+    r"(?<!\w)(?:team|teams|équipe|squadra|equipo|Mannschaft|Abteilung|"
+    r"department|département|dipartimento|departamento|support|service|services|"
+    r"servizio|servicios|Kundendienst|assistance|soporte|ufficio|office|"
+    r"company|corporation|GmbH|Ltd|Inc|LLC|AG|SA|SAS|SRL|"
+    r"systems|software|labs|laboratories|solutions|group|groupe|gruppo|grupo|"
+    r"product|produit|Produkt|prodotto|producto|brand|marque|Marke|marca)(?!\w)", re.I)
 _NONPERSONAL_PREFIX = re.compile(
     r"(?<!\w)(?:brand|product|model|marque|produit|modèle|marke|produkt|modell|"
     r"marca|prodotto|modello|producto|modelo|company|corporation|entreprise|"
@@ -186,13 +200,16 @@ def _nonpersonal(text, a, b):
             prefix = prefix[:cue.start()]
             break
     return bool(_NONPERSONAL_PREFIX.search(prefix) or _NONPERSONAL_SUFFIX.match(text[b:b + 50])
-                or _NONPERSONAL_ROLE.match(text[a:b + 50]))
+                or _NONPERSONAL_ROLE.match(text[a:b + 50]) or _COLLECTIVE.search(text[a:b]))
 
 
 def _blocked(text, tokens, cands, person_tokens=frozenset()):
     intervals = [(c["start"], c["end"]) for c in cands
                  if c["label"] not in NAME_PARTS and c["label"] not in {"UNCOVERED", "ADDRESS"}]
     addresses = [(c["start"], c["end"]) for c in cands if c["label"] == "ADDRESS"]
+    intervals += [(c["start"], c["end"]) for c in cands if c["label"] == "ADDRESS"
+                  and (c.get("protected") or c.get("validation") == "valid"
+                       or c.get("source") in {"structured", "address", "regex"})]
     intervals += [(m.start(), m.end()) for m in _CONTACT.finditer(text)]
     return {i for i, t in enumerate(tokens)
             if any(a < t.end and t.start < b for a, b in intervals)
@@ -273,6 +290,37 @@ def _cue_starts(text, tokens):
     return cues
 
 
+def _signature_starts(text, tokens):
+    """A closing line licenses one complete grammatical person line, not a footer."""
+    from .address import scope_allowed
+    starts = {}
+    for match in _SIGNOFF.finditer(text):
+        line_end = text.find("\n", match.end())
+        if line_end < 0:
+            line_end = len(text)
+        line = text[match.end():line_end].strip(" \t\r,;!")
+        if not line or _COLLECTIVE.search(line):
+            continue
+        idx = next((i for i, t in enumerate(tokens) if t.start == match.end()), None)
+        if idx is None:
+            continue
+        parsed = _parse(text, tokens, idx, frozenset())
+        if parsed is None:
+            continue
+        _, last, cores, titles, _ = parsed
+        end = tokens[last].end
+        tail = text[end:line_end].strip(" \t\r,;!.")
+        initials = sum(t.kind == "initial" for t in tokens[idx:last + 1])
+        if (tail or not 2 <= cores <= 3 or initials > 1
+                or not any(t.kind == "word" and _core(text, t) for t in tokens[idx:last + 1])
+                or _nonpersonal(text, match.end(), end)):
+            continue
+        cand = _candidate(match.end(), end, "assembled", True)
+        if scope_allowed(text, cand, []):
+            starts[idx] = end
+    return starts
+
+
 def _person_tokens(text, tokens, cands, cues):
     """Arbitrate ADDRESS only inside a grammatical cued/titled person scope.
 
@@ -292,6 +340,20 @@ def _person_tokens(text, tokens, cands, cues):
     blocked = _blocked(text, tokens, bounded)
     allowed = set()
     starts = set(cues) | {i for i, t in enumerate(tokens) if t.kind == "title"}
+    # A grammatical run anchored by an independently labelled given/full name
+    # can arbitrate an uncorroborated broad ADDRESS. A lone surname is ambiguous.
+    for cand in cands:
+        if cand["label"] not in {"GIVENNAME", "PERSONNAME"} or cand.get("context") == "nonpersonal":
+            continue
+        for i, token in enumerate(tokens):
+            if cand["start"] < token.end and token.start < cand["end"]:
+                start = i
+                while start > 0 and start - 1 not in blocked:
+                    prev, cur = tokens[start - 1], tokens[start]
+                    if not _gap(text, prev, cur) or not (prev.kind in {"title", "particle"} or _core(text, prev)):
+                        break
+                    start -= 1
+                starts.add(start)
     for start in starts:
         parsed = _parse(text, tokens, start, blocked, soft=cues.get(start, False),
                         reverse=start in cues)
@@ -315,6 +377,8 @@ def assemble(text, cands):
     _check(text, cands)
     tokens = _tokens(text)
     cues = _cue_starts(text, tokens)
+    signatures = _signature_starts(text, tokens)
+    cues.update({i: False for i in signatures})
     blocked = _blocked(text, tokens, cands, _person_tokens(text, tokens, cands, cues))
     seeds = {}
     for cand in cands:
@@ -349,7 +413,9 @@ def assemble(text, cands):
         # A comma is reversed order only in a name scope, after an evidenced
         # single surname, or after explicitly surname-labelled left components.
         left_seeds = set().union(*(seeds.get(j, set()) for j in range(start, end + 1)))
-        field_reverse = cues.get(start, False) and not (count > 1 and "GIVENNAME" in left_seeds)
+        field_reverse = (start in cues and start not in signatures
+                         and (cues[start] or count == 1)
+                         and not (count > 1 and "GIVENNAME" in left_seeds))
         reversed_ok = (field_reverse or (bool(left_seeds) and count == 1)
                        or (bool(left_seeds) and left_seeds <= {"SURNAME", "TITLE"}))
         parsed = _parse(text, tokens, start, blocked, soft=soft, reverse=reversed_ok)

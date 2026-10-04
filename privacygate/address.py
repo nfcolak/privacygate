@@ -37,13 +37,13 @@ _PREFIX_NAME_FRONT = rf"{_ROAD_WORD}(?:{_H}+{_ROAD_WORD}){{0,5}}"
 _NUMBER = r"\d{1,4}(?:[^\S\r\n]*(?:bis|ter)|[a-z])?(?:[^\S\r\n]*[-–/][^\S\r\n]*\d{1,4}[a-z]?)?"
 _SUFFIX = (
     r"(?:street|st\.?|road|rd\.?|avenue|ave\.?|lane|ln\.?|drive|dr\.?|court|ct\.?|"
-    r"close|crescent|circuit|way|terrace|place|square|boulevard|blvd\.?|"
+    r"walk|close|row|mews|crescent|circuit|way|terrace|place|square|boulevard|blvd\.?|"
     r"straße|strasse|str\.?|weg|platz|gasse|allee|ring|steig|ufer)"
 )
 _PREFIX = (
-    r"(?:rue|avenue|av\.?|boulevard|bd\.?|chemin|impasse|route|allée|allee|"
+    r"(?:rue|avenue|av\.?|boulevard|bd\.?|chemin|impasse|quai|route|allée|allee|"
     r"via|viale|piazza|corso|strada|vicolo|largo|"
-    r"calle|avenida|avda\.?|paseo|plaza|carretera|c(?:\.|/))"
+    r"calle|avenida|avda\.?|paseo|camino|plaza|carretera|c(?:\.|/))"
 )
 _COMPOUND = rf"{_WORD}(?:straße|strasse|str\.?|weg|platz|gasse|allee|ring|steig|ufer)"
 _STREET = rf"(?:{_COMPOUND}|{_NAME}{_H}+{_SUFFIX}|{_PREFIX}{_H}+{_PREFIX_NAME})"
@@ -121,16 +121,78 @@ _CONTACT_CUE = re.compile(
 )
 _EMAIL = re.compile(r"(?<!\w)[\w.+-]+@[\w.-]+\.[a-z]{2,}(?!\w)", re.I)
 _BLANK = re.compile(r"\r?\n[^\S\r\n]*\r?\n")
-_CONNECTOR = re.compile(r"[\s,;:/\-–—()[\]{}]*\Z")
+_CONNECTOR = re.compile(r"[\s,;:|/\-–—()[\]{}]*\Z")
 _HOUSE = re.compile(rf"(?<!\w){_NUMBER}(?!\w)", re.I)
 _ADDRESS_FIELD = re.compile(
     r"(?<!\w)(?:private[ \t]+delivery|delivery|Zustellung|Livraison|Consegna|Entrega|"
-    r"address|Adresse|Dirección(?:[ \t]+privada)?|Indirizzo)(?!\w)"
+    r"(?:(?:home|residential|postal|private)[ \t]+)?address|"
+    r"(?:Wohn|Post|Privat)?adresse(?:[ \t]+privée)?|Dirección(?:[ \t]+privada)?|"
+    r"Domicilio(?:[ \t]+privado)?|Indirizzo(?:[ \t]+privato)?)(?!\w)"
     r"[ \t]*(?:[:=][ \t]*|[ \t]+|(?=\r?\n))", re.I,
 )
 _NEXT_FIELD = re.compile(
-    r"(?<!\w)[^\W\d_][^\n\r,;:=]{0,35}[ \t]*[:=]", re.U,
+    r"(?<!\w)[^\W\d_][^\n\r,;:=|]{0,35}[ \t]*[:=]", re.U,
 )
+# Semantic scope families, not address/name surfaces or benchmark templates.
+_OBJECT_SCOPE = re.compile(
+    r"(?<!\w)(?:specimen|sample|example|template|exhibit|catalog(?:ue)?|object|"
+    r"Muster|Beispiel|Vorlage|Exponat|Katalog|Objekt|"
+    r"spécimen|échantillon|exemple|gabarit|exposition|catalogue|objet|"
+    r"campione|esempio|modello|mostra|catalogo|oggetto|"
+    r"muestra|ejemplo|plantilla|exposición|catálogo|objeto|"
+    r"product|Produkt|produit|prodotto|producto|"
+    r"company|business|Unternehmen|Firma|société|entreprise|azienda|impresa|empresa)"
+    r"(?!\w)", re.I,
+)
+_OWNERSHIP = re.compile(
+    r"(?<!\w)(?:my|your|his|her|our|their|mein\w*|dein\w*|unser\w*|"
+    r"mon|ma|mes|votre|notre|mio|mia|miei|mie|tuo|tua|nostro|nostra|"
+    r"mi|mis|mío|mía|nuestro|nuestra|private|personal|privat\w*|privé(?:e)?|"
+    r"privat[oa]|privad[oa]|recipient|Empfänger|destinataire|destinatario|"
+    r"deliver(?:y|[ \t]+to)|Zustellung|Livraison|Consegna|Entrega)(?!\w)", re.I,
+)
+
+
+def scope_allowed(text, cand, cands):
+    """Gate only NEW regions in explicit object/business scope; keep raw masks.
+
+    A nearby pronoun is not enough: independent ownership must occur outside
+    the object construction, or bind the postal field itself. Name seeds inside
+    a specimen are not independent person evidence.
+    """
+    if cand.get("protected"):
+        return True
+    start, end = cand["start"], cand["end"]
+    low = max(0, start - 240)
+    blank = list(_BLANK.finditer(text, low, start))
+    if blank:
+        low = blank[-1].end()
+    for mark in (";", "!", "?"):
+        low = max(low, text.rfind(mark, low, start) + 1)
+    prefix = text[low:start]
+    objects = list(_OBJECT_SCOPE.finditer(prefix))
+    if not objects:
+        return True
+    owner = list(_OWNERSHIP.finditer(prefix))
+    if owner and owner[-1].start() > objects[-1].end():
+        # "sample delivery address" is a specimen, not independent ownership.
+        between = prefix[objects[-1].end():owner[-1].start()]
+        if re.search(r",|\b(?:but|aber|mais|ma|pero)\b", between, re.I):
+            return True
+    return any(c.get("context") == "personal" and c.get("source") != "address"
+               and c["start"] < start and low <= c["start"]
+               and not any(low + m.start() <= c["start"] for m in objects)
+               for c in cands)
+
+
+def _postal_field(text, start, end):
+    """Pipe joins require a single explicitly introduced postal value."""
+    for field in _ADDRESS_FIELD.finditer(text, max(0, start - MAX_REGION_CHARS), start):
+        if (field.end() <= start and end - field.end() <= MAX_REGION_CHARS
+                and not _BLANK.search(text, field.end(), end)
+                and not _NEXT_FIELD.search(text, field.end(), end)):
+            return True
+    return False
 
 
 def _ocr_matches(text):
@@ -194,7 +256,8 @@ def _overlap(start, end, barriers):
 def _connects(text, start, end, barriers):
     return (end >= start and not _overlap(start, end, barriers)
             and not _BLANK.search(text, start, end)
-            and _CONNECTOR.fullmatch(text[start:end]) is not None)
+            and _CONNECTOR.fullmatch(text[start:end]) is not None
+            and ("|" not in text[start:end] or _postal_field(text, start, end)))
 
 
 def _established(anchors):
@@ -215,8 +278,26 @@ def value_boundaries(text, cands):
 
     care = [m.span() for m in _CARE.finditer(text)]
     care += [(a, b) for a, b, anchors, core, br in _ocr_matches(text) if not anchors]
+    postal = [m.span() for pattern in (_POSTAL_FIRST, _POSTAL_LAST)
+              for m in pattern.finditer(text)]
+
+    def unsupported_postal_phone(c):
+        # Only a raw, unvalidated foreign model fragment wholly inside a lexical
+        # postcode/locality component may lose BARRIER status, never mask status.
+        if (c["label"] != "TELEPHONENUM" or c.get("source") != "mbert"
+                or c.get("stage", "raw") != "raw" or c.get("protected")
+                or c.get("validation") == "valid"):
+            return False
+        return any(a <= c["start"] < c["end"] <= b
+                   and not _CONTACT_CUE.search(text, max(0, a - 20), b)
+                   and (_postal_field(text, a, b) or any(
+                       _CONNECTOR.fullmatch(text[min(b, m.end()):max(a, m.start())])
+                       and max(b, m.end()) - min(a, m.start()) <= MAX_REGION_CHARS
+                       for p in (_STREET_LAST, _STREET_FIRST) for m in p.finditer(text)))
+                   for a, b in postal)
+
     foreign = [c for c in cands if c["label"] not in _ADDRESS_LABELS
-               and c["label"] != "UNCOVERED"]
+               and c["label"] != "UNCOVERED" and not unsupported_postal_phone(c)]
     name_seeds = [c for c in cands if c["label"] != "ADDRESS"]
     # Removing a broad ADDRESS must not let inverted-name grammar reinterpret
     # an adjacent lexical street as a surname (especially German compounds).
@@ -280,7 +361,9 @@ def assemble(text, cands):
     }
     for cand in cands:
         label = cand["label"]
-        if label not in _ADDRESS_LABELS:
+        if label not in _ADDRESS_LABELS or label == "ADDRESS":
+            # An opaque broad model envelope is retained by the caller, but
+            # cannot classify arbitrary cells/prose as postal joining material.
             continue
         start, end = cand["start"], cand["end"]
         add(start, end, seed_anchor[label])
@@ -334,6 +417,8 @@ def assemble(text, cands):
         while start < end and text[start].isspace():
             start += 1
         if start < end and (start, end) not in seen:
-            seen.add((start, end))
-            out.append(_candidate(start, end))
+            cand = _candidate(start, end)
+            if scope_allowed(text, cand, cands):
+                seen.add((start, end))
+                out.append(cand)
     return out
