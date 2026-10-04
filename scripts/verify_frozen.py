@@ -27,6 +27,7 @@ SETS = {
     "negatives": ("make_negatives", ("augmentation/negatives-train.jsonl",)),
     "train-v2": ("make_train_v2", ("augmentation/train-v2.jsonl", "augmentation/dev-v2.jsonl")),
     "train-v4": ("make_train_v4", ("augmentation/train-v4.jsonl", "augmentation/dev-v4.jsonl")),
+    "train-v5": ("make_train_v5", ("augmentation/train-v5.jsonl", "augmentation/dev-v5.jsonl")),
 }
 
 
@@ -90,7 +91,7 @@ def verify_one(name):
         return 1
     argv = sys.argv
     try:
-        if name in ("v6", "v7", "train-v4"):
+        if name in ("v6", "v7", "train-v4", "train-v5"):
             # These generators already bind artifacts/ paths. Run their own
             # verification unchanged, without legacy runtime path redirects.
             result = subprocess.run(
