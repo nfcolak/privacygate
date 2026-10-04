@@ -78,7 +78,7 @@ def _round3():
         for separator in (" ", "-", ".", ""):
             positives.append((key + ": ", separator.join(("518", "736", "294", "861")), "SOCIALNUM"))
     for separator in (" / ", "/"):
-        positives.append(("permis: ", "QX" + separator + "518736294", "DRIVERLICENSENUM"))
+        positives.append(("mon permis: ", "QX" + separator + "518736294", "DRIVERLICENSENUM"))
         positives.append(("mon permis ", "QX" + separator + "518736294", "DRIVERLICENSENUM"))
         positives.append(("Mon passeport, puis permis ", "QX" + separator + "518736294", "DRIVERLICENSENUM"))
     for key, prefix, body in (
@@ -132,6 +132,98 @@ def _round3():
         print("round3_incomplete_label=" + label + " count=" + str(count))
     if len(positives) < 30 or len(clean_cases) < 30 or positive_failures or masked_clean or personal_rejected:
         raise RuntimeError("round3_structured_failed")
+
+
+def _round4():
+    from privacygate.refine import refine, _word_completion, _extend_address
+    positives, twins = [], []
+    phones = ('(+1) 202.684.2751', '(0049) 30 684 2751', '(+33) 1.68.42.75.13',
+              '(+39) 06 6842 7513', '(0034) 612 68 42 75')
+    contacts = ('Phone', 'Telefon', 'Téléphone', 'Telefono', 'Teléfono')
+    headers = (('Part', 'Quantity', 'Price'), ('Artikel', 'Menge', 'Preis'),
+               ('Pièce', 'Quantité', 'Prix'), ('Articolo', 'Quantità', 'Prezzo'),
+               ('Pieza', 'Cantidad', 'Precio'))
+    for contact, roles, value in zip(contacts, headers, phones):
+        for delimiter in (' | ', '\t', ' / '):
+            prefix = delimiter.join((roles[0], contact, roles[2])) + '\n' + 'RVT' + delimiter
+            positives.append((prefix, value, 'TELEPHONENUM', delimiter + '7.25'))
+            twins.append(delimiter.join(roles) + '\n' + delimiter.join(('RVT', value, '7.25')))
+        for code in ('RVT-' + '202-684-2751', 'QH/202/6842751'):
+            positives.append((contact + ': ', value, 'TELEPHONENUM', '; end.'))
+            twins.append('Inventory serial: ' + code + '; end.')
+    births = ('DOB', 'birth date', 'date of birth', 'Geburtsdatum', 'geboren am',
+              'Naissance', 'date de naissance', 'né le', 'data di nascita', 'nato il',
+              'Nacimiento', 'fecha de nacimiento')
+    for i, key in enumerate(births):
+        for date in ('24 · 07 · 1983', '24/07/1983', '1983-07-24'):
+            gap = (': ', ' = ', '\n')[i % 3]
+            positives.append((key + gap, date, 'DATEOFBIRTH', '; end.'))
+            twins.append('Manufacturing date' + gap + date + '; end.')
+    for key, date in (('born on', '24 July 1983'), ('Geburtsdatum', '24 Juli 1983'),
+                      ('né le', '24 juillet 1983'), ('nato il', '24 luglio 1983'),
+                      ('nacido el', '24 julio 1983')):
+        positives.append((key + ': ', date, 'DATEOFBIRTH', '; end.'))
+        twins.append('Calendar date: ' + date + '; end.')
+    aliases = (('tax identification number', 'TAXNUM'), ('Tax\nidentifier', 'TAXNUM'),
+               ('Steueridentifikationsnummer', 'TAXNUM'), ('identifiant fiscal', 'TAXNUM'),
+               ('número fiscal', 'TAXNUM'), ('driving permit', 'DRIVERLICENSENUM'),
+               ('permis de\nconduire', 'DRIVERLICENSENUM'), ('permiso de conducir', 'DRIVERLICENSENUM'),
+               ('numero di socio', 'PERSONALREF'), ('número de\nsocio', 'PERSONALREF'),
+               ('numéro de membre', 'PERSONALREF'), ('membership number', 'PERSONALREF'))
+    for key, label in aliases:
+        for value in ('QV8 684 275 13R', '684 27\n5 138 2'):
+            positives.append(('my document; ' + key + ' = ', value, label, '; end.'))
+            twins.append('Order code: ' + value + '; end.')
+    for key, label in (('permit', 'DRIVERLICENSENUM'), ('permiso', 'DRIVERLICENSENUM'),
+                       ('permis', 'DRIVERLICENSENUM'), ('fiscal', 'TAXNUM'), ('member', 'PERSONALREF')):
+        positives.append(('my personal document — ' + key + ' = ', 'QVR 684 275', label, '; end.'))
+        twins.append('Inventory specification — ' + key + ' = QVR 684 275; end.')
+    # Invalid-but-explicit contact values and standalone uncertain values stay.
+    for key in contacts:
+        positives.append((key + ': ', '+99 684 275 1382', 'TELEPHONENUM', '; end.'))
+        twins.append('Lot: +99 684 275 1382; end.')
+    failures, personal_rejected, clean_masked = Counter(), 0, 0
+    for prefix, value, label, tail in positives:
+        text = prefix + value + tail
+        candidates = detect(text)
+        a, b = len(prefix), len(prefix) + len(value)
+        exact = [c for c in candidates if (c['start'], c['end'], c['label']) == (a, b, label)]
+        if not exact:
+            failures[label] += 1
+        personal_rejected += sum(decide(text, c, candidates)[0] == 'reject' for c in exact)
+    for text in twins:
+        candidates = detect(text)
+        clean_masked += any(decide(text, c, candidates)[0] != 'reject' for c in candidates)
+    # Seed coverage stays, but numeric refinement cannot absorb product letters.
+    for label in ('TELEPHONENUM', 'AGE', 'ACCOUNTNUM', 'ZIPCODE'):
+        text = 'SKU: RVT-202-6842751'
+        a = text.index('202')
+        seed = {'start': a, 'end': len(text), 'label': label, 'source': 'mbert'}
+        if _word_completion(text, [seed]) != [seed]:
+            raise RuntimeError('round4_numeric_code_growth_failed')
+    # A balanced country prefix is the envelope, not an outer commentary bracket.
+    text = 'Phone: (note) (+1) 202.684.2751 (verified)'
+    value = '(+1) 202.684.2751'
+    if not any(text[c['start']:c['end']] == value for c in detect(text)):
+        raise RuntimeError('round4_phone_wrapper_failed')
+    for separator in (' | ', ' / '):
+        value = 'Pine Road 38, 8426 Velora' + separator + 'Switzerland'
+        for field, expected in (('Address: ', True), ('Street | House | Town | Country\n', False)):
+            text = field + value
+            parts = [{'label': label, 'start': text.index(part), 'end': text.index(part) + len(part), 'source': 'mbert'}
+                     for label, part in (('STREET', 'Pine Road'), ('BUILDINGNUM', '38'),
+                                         ('ZIPCODE', '8426'), ('CITY', 'Velora'))]
+            result = refine(text, parts)
+            covered_country = any(c['end'] == len(text) for c in result)
+            if covered_country != expected:
+                raise RuntimeError('round4_postal_field_failed')
+    print(f'round4_struct_complete={len(positives) - sum(failures.values())}/{len(positives)}')
+    print(f'round4_clean_masked={clean_masked}/{len(twins)}')
+    print(f'round4_personal_rejected={personal_rejected}')
+    for label, count in sorted(failures.items()):
+        print(f'round4_incomplete_label={label} count={count}')
+    if len(positives) < 40 or len(twins) < 40 or failures or clean_masked or personal_rejected:
+        raise RuntimeError('round4_structured_failed')
 
 
 def main():
@@ -308,6 +400,7 @@ def main():
     if complete * 10 < len(positives) * 9 or negatives_detected > 2:
         return 1
     _round3()
+    _round4()
     return 0
 
 

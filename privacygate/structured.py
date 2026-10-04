@@ -40,11 +40,15 @@ _KEYS = {
                   r"carte\s+d['’]identité|cni|carta\s+d['’]identità|"
                   r"dni|nie|nif"),
     "DRIVERLICENSENUM": (r"führerschein(?:nummer)?|driv(?:ing|er['’]?s?)\s+"
-                         r"licen[cs]e|permis\s+de\s+conduire|"
+                         r"(?:licen[cs]e|permit)|permis\s+de\s+conduire|"
                          r"permis(?=[ \t]*(?:[:=]|n[°º]|numéro|[A-Z]{1,4}[ \t]*/[ \t]*[0-9]{5,12}(?![0-9])))|"
-                         r"patente(?:\s+di\s+guida)?|permiso\s+de\s+conducir"),
-    "TAXNUM": (r"steuer[ -]*id|idnr\.?|steuernummer|tax(?:payer)?\s+"
-               r"(?:id|number|no\.?)|numéro\s+fiscal|codice\s+fiscale"),
+                         r"patente(?:\s+di\s+guida)?|permiso(?:\s+de\s+conducir)?|"
+                         r"driving[ \t]+permit|permit"),
+    "TAXNUM": (r"steuer[ -]*id|idnr\.?|steuer(?:nummer|identifikationsnummer)|"
+               r"tax(?:payer)?\s+(?:(?:identification|identity|reference)\s+)?"
+               r"(?:id(?:entifier)?|number|no\.?)|tax\s+identification|"
+               r"(?:numéro|número|numero)\s+(?:d['’]identification\s+)?fiscal|"
+               r"identifiant\s+fiscal|codice\s+fiscale|fiscal"),
     "SOCIALNUM": (r"svnr\.?|sozialversicherungsnummer|ahv(?:[ -]*(?:nummer|nr\.?))?|nir|"
                   r"(?:numéro\s+de\s+)?sécurité\s+sociale|"
                   r"(?:numero\s+di\s+)?previdenza|(?:número\s+de\s+)?seguridad\s+social|"
@@ -67,7 +71,10 @@ _KEYS = {
                     r"número\s+de\s+cliente|aktenzeichen|case|"
                     r"(?:fall|dossier|caso)(?=[ \t]*(?:[:=]|nummer|number|no\.?|n[°º]))|"
                     r"patient(?:en)?|"
-                    r"paziente|paciente|membership|member|mitgliedsnummer"),
+                    r"paziente|paciente|membership(?:\s+(?:number|no\.?))?|"
+                    r"member(?:ship)?\s+(?:number|no\.?)|member|mitgliedsnummer|"
+                    r"(?:numéro|numero|número)\s+(?:de\s+|di\s+)?"
+                    r"(?:socio|socia|membre|adhérent)|numero\s+tessera"),
 }
 _CUES = re.compile(r"(?<!\w)(?:" + "|".join(
     "(?P<" + label + ">(?:" + pattern + ")" + _SUFFIX + ")"
@@ -85,9 +92,9 @@ _STOP = frozenset(("OK", "EUR", "USD", "CHF", "GBP", "AND", "UND", "ET",
 _EXT = re.compile(r"[ \t,;/-]*(?:extension|ext\.?|x|durchwahl|dw\.?|"
                   r"poste|interno|int\.?|anexo|#)[ \t:=.-]*[0-9]{1,8}(?![0-9])",
                   re.IGNORECASE)
-_PHONE_BASE = re.compile(r"(?<![A-Za-z0-9])(?:\+|\()?[0-9]"
+_PHONE_BASE = re.compile(r"(?<![A-Za-z0-9])(?:\((?:\+|00)[0-9]{1,3}\)[ \t]*|\+|\()?[0-9]"
                          r"[0-9() \t\u00a0\u202f.\-]{4,94}[0-9)](?![A-Za-z0-9])")
-_PHONE_FIELD = re.compile(r"(?<![A-Za-z0-9])(?:\+|\()?[0-9]"
+_PHONE_FIELD = re.compile(r"(?<![A-Za-z0-9])(?:\((?:\+|00)[0-9]{1,3}\)[ \t\r\n]*|\+|\()?[0-9]"
                           r"[0-9() \t\u00a0\u202f.\-\r\n]{4,94}[0-9)](?![A-Za-z0-9])")
 _AGE = re.compile(
     r"(?<!\w)(?:aged|age|alter|âge|età|edad)(?!\w)"
@@ -103,6 +110,53 @@ _DOC_PERSONAL = re.compile(
 _ISEP = r"[ \t\u00a0\u202f.\-\u2010\u2011\u2013]{0,6}"
 _IBAN_START = re.compile(r"(?<![A-Za-z0-9])([A-Za-z])" + _ISEP +
                          r"([A-Za-z])" + _ISEP + r"[0-9]" + _ISEP + r"[0-9]")
+
+
+_AMBIGUOUS_DOC = re.compile(r"(?:permis|permiso|permit|fiscal|member)" + _SUFFIX + r"$", re.I)
+_BIRTH_CUE = re.compile(
+    r"(?<!\w)(?:date\s+of\s+birth|birth(?:\s*date|\s*day)?|dob|"
+    r"geburtsdatum|geboren(?:\s+am)?|date\s+de\s+naissance|naissance|"
+    r"née?(?:\s+le)?|data\s+di\s+nascita|nascita|nat[oa](?:\s+il)?|"
+    r"fecha\s+de\s+nacimiento|nacimiento|nacid[oa](?:\s+el)?|born(?:\s+on)?)"
+    r"(?!\w)[ \t]*(?:[:=][ \t]*|\r?\n[ \t]*|[ \t]+)?", re.I)
+# Birth context is the admission test, not calendar validity: typed typos remain
+# private. Separator consistency bounds the entire envelope, including dots.
+from .context import _MONTH_NAME
+_BIRTH_DATE = re.compile(
+    r"(?:[0-9]{4}[ \t]*(?P<iso>[-/.·])[ \t]*[0-9]{1,2}[ \t]*(?P=iso)[ \t]*[0-9]{1,2}|"
+    r"[0-9]{1,2}[ \t]*(?P<sep>[-/.·])[ \t]*[0-9]{1,2}[ \t]*(?P=sep)[ \t]*[0-9]{2,4}|"
+    r"[0-9]{1,2}[ \t]+(?:" + _MONTH_NAME + r")[ \t]+[0-9]{4}|"
+    r"(?:" + _MONTH_NAME + r")[ \t]+[0-9]{1,2},?[ \t]+[0-9]{4})(?!\w)", re.I)
+
+
+def _document_scope(text, start, end):
+    from .context import personal_evidence
+    if personal_evidence(text, start, end):
+        return True
+    lo, hi = max(0, start - 240), min(len(text), end + 160)
+    # A personal document section may have one field per line; a blank line
+    # ends that record. Independently specific document keys supply its type.
+    before = text.rfind('\n\n', lo, start)
+    after = text.find('\n\n', end, hi)
+    lo = max(lo, before + 2) if before >= 0 else lo
+    hi = min(hi, after) if after >= 0 else hi
+    return any(m.lastgroup in {'PASSPORTNUM', 'IDCARDNUM', 'SOCIALNUM', 'TAXNUM',
+                              'DRIVERLICENSENUM'}
+               and not _AMBIGUOUS_DOC.fullmatch(m.group())
+               for m in _CUES.finditer(text, lo, hi))
+
+
+def _birth_candidates(text):
+    result = []
+    for cue in _BIRTH_CUE.finditer(text):
+        if len(re.findall(r'\r\n|\r|\n', cue.group())) > 1:
+            continue
+        date = _BIRTH_DATE.match(text, cue.end())
+        if date is not None:
+            candidate = _candidate(text, date.start(), date.end(), 'DATEOFBIRTH', 'n/a')
+            candidate['context'] = 'personal'
+            result.append(candidate)
+    return result
 
 
 def _compact(value):
@@ -322,8 +376,22 @@ def _phone_end(text, end):
 
 
 def _phone_candidates(text, fields, phones):
+    from .context import phone_scope, personal_evidence, _TABLE_SEP
     result, seen = [], set()
-    envelopes = [(m.start(), m.end(), False) for m in _PHONE_BASE.finditer(text)]
+    envelopes = []
+    for match in _PHONE_BASE.finditer(text):
+        operational, _ = phone_scope(text, match.start(), match.end())
+        cuts = list(_TABLE_SEP.finditer(text, match.start(), match.end())) if operational else []
+        if cuts:
+            cursor = match.start()
+            for boundary in cuts:
+                envelopes.extend((m.start(), m.end(), False)
+                                 for m in _PHONE_BASE.finditer(text, cursor, boundary.start()))
+                cursor = boundary.end()
+            envelopes.extend((m.start(), m.end(), False)
+                             for m in _PHONE_BASE.finditer(text, cursor, match.end()))
+        else:
+            envelopes.append((match.start(), match.end(), False))
     for start in fields:
         match = _PHONE_FIELD.match(text, start)
         if match is None or len(re.findall(r"\r\n|\r|\n", match.group())) > 1:
@@ -340,6 +408,11 @@ def _phone_candidates(text, fields, phones):
         if covering:
             start, end, field = max(covering, key=lambda item: item[1] - item[0])
             anchored = anchored or field
+        # Country-code wrappers are value syntax; unrelated brackets are not.
+        if start > 0 and text[start - 1] == '(':
+            wrapper = re.match(r'(?:\+|00)[0-9]{1,3}\)', text[start:end])
+            if wrapper is not None:
+                start -= 1
         end = _phone_end(text, end)
         key = (start, end)
         if key in seen:
@@ -351,17 +424,32 @@ def _phone_candidates(text, fields, phones):
         digit_count = sum(c.isdigit() for c in base)
         if not 7 <= digit_count <= 17:
             return
-        if _bound_key(text, start, clean=True) and not anchored:
+        # Numeric library validity is not ownership: reject attached code runs
+        # before considering validity or an international prefix.
+        lo, hi = start, end
+        code_separators = '._-/\u2010\u2011'
+        while lo > 0 and (text[lo - 1].isalnum() or text[lo - 1] in code_separators):
+            lo -= 1
+        while hi < len(text) and (text[hi].isalnum() or text[hi] in code_separators):
+            hi += 1
+        if any(c.isalpha() for c in text[lo:start] + text[end:hi]):
+            return
+        operational, contact = phone_scope(text, start, end)
+        independent = personal_evidence(text, start, end)
+        anchored = anchored or _bound_key(text, start, 'TELEPHONENUM') or contact
+        if operational and not anchored and not independent:
+            return
+        if _bound_key(text, start, clean=True) and not anchored and not independent:
             return
         status = _phone_status(value, phones)
         grouped = len(re.findall(r"[0-9]+", base)) >= 2
-        international = base.startswith("+") or base.startswith("00")
+        international = base.startswith(('+', '00', '(+', '(00'))
         if not anchored and not international and (status != "valid" or not grouped):
             return
         result.append(_candidate(text, start, end, "TELEPHONENUM", status))
 
     for start, end, anchored in envelopes:
-        if anchored or text[start:end].startswith(("+", "00")):
+        if anchored or text[start:end].startswith(("+", "00", "(+", "(00")):
             add(start, end, anchored)
     for leniency in (phones.Leniency.VALID, phones.Leniency.POSSIBLE):
         for region in _REGIONS:
@@ -382,7 +470,7 @@ def detect(text):
         raise ValueError("structured_invalid_input") from None
     phones = _phone_library()
     try:
-        result, fields = _iban_candidates(text), []
+        result, fields = _iban_candidates(text) + _birth_candidates(text), []
         for age in _AGE.finditer(text):
             if _AGE_OBJECT.search(text[max(0, age.start() - 50):age.start()]):
                 continue
@@ -393,10 +481,10 @@ def detect(text):
         for match in _CUES.finditer(text):
             start = _GAP_RE.match(text, match.end()).end()
             label = match.lastgroup
-            if (label == "DRIVERLICENSENUM" and match.group().lower() == "permis"
-                    and not re.search(r"[:=]", text[match.end():start])
-                    and _DOC_PERSONAL.search(text, max(0, match.start() - 120), match.start()) is None):
-                continue  # Bare shorthand requires independent personal-document evidence.
+            if len(re.findall(r'\r\n|\r|\n', match.group())) > 1:
+                continue
+            if _AMBIGUOUS_DOC.fullmatch(match.group()) and not _document_scope(text, match.start(), start):
+                continue  # A delimiter alone cannot turn a short alias personal.
             if label == "TELEPHONENUM":
                 fields.append(start)
                 continue
