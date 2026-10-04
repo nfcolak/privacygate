@@ -20,6 +20,7 @@ SETS = {
     "v3": ("make_masking_stress_v3", ("augmentation/masking-stress-v3-dev.jsonl",)),
     "v4": ("make_masking_stress_v4", ("augmentation/masking-stress-v4.jsonl",)),
     "v6": ("make_masking_stress_v6", ("augmentation/masking-stress-v6.jsonl",)),
+    "v7": ("make_masking_stress_v7", ("augmentation/masking-stress-v7.jsonl",)),
     "window-cut": ("make_window_cut_fixture", ("augmentation/window-cut-dev.jsonl",)),
     "challenge": ("make_challenge", ("challenge/dev.jsonl", "challenge/test.jsonl")),
     "positives": ("make_positives", ("augmentation/positive-train.jsonl", "augmentation/positive-dev.jsonl")),
@@ -89,7 +90,7 @@ def verify_one(name):
         return 1
     argv = sys.argv
     try:
-        if name in ("v6", "train-v4"):
+        if name in ("v6", "v7", "train-v4"):
             # These generators already bind artifacts/ paths. Run their own
             # verification unchanged, without legacy runtime path redirects.
             result = subprocess.run(
