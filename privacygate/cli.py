@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 
-from .inference import ENGINES, POLICIES, InferenceError, run
+from privacygate.model.inference import ENGINES, POLICIES, InferenceError, run
 
 
 def _conf(v):

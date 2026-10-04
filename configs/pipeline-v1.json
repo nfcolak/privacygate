@@ -15,10 +15,6 @@
     },
     "full": {
       "stages": ["mbert", "regex", "structured.detect", "structured.check", "context.decide", "address.assemble", "names.assemble", "names.propagate", "refine", "coverage", "union", "render"]
-    },
-    "full_calibrated": {
-      "stages": ["mbert", "calibrate", "regex", "structured.detect", "structured.check", "context.decide", "address.assemble", "names.assemble", "names.propagate", "refine", "coverage", "union", "render"],
-      "threshold_file": "configs/calibration-region.json"
     }
   }
 }

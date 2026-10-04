@@ -12,5 +12,7 @@ dependencies = []
 [project.scripts]
 privacygate = "privacygate.cli:main"
 
-[tool.setuptools]
-packages = ["privacygate"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["privacygate", "privacygate.*"]
+namespaces = false
