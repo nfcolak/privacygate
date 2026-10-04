@@ -226,6 +226,53 @@ def _round4():
         raise RuntimeError('round4_structured_failed')
 
 
+def _legacy_extension_regression():
+    from privacygate.refine import refine, _word_completion
+    base = '+49 (030) 684-2751'
+    keywords = ('ext.', 'extension', 'extn', 'Durchwahl', 'durchw.',
+                'poste', 'interno', 'anexo', 'int.', 'app.', 'apparat', 'interne')
+    prefixes = ('Phone: ', 'My contact is ', 'Part | Phone | Price\nQVP | ')
+    checked = clean_rejected = 0
+    for prefix in prefixes:
+        tail = ' | 8.75' if '\n' in prefix else '; end.'
+        for keyword in keywords:
+            value = base + ' ' + keyword + ' 46'
+            for fragment_tail in ('46', '. 46') if keyword.endswith('.') else ('46',):
+                text = prefix + value + tail
+                start, end = len(prefix), len(prefix) + len(value)
+                cut = start + len(base) + 1 + 2
+                number_start = text.index(fragment_tail, cut)
+                seeds = [{'start': start, 'end': cut, 'label': 'TELEPHONENUM', 'source': 'mbert'},
+                         {'start': number_start, 'end': end, 'label': 'TELEPHONENUM', 'source': 'mbert'}]
+                covered = {i for c in refine(text, seeds) for i in range(c['start'], c['end'])}
+                if not set(range(start, end)) <= covered:
+                    raise RuntimeError('legacy_phone_extension_incomplete')
+                # The identical phone-like syntax belongs to an operational
+                # field in the twin. Neither keyword growth nor validity may
+                # manufacture ownership for that field.
+                clean_prefix = 'Inventory serial: '
+                clean = clean_prefix + value + '; end.'
+                clean_seed = dict(seeds[0], start=len(clean_prefix),
+                                  end=len(clean_prefix) + cut - start)
+                if _word_completion(clean, [clean_seed]) != [clean_seed]:
+                    raise RuntimeError('legacy_operational_extension_growth')
+                candidates = detect(clean)
+                if any(decide(clean, c, candidates)[0] != 'reject' for c in candidates):
+                    raise RuntimeError('legacy_operational_extension_masked')
+                clean_rejected += 1
+                checked += 1
+    # Missing digits or arbitrary letters are not extension syntax. Retain the
+    # numeric seed, but never absorb a product-code suffix or unrelated word.
+    for tail in (' ext.', ' extras', ' ext. QVP'):
+        text = 'Phone: ' + base + tail
+        cut = len('Phone: ' + base + ' ') + 2
+        seed = {'start': len('Phone: '), 'end': cut, 'label': 'TELEPHONENUM', 'source': 'mbert'}
+        if _word_completion(text, [seed]) != [seed]:
+            raise RuntimeError('legacy_extension_syntax_boundary')
+    print(f'legacy_extension_complete={checked}/{checked}')
+    print(f'legacy_extension_clean_unmasked={clean_rejected}/{checked}')
+
+
 def main():
     positives, negatives = [], []
 
@@ -401,6 +448,7 @@ def main():
         return 1
     _round3()
     _round4()
+    _legacy_extension_regression()
     return 0
 
 
