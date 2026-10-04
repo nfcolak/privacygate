@@ -4,7 +4,7 @@ import argparse
 from contextlib import contextmanager, nullcontext
 import hashlib
 import importlib
-from importlib import metadata
+from importlib import metadata, util
 import json
 import os
 from pathlib import Path
@@ -18,6 +18,43 @@ from privacygate import masking_eval as ev
 
 PROFILES = ("legacy_union_refined", "structured", "structured_address_names", "full", "full_calibrated")
 
+# Admission is local to this runner; predecessor loaders/custody stay unchanged.
+ev.MANIFEST_PATHS["v7"] = "artifacts/masking-stress-v7/manifest.json"
+
+
+def load_v7_dataset(dataset, root):
+    try:
+        spec = util.spec_from_file_location("_blind_v7", root / "scripts/make_masking_stress_v7.py")
+        if spec is None or spec.loader is None or not hasattr(spec.loader, "exec_module"):
+            raise ev.EvaluationError("eval_v7_generator_unavailable")
+        generator = util.module_from_spec(spec)
+        spec.loader.exec_module(generator)
+        rows, manifest = generator.verify(dataset)
+        return rows, {"version": "v7", "path": manifest["dataset_path"],
+                      "sha256": manifest["dataset_sha256"], "rows": manifest["counts"]["rows"],
+                      "manifest_sha256": ev.sha256(root / ev.MANIFEST_PATHS["v7"])}
+    except Exception:
+        raise ev.EvaluationError("eval_v7_frozen_binding") from None
+
+
+class V7BlindCustody(ev.BlindCustody):
+    """v7-only constructor; retain the existing exclusive receipt/lock methods.
+
+    The shared constructor admits only v4-v6. This state matches its public
+    runtime contract, without reading or modifying the shared module's source.
+    No old version is used as an alias and no v4-v6 receipt is accessed.
+    """
+    def __init__(self, root, profile, model_sha256, dataset_sha256, check=False, version="v7"):
+        if version != "v7" or profile not in PROFILES:
+            raise ev.EvaluationError("eval_dataset_version")
+        if any(len(value) != 64 or any(c not in "0123456789abcdef" for c in value)
+               for value in (model_sha256, dataset_sha256)):
+            raise ev.EvaluationError("eval_v7_custody_binding")
+        self.path = Path(os.environ[ev.CHECK_RECEIPTS_ENV]) if check else Path(root) / "artifacts/runs/blind-v7/RECEIPTS.jsonl"
+        self.started = Path(str(self.path) + ".STARTED")
+        self.profile, self.model, self.dataset = profile, model_sha256, dataset_sha256
+        self.lock, self.finished = None, False
+
 
 class SafeParser(argparse.ArgumentParser):
     def error(self, message):
@@ -27,7 +64,7 @@ class SafeParser(argparse.ArgumentParser):
 def parser():
     p = SafeParser(description=__doc__)
     p.add_argument("--dataset", required=True)
-    p.add_argument("--version", choices=ev.VERSIONS, required=True)
+    p.add_argument("--version", choices=(*ev.VERSIONS, "v7"), required=True)
     p.add_argument("--profile", choices=PROFILES)
     p.add_argument("--model-dir", required=True)
     p.add_argument("--out-dir", required=True)
@@ -189,13 +226,14 @@ def execute(args, root=ROOT, check_receipts=False):
     if ev.CHECK_RECEIPTS_ENV in os.environ and not check_receipts:
         raise ev.EvaluationError("eval_check_override_forbidden")
     started_at, start = ev.utc_now(), time.perf_counter()
-    rows, binding = ev.load_dataset(args.dataset, args.version, root=root)
+    rows, binding = load_v7_dataset(args.dataset, root) if args.version == "v7" else ev.load_dataset(args.dataset, args.version, root=root)
     frozen = fingerprints(args, root)
     out = Path(args.out_dir)
     if out.exists():
         raise ev.EvaluationError("eval_output_exists")
-    custody = ev.BlindCustody(root, args.profile, frozen["model_sha256"], binding["sha256"],
-                              check=check_receipts, version=args.version) if args.version in ("v4", "v5", "v6") and not dev else nullcontext()
+    custody_class = V7BlindCustody if args.version == "v7" else ev.BlindCustody
+    custody = custody_class(root, args.profile, frozen["model_sha256"], binding["sha256"],
+                            check=check_receipts, version=args.version) if args.version in ("v4", "v5", "v6", "v7") and not dev else nullcontext()
     with custody as blind:
         # Module availability is checked before custody is consumed; an inference
         # or scoring failure after reservation consumes this blind arm.
@@ -228,7 +266,7 @@ def execute(args, root=ROOT, check_receipts=False):
                     "started_at": started_at, "finished_at": ev.utc_now(), "wall_time_seconds": wall_time,
                     "model_load_reused": args.predictions_from == "inference",
                     "predictions_cached": False, "human_review_performed": False,
-                    "blind": args.version in ("v4", "v5", "v6") and not dev,
+                    "blind": args.version in ("v4", "v5", "v6", "v7") and not dev,
                     "development": dev, "threshold_selection": False}
         ev.json_write(out / "metrics.json", report)
         ev.json_write(out / "manifest.json", manifest)
