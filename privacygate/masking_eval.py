@@ -21,14 +21,16 @@ from . import masking_metrics as mm
 
 ROOT = Path(__file__).resolve().parents[1]
 SCORER_VERSION = "pipeline-masking-v1"
-VERSIONS = ("v1", "v2", "v4", "v5", "dev2", "dev3")
+VERSIONS = ("v1", "v2", "v4", "v5", "v6", "dev2", "dev3", "dev4")
 MANIFEST_PATHS = {
     "v1": "artifacts/masking-stress/manifest.json",
     "v2": "artifacts/masking-stress-v2/manifest.json",
     "v4": "artifacts/masking-stress-v4/manifest.json",
     "v5": "artifacts/masking-stress-v5/manifest.json",
+    "v6": "artifacts/masking-stress-v6/manifest.json",
     "dev2": "artifacts/train-v2/manifest.json",
     "dev3": "artifacts/train-v3/manifest.json",
+    "dev4": "artifacts/train-v4/manifest.json",
 }
 ROW_KEYS = frozenset({"case_id", "family", "gold", "language", "split", "text"})
 SPAN_KEYS = frozenset({"start", "end", "label"})
@@ -119,9 +121,9 @@ def manifest_dataset(manifest, version, basename):
             if _digest(node.get("sha256")):
                 path = node.get("path", node.get("file", ""))
                 path_match = isinstance(path, str) and Path(path).name == basename
-                dev_match = (version in ("dev2", "dev3") and not path and "rows" in node
+                dev_match = (version in ("dev2", "dev3", "dev4") and not path and "rows" in node
                              and key in ("dev", version, f"dev-v{version[-1]}", f"dev-v{version[-1]}.jsonl"))
-                single_match = version not in ("dev2", "dev3") and key == "dataset" and not path
+                single_match = version not in ("dev2", "dev3", "dev4") and key == "dataset" and not path
                 if path_match or dev_match or single_match:
                     records.append(node)
             for child_key, child in node.items():
@@ -163,7 +165,7 @@ def load_dataset(path, version, root=ROOT):
         raise EvaluationError("eval_dataset_version")
     path, root = Path(path), Path(root)
     # Prevent accidentally rebranding the consumed blind v3 as another version.
-    if version == "dev3" and path.name != "dev-v3.jsonl":
+    if version in ("dev3", "dev4") and path.name != f"dev-v{version[-1]}.jsonl":
         raise EvaluationError("eval_dev_dataset_required")
     if "v3" in path.name.lower() and version != "dev3":
         raise EvaluationError("eval_consumed_v3_forbidden")
@@ -185,9 +187,9 @@ def load_dataset(path, version, root=ROOT):
             raise EvaluationError("eval_row_schema")
         if any(not isinstance(row[key], str) for key in ROW_KEYS - {"gold"}):
             raise EvaluationError("eval_row_field_type")
-        expected_split = "blind" if version == "v5" else "dev"
+        expected_split = "blind" if version in ("v5", "v6") else "dev"
         if row["split"] != expected_split:
-            raise EvaluationError("eval_blind_split_required" if version == "v5" else "eval_dev_split_required")
+            raise EvaluationError("eval_blind_split_required" if version in ("v5", "v6") else "eval_dev_split_required")
         # Only the in-memory grouping key changes; hash-bound source bytes do not.
         if version == "v5":
             row["language"] = row["language"].lower()
@@ -209,7 +211,7 @@ def load_dataset(path, version, root=ROOT):
         ids.add(row["case_id"])
     binding = {
         "sha256": digest, "bytes": len(raw), "rows": len(rows),
-        "split": "blind" if version == "v5" else "dev",
+        "split": "blind" if version in ("v5", "v6") else "dev",
         "positive_rows": sum(bool(r["gold"]) for r in rows),
         "clean_rows": sum(not r["gold"] for r in rows),
         "gold_spans": sum(len(r["gold"]) for r in rows),
@@ -373,7 +375,7 @@ class BlindCustody:
     be used by the CLI to redirect production custody.
     """
     def __init__(self, root, profile, model_sha256, dataset_sha256, check=False, version="v4"):
-        if version not in ("v4", "v5"):
+        if version not in ("v4", "v5", "v6"):
             raise EvaluationError("eval_dataset_version")
         if CHECK_RECEIPTS_ENV in os.environ and not check:
             raise EvaluationError("eval_check_override_forbidden")

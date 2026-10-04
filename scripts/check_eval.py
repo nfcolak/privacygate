@@ -85,6 +85,18 @@ def invented_checks(scratch):
     devmanifest.parent.mkdir(parents=True, exist_ok=True)
     ev.json_write(devmanifest, {"datasets": {"train": {"path": "train-v2.jsonl", "sha256": "a" * 64}, "dev": record}})
     _require(ev.load_dataset(fixture, "dev2", root=scratch)[1]["rows"] == 4)
+    dev4 = scratch / "dev-v4.jsonl"
+    dev4.write_bytes(fixture.read_bytes())
+    dev4manifest = scratch / ev.MANIFEST_PATHS["dev4"]
+    dev4manifest.parent.mkdir(parents=True, exist_ok=True)
+    ev.json_write(dev4manifest, {"manifest_version": 4, "outputs": {
+        "train": {"path": "train-v4.jsonl", "sha256": "a" * 64},
+        "dev": {**record, "path": dev4.name}},
+        "template_catalog": {"dev": {"count": 4, "sha256": "b" * 64}}})
+    _require(ev.load_dataset(dev4, "dev4", root=scratch)[1]["rows"] == 4)
+    _refuses("eval_dev_dataset_required", lambda: ev.load_dataset(scratch / "train-v4.jsonl", "dev4", root=scratch))
+    _require(runner.parser().parse_args(["--version", "dev4", "--dataset", str(dev4),
+                                       "--model-dir", "invented-model", "--out-dir", "invented-output"]).version == "dev4")
     ev.json_write(manifest, {"dataset": {**record, "sha256": "b" * 64}})
     _refuses("eval_dataset_hash_mismatch", lambda: ev.load_dataset(fixture, "v4", root=scratch))
 
@@ -121,18 +133,21 @@ def invented_checks(scratch):
     print("invented_eval_checks=ok blind_repeat_refused=ok")
 
 
-def invented_v5_checks(scratch):
-    """v5-shaped invented rows and temporary custody only; no real blind data."""
-    rows = [{"case_id": f"invented-v5-{i}", "family": "invented_clean",
+def invented_blind_checks(scratch, version):
+    """v5/v6-shaped invented rows and temporary custody; no real blind data."""
+    languages = ("EN", "DE", "FR", "IT", "ES") if version == "v5" else ("en", "de", "fr", "it", "es")
+    rows = [{"case_id": f"invented-{version}-{i}", "family": "invented_clean",
              "language": language, "split": "blind", "text": "Ordinary stock.", "gold": []}
-            for i, language in enumerate(("EN", "DE", "FR", "IT", "ES"))]
-    fixture = scratch / "invented-v5.jsonl"
+            for i, language in enumerate(languages)]
+    fixture = scratch / f"invented-{version}.jsonl"
     fixture.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
     digest = ev.sha256(fixture)
-    manifest = scratch / ev.MANIFEST_PATHS["v5"]
+    manifest = scratch / ev.MANIFEST_PATHS[version]
     manifest.parent.mkdir(parents=True, exist_ok=True)
-    ev.json_write(manifest, {"dataset": {"path": fixture.name, "sha256": digest, "rows": 5}})
-    loaded, binding = ev.load_dataset(fixture, "v5", root=scratch)
+    record = {"path": fixture.name, "sha256": digest, "bytes": fixture.stat().st_size, "rows": 5}
+    ev.json_write(manifest, {"dataset": record} if version == "v5" else
+                  {**record, "dataset": "masking-stress-v6", "split": "blind"})
+    loaded, binding = ev.load_dataset(fixture, version, root=scratch)
     _require(binding["split"] == "blind" and ev.sha256(fixture) == digest)
     _require(loaded == [{**row, "language": row["language"].lower()} for row in rows])
     aggregate = ev.EvaluationAggregate()
@@ -140,33 +155,33 @@ def invented_v5_checks(scratch):
         aggregate.add(row, {"status": "ok", "masked_text": row["text"], "entities": [],
                             "completion": {"uncovered_chars": 0}})
     _require(set(aggregate.report()["per_language"]) == ev.LANGUAGES)
-    args = runner.parser().parse_args(["--version", "v5", "--dataset", str(fixture),
+    args = runner.parser().parse_args(["--version", version, "--dataset", str(fixture),
                                       "--model-dir", "invented-model", "--out-dir", "invented-output"])
-    _require(args.version == "v5")
+    _require(args.version == version)
     key = (scratch, "full", "a" * 64, digest)
-    expected = scratch / "artifacts/runs/blind-v5/RECEIPTS.jsonl"
-    _require(ev.BlindCustody(*key, version="v5").path == expected and not expected.parent.exists())
-    receipts = scratch / "receipts-v5/RECEIPTS.jsonl"
+    expected = scratch / f"artifacts/runs/blind-{version}/RECEIPTS.jsonl"
+    _require(ev.BlindCustody(*key, version=version).path == expected and not expected.parent.exists())
+    receipts = scratch / f"receipts-{version}/RECEIPTS.jsonl"
     previous = os.environ.get(ev.CHECK_RECEIPTS_ENV)
     os.environ[ev.CHECK_RECEIPTS_ENV] = str(receipts)
     try:
-        with ev.BlindCustody(*key, version="v5", check=True) as custody:
+        with ev.BlindCustody(*key, version=version, check=True) as custody:
             custody.reserve()
             custody.finish("c" * 64)
         entries = [json.loads(line) for line in receipts.read_text(encoding="utf-8").splitlines()]
         _require(len(entries) == 1 and entries[0]["dataset_sha256"] == digest)
         def repeat():
-            with ev.BlindCustody(*key, version="v5", check=True):
+            with ev.BlindCustody(*key, version=version, check=True):
                 raise ev.EvaluationError("eval_check_repeat_entered")
         _refuses("eval_blind_repeat_forbidden", repeat)
-        _refuses("eval_check_override_forbidden", lambda: ev.BlindCustody(*key, version="v5"))
+        _refuses("eval_check_override_forbidden", lambda: ev.BlindCustody(*key, version=version))
     finally:
         if previous is None:
             del os.environ[ev.CHECK_RECEIPTS_ENV]
         else:
             os.environ[ev.CHECK_RECEIPTS_ENV] = previous
     _require(ev.sha256(fixture) == digest and not expected.parent.exists())
-    print("v5_check=ok blind_repeat_refused=ok source_bytes_unchanged=ok")
+    print(f"{version}_check=ok blind_repeat_refused=ok source_bytes_unchanged=ok")
 
 
 def existing_receipt_checks(scratch):
@@ -227,7 +242,8 @@ def main():
         scratch_parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="privacygate-eval-check-", dir=scratch_parent) as directory:
             invented_checks(Path(directory))
-            invented_v5_checks(Path(directory))
+            invented_blind_checks(Path(directory), "v5")
+            invented_blind_checks(Path(directory), "v6")
             existing_receipt_checks(Path(directory))
         legacy_check()
         print("EVAL CHECK OK")

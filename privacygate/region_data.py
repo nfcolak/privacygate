@@ -26,7 +26,7 @@ ID2LABEL = {i: label for label, i in LABEL2ID.items()}
 LANGUAGES = frozenset(("en", "de", "fr", "it", "es"))
 ROW_KEYS = frozenset(("case_id", "family", "gold", "language", "split", "text"))
 GOLD_KEYS = frozenset(("start", "end", "label"))
-MAX_ROWS, MAX_CHARS, MAX_GOLD, MAX_ID_CHARS = 24000, 12000, 128, 200
+MAX_ROWS, MAX_CHARS, MAX_GOLD, MAX_ID_CHARS = 28000, 12000, 128, 200
 MAX_LINE_BYTES, MAX_FILE_BYTES = 128 * 1024, 128 * 1024 * 1024
 MAX_MANIFEST_BYTES = 1024 * 1024
 SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -107,9 +107,9 @@ def _manifest_sha256(manifest_path, data_path, split):
             if SHA256.fullmatch(node):
                 found.append(node)
 
-    # Generator v3 binds data only under outputs; template_catalog has its own
-    # split-keyed hashes, which are not hashes of the JSONL artifacts.
-    if manifest.get("manifest_version") == 3:
+    # Generators v3/v4 bind data only under outputs; template_catalog has its
+    # own split-keyed hashes, which are not hashes of the JSONL artifacts.
+    if manifest.get("manifest_version") in (3, 4):
         outputs = manifest.get("outputs")
         if not isinstance(outputs, dict):
             _fail("manifest_schema")

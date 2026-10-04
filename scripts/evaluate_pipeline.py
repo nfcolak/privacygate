@@ -195,7 +195,7 @@ def execute(args, root=ROOT, check_receipts=False):
     if out.exists():
         raise ev.EvaluationError("eval_output_exists")
     custody = ev.BlindCustody(root, args.profile, frozen["model_sha256"], binding["sha256"],
-                              check=check_receipts, version=args.version) if args.version in ("v4", "v5") and not dev else nullcontext()
+                              check=check_receipts, version=args.version) if args.version in ("v4", "v5", "v6") and not dev else nullcontext()
     with custody as blind:
         # Module availability is checked before custody is consumed; an inference
         # or scoring failure after reservation consumes this blind arm.
@@ -228,7 +228,7 @@ def execute(args, root=ROOT, check_receipts=False):
                     "started_at": started_at, "finished_at": ev.utc_now(), "wall_time_seconds": wall_time,
                     "model_load_reused": args.predictions_from == "inference",
                     "predictions_cached": False, "human_review_performed": False,
-                    "blind": args.version in ("v4", "v5") and not dev,
+                    "blind": args.version in ("v4", "v5", "v6") and not dev,
                     "development": dev, "threshold_selection": False}
         ev.json_write(out / "metrics.json", report)
         ev.json_write(out / "manifest.json", manifest)

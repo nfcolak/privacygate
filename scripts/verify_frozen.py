@@ -19,11 +19,13 @@ SETS = {
     "v2": ("make_masking_stress_v2", ("augmentation/masking-stress-v2-dev.jsonl",)),
     "v3": ("make_masking_stress_v3", ("augmentation/masking-stress-v3-dev.jsonl",)),
     "v4": ("make_masking_stress_v4", ("augmentation/masking-stress-v4.jsonl",)),
+    "v6": ("make_masking_stress_v6", ("augmentation/masking-stress-v6.jsonl",)),
     "window-cut": ("make_window_cut_fixture", ("augmentation/window-cut-dev.jsonl",)),
     "challenge": ("make_challenge", ("challenge/dev.jsonl", "challenge/test.jsonl")),
     "positives": ("make_positives", ("augmentation/positive-train.jsonl", "augmentation/positive-dev.jsonl")),
     "negatives": ("make_negatives", ("augmentation/negatives-train.jsonl",)),
     "train-v2": ("make_train_v2", ("augmentation/train-v2.jsonl", "augmentation/dev-v2.jsonl")),
+    "train-v4": ("make_train_v4", ("augmentation/train-v4.jsonl", "augmentation/dev-v4.jsonl")),
 }
 
 
@@ -87,6 +89,18 @@ def verify_one(name):
         return 1
     argv = sys.argv
     try:
+        if name in ("v6", "train-v4"):
+            # These generators already bind artifacts/ paths. Run their own
+            # verification unchanged, without legacy runtime path redirects.
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "scripts" / (module_name + ".py")), "--verify"],
+                cwd=ROOT, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+            )
+            if result.returncode != 0:
+                print(f"{name} FAILED", file=sys.stderr)
+                return 1
+            print(f"{name} VERIFIED")
+            return 0
         module = importlib.import_module(module_name)
         redirect_paths(module)
         if name == "v3":
