@@ -186,6 +186,19 @@ def _add(text, ledger, added, source, stage):
     return len(added)
 
 
+def _admit_additions(text, ledger, added, modules):
+    """Arbitrate only novel assembler coverage, never the accepted mask ledger.
+
+    A context rejection alone cannot revoke an old personal envelope: suppression
+    requires an explicit nonpersonal scope bound to this field/sentence. Covered
+    parts of rejected additions are still masked by the unchanged raw/protected
+    ledger, which _refined restores before final union.
+    """
+    added = _checked(text, added)
+    from .address import scope_allowed
+    return [cand for cand in added if scope_allowed(text, cand, ledger)]
+
+
 def _refined(text, ledger):
     from .refine import refine
     # The legacy refiner strips metadata. Keep ledger/protected seeds separately
@@ -319,13 +332,13 @@ def _finish(text, batch, stages, modules, calibration=None):
         ledger = accepted
 
     if "address.assemble" in stages:
-        added = modules["address"].assemble(text, [dict(c) for c in ledger])
+        added = _admit_additions(text, ledger, modules["address"].assemble(text, [dict(c) for c in ledger]), modules)
         diag["address_candidates"] = _add(text, ledger, added, "address", "assembled")
     if "names.assemble" in stages:
-        added = modules["names"].assemble(text, [dict(c) for c in ledger])
+        added = _admit_additions(text, ledger, modules["names"].assemble(text, [dict(c) for c in ledger]), modules)
         diag["name_candidates"] = _add(text, ledger, added, "names", "assembled")
     if "names.propagate" in stages:
-        added = modules["names"].propagate(text, [dict(c) for c in ledger])
+        added = _admit_additions(text, ledger, modules["names"].propagate(text, [dict(c) for c in ledger]), modules)
         diag["propagated_candidates"] = _add(text, ledger, added, "names", "propagated")
 
     final = _refined(text, ledger)

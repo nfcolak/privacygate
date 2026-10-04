@@ -310,6 +310,133 @@ def round3_cases():
     return complete == len(positives) and not masked and not excess and safety
 
 
+def round4_cases():
+    """Fresh personal-name scope and independently evidenced blocker contrasts."""
+    from privacygate import context
+    from privacygate.pipeline import _admit_additions, _refined
+    from privacygate.spans import union
+    greetings = ("Dear", "Sehr geehrte", "Sehr geehrter", "Liebe", "Lieber", "Bonjour",
+                 "Cher", "Chère", "Gentile", "Caro", "Cara", "Estimado", "Estimada",
+                 "Querido", "Querida")
+    closings = ("Regards", "Kind regards", "Best regards", "Sincerely",
+                "Mit freundlichen Grüßen", "Mit besten Grüßen", "Herzliche Grüße",
+                "Cordialement", "Bien cordialement", "Cordiali saluti", "Distinti saluti",
+                "Saludos", "Saludos cordiales", "Atentamente")
+    positives, clean = [], []
+    for greeting in greetings:
+        for value in ("Ralvorn, Tavira", "Tavira Ralvorn"):
+            positives.append((greeting + " " + value + ", welcome.", value, []))
+            clean.append(greeting + " Ralvorn Systems, welcome.")
+    for closing in closings:
+        for value in ("Tavira Ralvorn", "T. Ralvorn", "Tavira Ivelan Ralvorn"):
+            positives.append(("Letter body.\n" + closing + ",\n" + value + "\n", value, []))
+        for footer in ("Ralvorn Team", "Tavira Ralvorn GmbH", "Tavira Ralvorn Software"):
+            clean.append("Letter body.\n" + closing + ",\n" + footer + "\n")
+    # No cue: one independently labelled given name licenses bounded completion,
+    # not arbitrary text under a broad ADDRESS proposal.
+    for value in ("Tavira Ralvorn", "Tavira de Ralvorn", "T. Ralvorn", "Tavira Ivelan Ralvorn"):
+        text = value + "; Phone: +44 1632 960321"
+        first = value.split()[0]
+        given = seed(text, first, "GIVENNAME")
+        given["source"] = "mbert"
+        broad = seed(text, value, "ADDRESS")
+        broad["source"] = "mbert"
+        positives.append((text, value, [given, broad]))
+        clean.append("Product: " + value)
+    clean += ["Regards\n" + x for x in ("Support Department", "Équipe Ralvorn", "Squadra Ralvorn",
+              "Equipo Ralvorn", "Ralvorn Labs", "Ralvorn Group", "Ralvorn Service", "Ralvorn Solutions")]
+    clean += ["Template letter:\nRegards\nTavira Ralvorn", "Product footer:\nRegards\nTavira Ralvorn",
+              "Dear Tavira Ralvorn, Ivelan Zuvira.", "Estimados Tavira Ralvorn",
+              "Queridos Tavira Ralvorn", "Regards\nTavira Ralvorn Ivelan Zuvira"]
+    complete = excess = 0
+    safety = True
+    for text, value, inputs in positives:
+        saved = deepcopy(inputs)
+        outputs = run_names(text, inputs, "assemble")
+        outputs = _admit_additions(text, inputs, outputs, {"context": context})
+        gold = set(expected(text, [value]))
+        exact = {(c["start"], c["end"]) for c in outputs}
+        complete += gold <= exact
+        excess += any(pair not in gold for pair in exact)
+        safety &= inputs == saved
+    masked = 0
+    for text in clean:
+        outputs = run_names(text, [], "full")
+        outputs = _admit_additions(text, [], outputs, {"context": context})
+        # A multi-recipient greeting can mask the first PERSON, but must never
+        # consume the second through surname inversion.
+        if text.startswith("Dear Tavira Ralvorn,"):
+            safety &= all(c["end"] <= len("Dear Tavira Ralvorn") for c in outputs)
+        else:
+            masked += bool(outputs)
+    # A genuine lexical address, structured/validated phone or protected value
+    # remains a blocker despite an independent name seed.
+    for label in ("STREET", "TELEPHONENUM", "PERSONALREF", "EMAIL"):
+        text = "Name: Tavira Ralvorn"
+        other = seed(text, "Ralvorn", label)
+        other["source"] = "structured"
+        given = seed(text, "Tavira", "GIVENNAME")
+        safety &= all(c["end"] <= other["start"] for c in assemble(text, [given, other]))
+    for value in ("Luvarel Walk 28", "Rue Luvarel 28", "Luvarel Ring 28"):
+        text = "Recipient: " + value
+        broad = seed(text, value, "ADDRESS")
+        safety &= not assemble(text, [broad])
+    # Pipeline scope admission rejects additions only, never existing masks.
+    text = "Catalogue specimen: Name: Tavira Ralvorn"
+    raw = seed(text, "Tavira", "GIVENNAME")
+    raw["protected"] = True
+    added = _admit_additions(text, [raw], assemble(text, [raw]), {"context": context})
+    safety &= not added and any(c["start"] <= raw["start"] and raw["end"] <= c["end"]
+                               for c in union(_refined(text, [raw] + added)))
+    print(f"round4_name_complete={complete}/{len(positives)}")
+    print(f"round4_name_clean_masked={masked}/{len(clean) - 1} excess={excess} barriers_ok={int(safety)}")
+    return len(positives) >= 40 and len(clean) >= 40 and complete == len(positives) and not masked and not excess and safety
+
+
+def scope_regression_cases():
+    """Invented person/specimen twins share the postal field-scope contract."""
+    from privacygate.pipeline import _admit_additions, _refined
+    from privacygate.spans import union
+
+    value = "Neriva Talvorn"
+    prefixes = (
+        ("Firma: ", "Catalogue specimen: Name: "),
+        ("Template: empty. Name: ", "Template: Name: "),
+        ("Product: plain panel\nName: ", "Product: Name: "),
+        ("Sample: empty | Name: ", "Sample: Name: "),
+        ("Catalogue: plain panel, Recipient: ", "Catalogue specimen: Recipient: "),
+    )
+    complete = masked = 0
+    safety = True
+    for personal, clean in prefixes:
+        text = personal + value
+        # Firma is a homograph, not a new name detector: retain existing seeds.
+        inputs = [seed(text, "Neriva", "GIVENNAME")]
+        found = assemble(text, inputs)
+        complete += any(c["start"] == text.index(value) and c["end"] == len(text) for c in found)
+        twin = clean + value
+        for update in ({}, {"protected": True}, {"source": "structured"}):
+            raw = dict(seed(twin, "Neriva", "GIVENNAME"), **update)
+            ledger = [raw]
+            saved = deepcopy(ledger)
+            added = _admit_additions(twin, ledger, assemble(twin, ledger), {})
+            masked += bool(added)
+            final = union(_refined(twin, ledger + added))
+            safety &= ledger == saved and any(
+                c["start"] <= raw["start"] and raw["end"] <= c["end"] for c in final)
+    # Template closings remain specimens, but a sentence-ending period or an
+    # independently keyed personal line prevents that scope from leaking.
+    for scope in ("Catalogue specimen", "Template", "Product"):
+        personal = scope + ": empty.\nRegards\n" + value
+        clean = scope + ":\nRegards\n" + value
+        found = assemble(personal, [])
+        complete += any(c["start"] == personal.index(value) and c["end"] == len(personal) for c in found)
+        masked += bool(assemble(clean, []))
+    print(f"scope_regression_name_complete={complete}/8")
+    print(f"scope_regression_name_clean_masked={masked}/18 lower_bound_ok={int(safety)}")
+    return complete == 8 and not masked and safety
+
+
 def main():
     positives, negatives = fixtures()
     complete = 0
@@ -335,8 +462,10 @@ def main():
         print("family_complete=" + " ".join(f"{key}:{group_success[key]}/{groups[key]}" for key in sorted(groups)))
     mechanics()
     round3_ok = round3_cases()
+    round4_ok = round4_cases()
+    regression_ok = scope_regression_cases()
     if (len(positives) < 60 or len(negatives) < 25 or complete != len(positives)
-            or negatives_masked or excess or not round3_ok):
+            or negatives_masked or excess or not round3_ok or not round4_ok or not regression_ok):
         return 1
     print("name_mechanics=ok")
     return 0
