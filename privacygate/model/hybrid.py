@@ -50,6 +50,66 @@ class Mbert:
                     out[x[0]].append((x[2], [self.id2label[a] for a in arg[i][:L]], conf[i][:L]))
         return out
 
+    def raw_probabilities(self, texts, bs=8):
+        """Opt-in full softmax windows, in memory only; legacy raw is unchanged."""
+        import numpy as np
+        torch = self.torch
+        items = [(ti, ids, offs) for ti, text in enumerate(texts)
+                 for ids, offs in md.encode(self.tok, text)]
+        order = sorted(range(len(items)), key=lambda i: len(items[i][1]))
+        out = [[] for _ in texts]
+        with torch.no_grad():
+            for b in range(0, len(order), bs):
+                batch = [items[i] for i in order[b:b + bs]]
+                n = max(len(x[1]) for x in batch)
+                ids = torch.zeros(len(batch), n, dtype=torch.long)
+                att = torch.zeros(len(batch), n, dtype=torch.long)
+                for i, x in enumerate(batch):
+                    ids[i, :len(x[1])] = torch.tensor(x[1])
+                    att[i, :len(x[1])] = 1
+                prob = self.model(input_ids=ids.to(self.device),
+                                  attention_mask=att.to(self.device)).logits.float().softmax(-1)
+                prob = prob.cpu().numpy()
+                for i, (ti, token_ids, offs) in enumerate(batch):
+                    out[ti].append((offs, np.array(prob[i, :len(token_ids)], copy=True)))
+        return out
+
+    @staticmethod
+    def decode_probabilities(windows, id2label, name_threshold=None):
+        """Convert probabilities to the legacy window contract before BIO decode.
+
+        Override ANY argmax winner when the summed B/I PERSONNAME mass meets
+        the threshold; choose its more probable BIO tag. Other tokens retain
+        their original winner and confidence. No additional confidence filter.
+        """
+        import numpy as np
+        labels = [id2label[i] for i in range(len(id2label))]
+        bi = [labels.index(tag + "-PERSONNAME") for tag in ("B", "I")]
+        raw = []
+        for offs, probabilities in windows:
+            prob = np.asarray(probabilities)
+            arg = prob.argmax(axis=-1)
+            conf = prob[np.arange(len(arg)), arg].copy()
+            if name_threshold is not None:
+                mass = prob[:, bi].sum(axis=-1)
+                override = mass >= name_threshold
+                arg[override] = np.asarray(bi)[prob[override][:, bi].argmax(axis=-1)]
+                conf[override] = mass[override]
+            raw.append((offs, [labels[int(a)] for a in arg], conf.tolist()))
+        return raw
+
+    @staticmethod
+    def average_probabilities(first, second):
+        """Aligned tokenizer windows only; refuse mismatched offsets/shapes."""
+        if len(first) != len(second):
+            raise ValueError("ensemble_windows_mismatch") from None
+        averaged = []
+        for (offs, p), (other_offs, q) in zip(first, second):
+            if offs != other_offs or p.shape != q.shape:
+                raise ValueError("ensemble_windows_mismatch") from None
+            averaged.append((offs, (p + q) * 0.5))
+        return averaged
+
     @staticmethod
     def spans(raw_text, thr=0.0):
         found = set()

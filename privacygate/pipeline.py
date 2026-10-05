@@ -201,7 +201,7 @@ def _address_union(text, cands):
     return out
 
 
-def _run(text, profile, model_dir, stages, modules):
+def _run(text, profile, model_dir, stages, modules, options=None):
     model = _get_mbert(model_dir)
     if profile == "legacy_union_refined":
         result = inference.run_with_completion(text, engine="hybrid", model_dir=model_dir,
@@ -210,11 +210,22 @@ def _run(text, profile, model_dir, stages, modules):
                 "completion": result["completion"],
                 "diagnostics": {"final_entities": len(result["entities"]), "errors": 0}}
 
-    batch = inference.mbert_candidates(text, model_dir=model_dir, _mbert=model)
-    return _finish(text, batch, stages, modules)
+    if options and (options.get("ensemble") or options.get("name_threshold") is not None):
+        windows = model.raw_probabilities([text])[0]
+        if options.get("ensemble"):
+            other_dir = ensemble_peer(model_dir)
+            peer = _get_mbert(other_dir)
+            if model.id2label != peer.id2label or model.tok.get_vocab() != peer.tok.get_vocab():
+                _fail("pipeline_ensemble_mismatch")
+            windows = model.average_probabilities(windows, peer.raw_probabilities([text])[0])
+        raw = model.decode_probabilities(windows, model.id2label, options.get("name_threshold"))
+        batch = inference.mbert_candidates(text, model_dir=model_dir, _mbert=model, _raw=raw)
+    else:
+        batch = inference.mbert_candidates(text, model_dir=model_dir, _mbert=model)
+    return _finish(text, batch, stages, modules, options) if options else _finish(text, batch, stages, modules)
 
 
-def _finish(text, batch, stages, modules):
+def _finish(text, batch, stages, modules, options=None):
     """Replay only deterministic stages from an in-memory model candidate batch."""
     from privacygate.model.hybrid import regex
     ledger = _checked(text, batch["candidates"])
@@ -265,7 +276,12 @@ def _finish(text, batch, stages, modules):
         added = _admit_additions(text, ledger, modules["names"].assemble(text, [dict(c) for c in ledger]), modules)
         diag["name_candidates"] = _add(text, ledger, added, "names", "assembled")
     if "names.propagate" in stages:
-        added = _admit_additions(text, ledger, modules["names"].propagate(text, [dict(c) for c in ledger]), modules)
+        if options and options.get("name_propagation_ext"):
+            propagated = modules["names"].propagate(text, [dict(c) for c in ledger],
+                                                     name_propagation_ext=True)
+        else:
+            propagated = modules["names"].propagate(text, [dict(c) for c in ledger])
+        added = _admit_additions(text, ledger, propagated, modules)
         diag["propagated_candidates"] = _add(text, ledger, added, "names", "propagated")
 
     final = _refined(text, ledger)
@@ -282,7 +298,34 @@ def _finish(text, batch, stages, modules):
             "completion": dict(batch["completion"]), "diagnostics": diag}
 
 
-def run_pipeline(text, profile="full", model_dir=None):
+def normalize_options(options=None):
+    """Value-free admission for three full-profile inference-only switches."""
+    if options is None:
+        return {}
+    if not isinstance(options, dict) or set(options) - {"name_threshold", "ensemble", "name_propagation_ext"}:
+        _fail("pipeline_options_invalid")
+    threshold = options.get("name_threshold")
+    if threshold is not None and (type(threshold) not in (int, float) or not 0 < threshold <= 1):
+        _fail("pipeline_options_invalid")
+    for key in ("ensemble", "name_propagation_ext"):
+        if key in options and type(options[key]) is not bool:
+            _fail("pipeline_options_invalid")
+    return {key: value for key, value in options.items()
+            if value is not None and value is not False}
+
+
+def ensemble_peer(model_dir):
+    """Ensemble is explicitly the sibling frozen region-v4/region-v5 pair."""
+    if model_dir is None:
+        _fail("pipeline_ensemble_model_invalid")
+    path = Path(model_dir).expanduser().resolve()
+    peers = {"region-v4-2ep": "region-v5-2ep", "region-v5-2ep": "region-v4-2ep"}
+    if path.name not in peers:
+        _fail("pipeline_ensemble_model_invalid")
+    return path.parent / peers[path.name]
+
+
+def run_pipeline(text, profile="full", model_dir=None, options=None):
     """Run a declared profile; status=blocked never includes original/partial text.
 
     Required-stage admission precedes model loading. Models are cached by resolved
@@ -293,8 +336,13 @@ def run_pipeline(text, profile="full", model_dir=None):
         return _blocked("pipeline_input_invalid")
     try:
         stages = _stages(profile)
+        effective = normalize_options(options)
+        if effective and profile != "full":
+            _fail("pipeline_options_full_only")
         modules = _modules(stages)
         with _MODEL_LOCK:
+            if effective:
+                return _run(text, profile, model_dir, stages, modules, effective)
             return _run(text, profile, model_dir, stages, modules)
     except PipelineError as error:
         return _blocked(str(error))

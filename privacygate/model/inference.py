@@ -160,7 +160,7 @@ def run(text, engine="regex", model_dir=None, policy="union", confidence=None, r
     return {"masked_text": result["masked_text"], "entities": result["entities"]}
 
 
-def mbert_candidates(text, model_dir=None, _mbert=None):
+def mbert_candidates(text, model_dir=None, _mbert=None, _raw=None):
     """Scored contract candidates and protected coverage from actual model windows.
 
     The raw token/window arrays are ephemeral; only value-free candidate dicts and
@@ -175,7 +175,7 @@ def mbert_candidates(text, model_dir=None, _mbert=None):
     mb = _mbert if _mbert is not None else _load_mbert(
         hybrid.DEFAULT_MODEL_DIR if model_dir is None else model_dir)
     try:
-        raw = mb.raw([text])[0]
+        raw = mb.raw([text])[0] if _raw is None else _raw
         regions = uncovered_regions(text, (o for offs, _, _ in raw for o in offs))
         count = sum(b - a for a, b in regions)
         cands = [make_candidate(s["start"], s["end"], s["label"], "mbert", score=s["score"])

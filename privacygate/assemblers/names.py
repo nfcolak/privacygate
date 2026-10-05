@@ -463,7 +463,7 @@ def _title_start(text, tokens, start):
     return i
 
 
-def propagate(text, cands):
+def propagate(text, cands, name_propagation_ext=False):
     """Add exact full-core repeats and uniquely resolved titled surnames.
 
     Only accepted, non-propagated PERSONNAME seeds with two core atoms or an
@@ -526,6 +526,29 @@ def propagate(text, cands):
         surname = text[tokens[sa].start:tokens[sb].end]
         sig = tuple(text[tokens[i].start:tokens[i].end] for i in range(sa, sb + 1))
         surnames.setdefault(sig[0], {}).setdefault(sig, {"surface": surname, "owners": set()})["owners"].add(alias)
+    # Extension uses only accepted, non-recursive model PERSONNAME evidence.
+    # Full regions and capitalized first/last lexical atoms are exact aliases;
+    # existing blockers, nonpersonal scopes and boundaries still govern targets.
+    if name_propagation_ext:
+        for cand in accepted:
+            if cand.get("source") != "mbert":
+                continue
+            idx = [i for i, t in enumerate(tokens)
+                   if cand["start"] <= t.start and t.end <= cand["end"]]
+            if (not idx or tokens[idx[0]].start != cand["start"]
+                    or tokens[idx[-1]].end != cand["end"]
+                    or _nonpersonal(text, cand["start"], cand["end"])):
+                continue
+            cores = [i for i in idx if _core(text, tokens[i])
+                     and text[tokens[i].start].isupper()
+                     and sum(_letter(ch) for ch in text[tokens[i].start:tokens[i].end]) >= 3]
+            if not cores:
+                continue
+            signature = tuple(text[tokens[i].start:tokens[i].end] for i in idx)
+            full.setdefault(signature[0], {})[signature] = text[cand["start"]:cand["end"]]
+            for i in {cores[0], cores[-1]}:
+                surface = text[tokens[i].start:tokens[i].end]
+                full.setdefault(surface, {})[(surface,)] = surface
     out = {}
 
     def add(start, end):
