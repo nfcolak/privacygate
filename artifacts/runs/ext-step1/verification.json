@@ -1,0 +1,73 @@
+{
+  "checks": {
+    "__init__.py": {
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "all_expected": true,
+    "check_address.py": {
+      "exit_code": 0,
+      "output_sha256": "071fc1c664a30b5983b65d62e4eb0519fb6a9154839bb592e25bdc5fe8869c12"
+    },
+    "check_alignment.py": {
+      "exit_code": 0,
+      "output_sha256": "eda111e0a547b67d0b8d4997ad841b238999d12ac268fc83085ae6713b3431c6"
+    },
+    "check_context.py": {
+      "exit_code": 0,
+      "output_sha256": "382c2c807d051ca4efd5a450b34bcd5f861dba93b89192dcc6fbbe1810fc1bc4"
+    },
+    "check_coverage_certificate.py": {
+      "exit_code": 0,
+      "output_sha256": "0967fddb9f69b5209d98498bf3d5da90635794aafb192b691ff7f38bc74ec99d"
+    },
+    "check_eval.py": {
+      "exit_code": 0,
+      "output_sha256": "313ad4c8be3f9e9d5fd087d97a30a10722859e4a32c4c10ca7eeac268ce78a97"
+    },
+    "check_names.py": {
+      "exit_code": 0,
+      "output_sha256": "cd6a7bb2378eb1933bf9722e51436469f7f325b30c2e8d9af7872a9decda551d"
+    },
+    "check_pipeline.py": {
+      "exit_code": 0,
+      "output_sha256": "34076bd229daddca88f9eb7793bf2a1707c8409229afaffccd21a2b5eecd1b9b"
+    },
+    "check_positive_training.py": {
+      "exit_code": 1,
+      "matches_known_base_failure": true,
+      "output_sha256": "181d4f2268048c4bb53f987289a2e6638ec2a377d34d8b7fc0f273cf493a1d2c"
+    },
+    "check_structured.py": {
+      "exit_code": 0,
+      "output_sha256": "eb5c0062bc6489f070da8fcd2d7e47680e15008e438d106303725326f685309c"
+    },
+    "check_window_alignment.py": {
+      "exit_code": 0,
+      "output_sha256": "e2bf79b88413d0852a22a53ec6e67eb28d66e2fa96601f7bb686fd9088c49e73"
+    },
+    "verify_frozen.py": {
+      "exit_code": 0,
+      "output_sha256": "aa088ee7e5cdd45a7c7928857be2d31b2c697e6184abf3136d41ce88a8d2e5e3"
+    }
+  },
+  "data_mounts": "Temporary read-only augmentation/challenge development-data symlinks removed after checks; no source or shared-data bytes changed.",
+  "external_receipts": {
+    "all_original_scorer_counts_match": true,
+    "pipeline_rerun": false,
+    "provenance_hashes_match": true,
+    "rows": 4696,
+    "scorer_source_sha256": "22d6c0e5d3040611f4c000a69ad011b9ddf2091ba2ba028b3f74db96a149d9d2",
+    "selected_grid_setting_matches": true
+  },
+  "frozen_note": "verify_frozen all exit 0; window-cut/challenge absent, skipped by existing verifier; all other available frozen sets verified.",
+  "golden_after_sha256": "f1b7b439cb95b7c1a4583f36dee29237a622723b6a45296408d47facd0351d3e",
+  "golden_before_sha256": "f1b7b439cb95b7c1a4583f36dee29237a622723b6a45296408d47facd0351d3e",
+  "golden_identical": true,
+  "golden_rows": 6750,
+  "positive_training_base": {
+    "diagnostic": "POSITIVE TRAINING WIRING FAILED",
+    "exit_code": 1,
+    "post_change_matches": true
+  }
+}
