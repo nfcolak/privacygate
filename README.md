@@ -26,7 +26,7 @@ privacygate/                     # method: stable public API and region training
 ├── model/                       # inference adapter, mBERT wrapper (hybrid.py), run guard
 ├── rules/, assemblers/          # structured detection, context, refinement; addresses, names
 ├── data/                        # spans, region JSONL loader, window alignment
-├── training/                    # train_mbert.py (region trainer)
+├── training/                    # train_mbert.py (region trainer), colab_bundle.py
 └── detect.py, mbert_data.py, masking_metrics.py
 data/
 ├── generators/                  # frozen generators: masking-stress v7 (v8 template), train-v6
@@ -37,6 +37,7 @@ evaluation/
 ├── evaluate_external.py         # Gretel EXT-DEV grid / TEST, v7 development check
 ├── masking_eval.py              # aggregate scorer and blind custody
 └── checks/                      # regression checks and verify_frozen.py
+colab/train_region_v6.ipynb      # Colab GPU training notebook for region-v6
 configs/                         # pipeline and privacy policy configuration
 artifacts/                       # aggregate metrics, manifests and receipts; figures/results.png
 smoke.py                         # deterministic CLI smoke test
@@ -162,7 +163,13 @@ $PY -m privacygate.training.train_mbert --run region-v6-2ep-b8 \
   --region-manifest data/manifests/train-v6.json --epochs 2 --batch-size 8
 ```
 
-The trainer uses `mps` when available, otherwise `cpu`, refuses inputs whose sha256 differs from the manifest, and never overwrites an existing run directory under `models/`.
+The trainer picks `cuda`, then `mps`, then `cpu` (device and GPU name are recorded in `metrics.json`), refuses inputs whose sha256 differs from the manifest, and never overwrites an existing run directory under `models/`.
+
+Colab GPU training (region-v6): build the bundle on the Mac, upload it to Google Drive as `privacygate/colab-bundle-v6.zip`, then run `colab/train_region_v6.ipynb` top to bottom on a GPU runtime. The bundle holds the `privacygate` package, `requirements-train.txt`, the train-v6 manifest, both data files and `SHA256SUMS`; it refuses `data/raw/`, `models/` and any checkpoint folder. The notebook verifies every hash, installs missing pins, downloads the pinned base model, trains with the command above (output on Drive, since free sessions can drop and there is no mid-epoch checkpoint), prints `metrics.json` and writes `region-v6-2ep-b8.zip` to Drive.
+
+```sh
+$PY -m privacygate.training.colab_bundle --out ~/colab-bundle-v6.zip
+```
 
 External and development evaluation (Gretel `gretel-finance-7b844d1` parquet files in `data/local/external/`):
 
