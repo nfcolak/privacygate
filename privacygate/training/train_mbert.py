@@ -15,6 +15,23 @@ from privacygate import mbert_data as md
 from privacygate.model import train_guard as tg
 
 
+def select_device(torch):
+    """cuda > mps > cpu, plus the accelerator name for run metrics (None on cpu/mps)."""
+    if torch.cuda.is_available():
+        return torch.device("cuda"), torch.cuda.get_device_name(0)
+    if torch.backends.mps.is_available():
+        return torch.device("mps"), None
+    return torch.device("cpu"), None
+
+
+def synchronize(torch, device):
+    """Timing barrier only; each backend's own call, never mps on cuda."""
+    if device.type == "mps":
+        torch.mps.synchronize()
+    elif device.type == "cuda":
+        torch.cuda.synchronize()
+
+
 def batches(items, bs, shuffle, rng):
     idx = list(range(len(items)))
     if shuffle:
@@ -116,7 +133,7 @@ def train_regions(args):
     md.setup_hf_home()
     import torch
     from transformers import AutoModelForTokenClassification, AutoTokenizer
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    device, gpu_name = select_device(torch)
     torch.manual_seed(args.seed)
     rng = random.Random(args.seed)
     tok = AutoTokenizer.from_pretrained(md.MODEL_ID, revision=md.MODEL_REVISION,
@@ -148,13 +165,13 @@ def train_regions(args):
     print(json.dumps({"mode": "region", "train_rows": len(train_rows), "dev_rows": len(dev_rows),
                       "train_windows": len(train_windows), "train_rows_excluded": train_alignment["rows_excluded"],
                       "dev_rows_unalignable": dev_alignment["rows_excluded"],
-                      "steps": total, "device": device.type, "num_labels": len(rd.LABELS)}), flush=True)
+                      "steps": total, "device": device.type, "gpu_name": gpu_name,
+                      "num_labels": len(rd.LABELS)}), flush=True)
     step, train_time, evaluation_time, save_time = 0, 0.0, 0.0, 0.0
     best_key, selected_epoch, best_dev, history = None, None, None, []
     for epoch in range(args.epochs):
         model.train()
-        if device.type == "mps":
-            torch.mps.synchronize()
+        synchronize(torch, device)
         start = time.perf_counter()
         for batch in batches(train_windows, args.batch_size, True, rng):
             ids, att, gold = collate(batch, torch, device)
@@ -167,8 +184,7 @@ def train_regions(args):
                 torch.mps.empty_cache()
             if step == 1 or step % 10 == 0 or step == total:
                 print("region step {}/{} epoch {} loss {:.4f}".format(step, total, epoch + 1, loss.item()), flush=True)
-        if device.type == "mps":
-            torch.mps.synchronize()
+        synchronize(torch, device)
         train_time += time.perf_counter() - start
         start = time.perf_counter()
         dev = evaluate_regions(model, dev_rows, dev_windows, device, torch, args.batch_size)
@@ -189,7 +205,7 @@ def train_regions(args):
         "mode": "region", "model": md.MODEL_ID, "model_revision": md.MODEL_REVISION,
         "epochs": args.epochs, "batch_size": args.batch_size, "lr": args.lr, "seed": args.seed,
         "max_len": md.MAX_LEN, "window_stride_tokens": md.STRIDE,
-        "labels": rd.LABELS, "region_labels": list(rd.REGION_LABELS), "device": device.type,
+        "labels": rd.LABELS, "region_labels": list(rd.REGION_LABELS), "device": device.type, "gpu_name": gpu_name,
         "train_rows": len(train_rows), "dev_rows": len(dev_rows),
         "train_rows_used": train_alignment["rows_used"], "train_rows_excluded": train_alignment["rows_excluded"],
         "train_windows": len(train_windows), "dev_windows": len(dev_windows),
@@ -202,7 +218,8 @@ def train_regions(args):
         "note": "Region rows only; fresh pinned base; all dev gold scored, including unalignable rows; no test split.",
     }
     metrics = {"run": args.run, "mode": "region", "dev": best_dev, "epochs": history,
-               "run_identity": identity, "selected_epoch": selected_epoch}
+               "run_identity": identity, "selected_epoch": selected_epoch,
+               "device": device.type, "gpu_name": gpu_name}
     (model_dir / "metrics.json").write_text(json.dumps(metrics, indent=2, sort_keys=True) + "\n")
     # Final-checkpoint marker: written last, only after weights/tokenizer/metrics exist.
     (model_dir / "train_info.json").write_text(json.dumps(info, indent=2, sort_keys=True) + "\n")
