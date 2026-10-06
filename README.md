@@ -15,44 +15,48 @@ mBERT region model → regex + structured detectors → context gate
 
 The model proposes regions; rules detect and validate structured values; the context gate distinguishes personal from operational uses. Assemblers extend address/name regions and propagate supported name mentions within a document. Refinement and union combine accepted spans before rendering placeholders. Required-stage or inference failures return a blocked result rather than silently falling back to regex.
 
-Four profiles are supported:
-
-- `full`: all stages; default for `privacygate.pipeline.run_pipeline`.
-- `structured`: model, regex and structured detection without context/assemblers.
-- `structured_address_names`: structured detection plus address/name assemblers, without the context gate.
-- `legacy_union_refined`: retained legacy hybrid union/refinement behavior.
-
-`full_calibrated` is retired; historical results remain in the artifacts. The CLI still defaults to the regex engine, not the full pipeline.
+`full` is the only supported profile (`privacygate.pipeline.run_pipeline(text, profile="full", model_dir=None, options=None)`). Three opt-in, inference-only options apply to it: `name_threshold` (0 < t ≤ 1; summed B/I PERSONNAME probability override), `name_propagation_ext` (wider in-document name propagation) and `ensemble` (probability average of the sibling `region-v4-2ep`/`region-v5-2ep` pair). The `structured`, `structured_address_names`, `legacy_union_refined` and `full_calibrated` profiles and the CLI `hybrid` engine are retired; their results remain in `artifacts/runs/` and git history. `configs/pipeline-v1.json` still lists the retired profiles because blind-run manifests bind its sha256. The CLI defaults to the regex engine, not the pipeline.
 
 ## Repository layout
 
 ```text
-privacygate/
-├── cli.py, __main__.py           # stdin → JSON interface
-├── pipeline.py                  # staged orchestration; stable public API
-├── model/                       # inference, hybrid policies, training guards
-├── rules/                       # structured detection, context, refinement
-├── assemblers/                  # addresses and names
-├── data/                        # spans, window alignment, training-data adapters
-├── evaluation/                  # masking evaluation and blind-run custody
-└── detect.py, mbert_data.py, positive_data.py,
-    negative_data.py, masking_metrics.py  # five fixed canonical modules
-scripts/
-├── checks/                      # regression checks and frozen verification
-├── audit/                       # data, coverage and alignment audits
-├── evaluation/                  # pipeline scoring and comparisons
-├── training/                    # current mBERT trainer
-├── make_*.py                    # frozen synthetic generators
-└── train_v2/ … train_v5/         # frozen generator implementations, not trainers
-configs/                         # machine policy and pipeline configuration
-artifacts/                       # aggregate metrics, manifests and receipts
-└── figures/results.png
+privacygate/                     # method: stable public API and region training
+├── cli.py, __main__.py          # stdin → JSON interface (python -m privacygate)
+├── pipeline.py                  # staged orchestration; run_pipeline
+├── model/                       # inference adapter, mBERT wrapper (hybrid.py), run guard
+├── rules/, assemblers/          # structured detection, context, refinement; addresses, names
+├── data/                        # spans, region JSONL loader, window alignment
+├── training/                    # train_mbert.py (region trainer)
+└── detect.py, mbert_data.py, masking_metrics.py
+data/
+├── generators/                  # frozen generators: masking-stress v7 (v8 template), train-v6
+├── manifests/                   # hash-bound manifests: masking-stress-v7.json, train-v6.json
+└── local/                       # git-ignored datasets (see below)
+evaluation/
+├── evaluate_pipeline.py         # custody-bound blind scoring through run_pipeline
+├── evaluate_external.py         # Gretel EXT-DEV grid / TEST, v7 development check
+├── masking_eval.py              # aggregate scorer and blind custody
+└── checks/                      # regression checks and verify_frozen.py
+configs/                         # pipeline and privacy policy configuration
+artifacts/                       # aggregate metrics, manifests and receipts; figures/results.png
 smoke.py                         # deterministic CLI smoke test
 ```
 
-The frozen generators and the five flat canonical modules are intentional fixed paths, not compatibility shims: manifests bind their source bytes and frozen callers depend on them. Do not relocate or rewrite them. `scripts/checks/verify_frozen.py` adapts historical paths at runtime without changing source bytes or historical hashes. Seven retired files are archived outside the repository.
+Git-ignored local assets (never committed):
 
-Models and datasets are not committed. Project notes, protocols and reports live outside the repository in ProjectOS project `10-Projects/privacygate`; only the root README and AGENTS are repository notes.
+```text
+data/local/augmentation/         # masking-stress-v7.jsonl, train-v6.jsonl, dev-v6-ext.jsonl
+data/local/external/             # gretel-finance-7b844d1/ and other external test sets
+data/local/artifacts/            # default for $PRIVACYGATE_ARTIFACTS (train-v5 subset, frozen scorer copy)
+models/                          # region-v4-2ep, region-v5-2ep, full-1, new runs
+.cache/hf/                       # Hugging Face cache (HF_HOME); .cache/ext-step1-probabilities/
+```
+
+`$PRIVACYGATE_ARTIFACTS` points at the owner's external artifact folder; the train-v6 generator reads `train-v5/train-v5.jsonl` and `external/gretel-results/evaluate_external.py` from it (default `data/local/artifacts`).
+
+Frozen bindings: the v7 generator's manifest binds the generator's own bytes, so the file is never edited; `evaluation/checks/verify_frozen.py` maps the current layout onto the paths recorded in the manifests at runtime only. `data/manifests/train-v6.json` binds the train-v6 code in `code_inputs` (refreshed after this layout change; data hashes unchanged). `privacygate/model/hybrid.py` is kept byte-identical because the external-evaluation probability cache key binds its sha256. Retired code (OpenPII Micro mode, stress v1–v6, train-v2–v5, challenge/window-cut/positive/negative sets, audits) remains in git history at `891ed19`.
+
+Project notes, protocols and reports live outside the repository in ProjectOS project `10-Projects/privacygate`; only the root README and AGENTS are repository notes.
 
 ## Evaluation method
 
@@ -89,7 +93,7 @@ Aggregate records and receipts are in `artifacts/runs/blind-v4/` through `blind-
 | region-v4 | 87.09% | 4.04% |
 | region-v5 | 88.71% | 4.42% |
 
-Person names without cues were a major weakness (roughly 81–85% coverage); usernames were also weak. Excess masking was mostly numbers/amounts. The annotations are LLM-made, with automated validation and reported spot checks—not a fully human-adjudicated reference. External aggregates, manifests and measurement tooling are retained outside the repository under `~/AI-Workplace/Artifacts/PrivacyGate/external/gretel-results/` (`external-gretel.json`).
+Person names without cues were a major weakness (roughly 81–85% coverage); usernames were also weak. Excess masking was mostly numbers/amounts. The annotations are LLM-made, with automated validation and reported spot checks—not a fully human-adjudicated reference. External aggregates, manifests and measurement tooling are retained outside the repository under `$PRIVACYGATE_ARTIFACTS/external/gretel-results/` (`external-gretel.json`); the EXT-DEV selection and the single Gretel TEST measurement made with the current tooling are in `artifacts/runs/ext-step1/`.
 
 ## Limitations
 
@@ -101,53 +105,76 @@ Person names without cues were a major weakness (roughly 81–85% coverage); use
 
 ## Usage and reproduction
 
-Run commands from the repository root. The default regex engine requires only Python >=3.9 and detects EMAIL and checksum-valid IBAN values. mBERT/hybrid and the staged pipeline additionally require `requirements-train.txt`, local model weights and a populated tokenizer cache. Missing assets fail without a silent regex fallback.
-
-Reuse an existing training environment, or prepare one from locally available dependency wheels. These instructions do not authorize downloads, training or repeat blind measurements.
+Run commands from the repository root. The default regex engine requires only Python >=3.9 and detects EMAIL and checksum-valid IBAN values. The mBERT engine, the staged pipeline and training additionally require `requirements-train.txt` (including `phonenumberslite`, used by structured phone validation), local model weights and a populated tokenizer cache. Missing assets fail without a silent regex fallback.
 
 ```sh
-# Only if an environment has not already been prepared:
-env -u PYTHONPATH python3 -m venv .venv-train
-# Install requirements-train.txt from your locally available wheels, without network access:
-# .venv-train/bin/python -m pip install --no-index --find-links /path/to/wheels -r requirements-train.txt
+python3 -m venv .venv-train
+.venv-train/bin/pip install -r requirements-train.txt -e .
 
-export PYTHONDONTWRITEBYTECODE=1
-export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
-export HF_HOME=/path/to/populated/hf-cache
-PY=/path/to/existing/.venv-train/bin/python
-pgpy() { env -u PYTHONPATH "$PY" "$@"; }
-
-pgpy -m privacygate --help
-pgpy smoke.py
-pgpy scripts/checks/check_pipeline.py
-pgpy scripts/checks/check_eval.py
-pgpy scripts/checks/check_structured.py
-pgpy scripts/checks/check_context.py
-pgpy scripts/checks/check_address.py
-pgpy scripts/checks/check_names.py
-pgpy scripts/checks/verify_frozen.py all
-pgpy -m scripts.training.train_mbert --help
+export PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+export HF_HOME="$PWD/.cache/hf"                 # populated bert-base-multilingual-cased snapshot
+export PRIVACYGATE_ARTIFACTS=/path/to/external/artifacts   # only for train-v6 generation
+PY=.venv-train/bin/python
 ```
 
-The regression checks require the local synthetic development assets; pipeline/evaluation checks also require the legacy checkpoint `models/pos-neg-alignment-pilot-1002`. `verify_frozen.py all` reports missing supported datasets as skipped, not verified. Some historical verification paths also depend on the external ProjectOS policy document.
+Smoke test and checks (no model needed except where noted):
 
-The CLI reads synthetic text from stdin and emits JSON with `masked_text` and `entities` (original-text offsets and labels, not original entity values or confidences). Staged results also include status, completion and aggregate diagnostics. Unmasked text remains in the output, so this output is not a safe-to-log privacy guarantee.
+```sh
+$PY smoke.py
+$PY -m evaluation.checks.check_structured
+$PY -m evaluation.checks.check_context
+$PY -m evaluation.checks.check_address
+$PY -m evaluation.checks.check_names
+$PY -m evaluation.checks.check_window_alignment
+$PY -m evaluation.checks.check_eval
+$PY -m evaluation.checks.check_pipeline --model-dir models/region-v4-2ep   # needs a region model
+$PY -m evaluation.checks.verify_frozen all        # v7 and train-v6; missing data is reported as skipped
+```
 
-- `--engine regex|mbert|hybrid`: engine selection; default `regex`.
+Masking (synthetic input only):
+
+```sh
+$PY -m privacygate --help
+$PY -m privacygate --pipeline-profile full --model-dir models/region-v4-2ep < synthetic-input.txt
+```
+
+The CLI reads text from stdin and emits JSON with `masked_text` and `entities` (original-text offsets and labels, not original entity values or confidences). Staged results also include status, completion and aggregate diagnostics. Unmasked text remains in the output, so this output is not a safe-to-log privacy guarantee.
+
+- `--engine regex|mbert`: non-staged engine selection; default `regex`.
 - `--model-dir PATH`: local checkpoint; default `models/full-1` when unspecified.
-- `--hybrid-policy union|rules_first|rules_first_thr|union_refined`: hybrid combination policy.
-- `--pipeline-profile full|structured|structured_address_names|legacy_union_refined`: opt into staged processing; overrides engine/policy/refinement/confidence options.
-- `--refine` and `--confidence`: optional non-staged model controls; see CLI help.
+- `--pipeline-profile full`: opt into staged processing; overrides engine/refinement/confidence options.
+- `--refine` and `--confidence`: optional mbert-engine controls; see CLI help.
+
+Data generation and verification:
 
 ```sh
-# Use an existing file containing synthetic input only:
-pgpy -m privacygate --pipeline-profile full \
-  --model-dir models/region-v4-2ep < synthetic-input.txt
-
-# Current scoring/audit entry points; help does not score a dataset:
-pgpy scripts/evaluation/evaluate_pipeline.py --help
-pgpy scripts/evaluation/compare.py --help
-pgpy scripts/audit/audit_dataset.py --help
+$PY data/generators/make_train_v6.py              # writes data/local/augmentation/{train-v6,dev-v6-ext}.jsonl; refuses to overwrite
+$PY -m evaluation.checks.verify_frozen train-v6   # full replay against data/manifests/train-v6.json
+$PY -m evaluation.checks.verify_frozen v7         # v7 is frozen; copy its generator as the template for v8
 ```
 
-Evaluators retain JSON outputs and print aggregate summaries, not dataset rows. Historical blind arms must not be rerun; reproduce their reported numbers from the committed aggregates and receipts. Training requires separate authorization even though the trainer entry point is available.
+Region training (same settings as the region-v6 run):
+
+```sh
+$PY -m privacygate.training.train_mbert --run region-v6-2ep-b8 \
+  --region-train-file data/local/augmentation/train-v6.jsonl \
+  --region-dev-file data/local/augmentation/dev-v6-ext.jsonl \
+  --region-manifest data/manifests/train-v6.json --epochs 2 --batch-size 8
+```
+
+The trainer uses `mps` when available, otherwise `cpu`, refuses inputs whose sha256 differs from the manifest, and never overwrites an existing run directory under `models/`.
+
+External and development evaluation (Gretel `gretel-finance-7b844d1` parquet files in `data/local/external/`):
+
+```sh
+# EXT-DEV inference-only option grid (selection only; TEST text hashes only):
+$PY evaluation/evaluate_external.py --split ext-dev --grid --out artifacts/runs/<round>/ext-dev-grid.json
+# Locked selection: v7 development check, then the single TEST measurement:
+$PY evaluation/evaluate_external.py --split test --selection artifacts/runs/<round>/ext-dev-grid.json \
+  --v7-out artifacts/runs/<round>/v7-dev --out artifacts/runs/<round>/gretel-test/metrics.json
+# Custody-bound blind scoring through run_pipeline (one measurement per profile+model):
+$PY evaluation/evaluate_pipeline.py --version v7 --dataset data/local/augmentation/masking-stress-v7.jsonl \
+  --model-dir models/<model> --out-dir <fresh output dir>
+```
+
+`artifacts/runs/ext-step1/` records how the current EXT-DEV selection, v7 development check and Gretel TEST measurement were produced. Evaluators retain JSON outputs and print aggregate summaries, not dataset rows. Historical blind arms must not be rerun; reproduce their reported numbers from the committed aggregates and receipts. Training requires separate authorization even though the trainer entry point is available.

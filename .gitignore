@@ -7,20 +7,18 @@ __pycache__/
 *.egg-info/
 build/
 dist/
-data/*
-!data/manifests/
-data/manifests/*
-!data/manifests/*.jsonl
-!data/manifests/*.json
-models/
-results/
-.cache/
 .pytest_cache/
-!data/manifests/micro/
-data/manifests/micro/*
-!data/manifests/micro/*.jsonl
-!data/manifests/micro/*.json
 .venv-train/
 .venv-gliner/
-data/challenge/
+
+# Local, never-committed assets: datasets, external sets, model checkpoints, caches.
+data/local/
+models/
+.cache/
+colab-bundle*.zip
+
+# Retired asset locations: still ignored so leftovers on disk are never committed.
 data/augmentation/
+data/challenge/
+data/raw/
+results/
