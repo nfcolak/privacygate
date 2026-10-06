@@ -15,7 +15,9 @@ from privacygate.data.spans import make_candidate, validate, union
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "configs" / "pipeline-v1.json"
-PROFILES = ("legacy_union_refined", "structured", "structured_address_names", "full")
+# configs/pipeline-v1.json also lists retired profiles; its bytes stay unchanged
+# because blind/ext-step1 manifests bind its sha256. Only "full" is admitted.
+PROFILES = ("full",)
 # A single shared model is serialized for safe process-local inference/cache use.
 _MODEL_LOCK = RLock()
 _REQUIRED = {
@@ -37,9 +39,6 @@ _MODULE_PATHS = {
 _BASE = ("mbert", "regex", "structured.detect", "structured.check")
 _TAIL = ("refine", "coverage", "union", "render")
 _EXPECTED = {
-    "legacy_union_refined": ("mbert", "regex", "legacy_union", "coverage", "refine", "legacy_merge", "render"),
-    "structured": _BASE + _TAIL,
-    "structured_address_names": _BASE + ("address.assemble", "names.assemble", "names.propagate") + _TAIL,
     "full": _BASE + ("context.decide", "address.assemble", "names.assemble", "names.propagate") + _TAIL,
 }
 
@@ -203,13 +202,6 @@ def _address_union(text, cands):
 
 def _run(text, profile, model_dir, stages, modules, options=None):
     model = _get_mbert(model_dir)
-    if profile == "legacy_union_refined":
-        result = inference.run_with_completion(text, engine="hybrid", model_dir=model_dir,
-                                               policy="union_refined", _mbert=model)
-        return {"status": "ok", "masked_text": result["masked_text"], "entities": result["entities"],
-                "completion": result["completion"],
-                "diagnostics": {"final_entities": len(result["entities"]), "errors": 0}}
-
     if options and (options.get("ensemble") or options.get("name_threshold") is not None):
         windows = model.raw_probabilities([text])[0]
         if options.get("ensemble"):

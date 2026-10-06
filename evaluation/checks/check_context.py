@@ -163,7 +163,7 @@ def _invariants():
 
 
 def _round3():
-    from scripts.checks.check_structured import group, iban
+    from evaluation.checks.check_structured import group, iban
     # Fresh invented serials with independently calculated valid checksums.
     serials = (
         group(iban("DE", "639182745061928374"), (4,), " "),
@@ -244,7 +244,7 @@ def _round3():
 
 
 def _round4():
-    from scripts.checks.check_structured import group, iban
+    from evaluation.checks.check_structured import group, iban
     fixtures = []
     serial = group(iban('IT', 'H' + '6842751382' + '751382684275'), (4,), ' ')
     # Homographic surface words do not become ownership without grammar.

@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
-"""One aggregate-only legacy equivalence check on exposed v1, plus invented probes.
+"""Invented pipeline contract probes plus one region-model CLI/API parity check.
 
-Never reads v3, emits dataset text/values/row identifiers/offsets, or downloads assets.
-Missing specialist modules are expected in the pipeline writer's unmerged branch.
+Never emits dataset text/values/row identifiers/offsets, or downloads assets.
+The model part needs a local region checkpoint (default models/region-v4-2ep).
 """
 import argparse
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
-REPO = ROOT.parent.parent if ROOT.parent.name == ".worktrees" else ROOT
-SOURCE_V1 = REPO / ".worktrees/privacygate-prep-1002/data/augmentation/masking-stress-dev.jsonl"
-DEFAULT_MODEL = REPO / ".worktrees/privacygate-prep-1002/models/pos-neg-alignment-pilot-1002"
+DEFAULT_MODEL = ROOT / "models/region-v4-2ep"
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
-os.environ.setdefault("HF_HOME", str(REPO / ".cache/hf"))
+os.environ.setdefault("HF_HOME", str(ROOT / ".cache/hf"))
 sys.path.insert(0, str(ROOT))
 
 from privacygate.model import inference
@@ -63,40 +60,35 @@ def invented_contracts():
     print("candidate_contract=PASS")
 
 
+def profile_contracts():
+    _require(pipeline.PROFILES == ("full",))
+    _require(pipeline._stages("full") == ("mbert", "regex", "structured.detect", "structured.check",
+                                         "context.decide", "address.assemble", "names.assemble",
+                                         "names.propagate", "refine", "coverage", "union", "render"))
+    for retired in ("legacy_union_refined", "structured", "structured_address_names", "full_calibrated"):
+        result = pipeline.run_pipeline("The invented panel is 3x5 cm.", profile=retired)
+        _require(result["status"] == "blocked" and result["error"] == "pipeline_profile_invalid")
+    for options in ({"name_threshold": 0}, {"ensemble": 1}, {"unknown": True}):
+        result = pipeline.run_pipeline("The invented panel is 3x5 cm.", options=options)
+        _require(result["status"] == "blocked" and result["error"] == "pipeline_options_invalid")
+    print("profile_contract=PASS")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model-dir", type=Path, default=DEFAULT_MODEL)
     args = parser.parse_args()
     invented_contracts()
+    profile_contracts()
     # Specialist modules exist after integration; probe a genuinely missing module.
     with patch.dict(pipeline._REQUIRED, {"structured.detect": ("missing_pipeline_stage", "detect")}):
-        missing = pipeline.run_pipeline("The invented panel is 3x5 cm.", profile="structured", model_dir=args.model_dir)
+        missing = pipeline.run_pipeline("The invented panel is 3x5 cm.", profile="full", model_dir=args.model_dir)
     _require(missing["status"] == "blocked" and missing.get("error") == "pipeline_stage_unavailable:missing_pipeline_stage")
     _require(missing["masked_text"] == "" and missing["entities"] == [])
     print("stage_unavailable=PASS")
 
-    dataset = ROOT / "data/augmentation/masking-stress-dev.jsonl"
-    if not dataset.exists():
-        dataset.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(SOURCE_V1, dataset)
-    # Only exposed synthetic development rows are read, never case IDs or gold in logs.
-    rows = [json.loads(line) for line in dataset.read_text(encoding="utf-8").splitlines() if line.strip()]
-    _require(len(rows) == 110)
     with pipeline._MODEL_LOCK:
         model = pipeline._get_mbert(args.model_dir)
-    identical = 0
-    # Reuse the real loaded checkpoint for both paths, not synthesized predictions.
-    with patch.object(inference, "_load_mbert", return_value=model):
-        for row in rows:
-            legacy = inference.run(row["text"], engine="hybrid", policy="union_refined", model_dir=args.model_dir)
-            result = pipeline.run_pipeline(row["text"], profile="legacy_union_refined", model_dir=args.model_dir)
-            _require(result["status"] == "ok")
-            if (result["entities"] == legacy["entities"] and result["masked_text"] == legacy["masked_text"]):
-                identical += 1
-            _require(all(type(v) is int for v in result["diagnostics"].values()))
-    print("legacy_identical={}/{}".format(identical, len(rows)))
-    _require(identical == len(rows))
-
     invented = "Dear Dr. Elara Voss, contact elara.voss@example.org."
     raw = model.raw([invented])[0]
     scored = model.spans_with_scores(raw)
@@ -108,14 +100,15 @@ def main():
         b - a for a, b in inference.uncovered_regions(invented, (o for offsets, _, _ in raw for o in offsets))))
     print("scored_adapter=PASS")
 
-    proc = subprocess.run([sys.executable, "-m", "privacygate", "--pipeline-profile", "legacy_union_refined",
+    proc = subprocess.run([sys.executable, "-m", "privacygate", "--pipeline-profile", "full",
                            "--model-dir", str(args.model_dir)], input=invented, text=True,
                           capture_output=True, cwd=ROOT, env={k: v for k, v in os.environ.items() if k != "PYTHONPATH"})
     _require(proc.returncode == 0)
     cli = json.loads(proc.stdout)
-    api = pipeline.run_pipeline(invented, profile="legacy_union_refined", model_dir=args.model_dir)
+    api = pipeline.run_pipeline(invented, profile="full", model_dir=args.model_dir)
     _require(cli == api)
     _require(cli["status"] == "ok" and isinstance(cli["completion"]["uncovered_chars"], int))
+    _require(all(type(v) is int for v in api["diagnostics"].values()))
     print("pipeline_cli=PASS")
     print("PIPELINE OK")
     return 0

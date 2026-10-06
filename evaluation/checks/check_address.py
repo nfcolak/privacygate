@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-"""One small stdlib proof on invented strings, or one offline v1 information run.
+"""One small stdlib proof on invented strings.
 
 No input text, values, row identifiers, offsets or exception details are printed.
-The optional v1 run copies only the explicitly supplied, non-blind v1 file into
-ignored data/ before model inference; it never opens v3/v4 or a test split.
 """
 import argparse
 import copy
-import json
 from pathlib import Path
-import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -540,54 +536,11 @@ def check():
             and regression_ok and mixed_exact == mixed_total and care_exact == care_total)
 
 
-def evaluate_v1(source, model_dir):
-    if source.name != "masking-stress-dev.jsonl" or not source.is_file() or not model_dir.is_dir():
-        raise ValueError("address_v1_paths_invalid") from None
-    destination = ROOT / "data/augmentation/address-v1-copy.jsonl"
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, destination)
-    from privacygate.model.hybrid import Mbert, regex
-    rows = []
-    with destination.open(encoding="utf-8") as handle:
-        for line in handle:
-            row = json.loads(line)
-            if row.get("split") != "dev":
-                raise ValueError("address_v1_split_invalid") from None
-            rows.append(row)
-    model = Mbert(model_dir=model_dir)
-    # No raw model result or exception details go to stdout; raw() itself does
-    # not log input. Computing in one batch amortizes the offline model load.
-    raw = model.raw([row["text"] for row in rows], bs=16)
-    complete = raw_complete = assembled_complete = total = 0
-    for row, prediction in zip(rows, raw):
-        text = row["text"]
-        candidates = model.spans(prediction) + regex(text)
-        regions = assemble(text, candidates)
-        for gold in row["gold"]:
-            if gold["label"] == "ADDRESS":
-                total += 1
-                raw_complete += covered(candidates, gold["start"], gold["end"])
-                assembled_complete += contains(regions, gold["start"], gold["end"])
-                complete += covered(candidates + regions, gold["start"], gold["end"])
-    print(f"v1_address_complete={complete}/{total}")
-    print(f"v1_address_raw_complete={raw_complete}/{total}")
-    print(f"v1_address_assembled_complete={assembled_complete}/{total}")
-    return True
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--v1-source", type=Path)
-    parser.add_argument("--model-dir", type=Path)
-    args = parser.parse_args()
+    parser.parse_args()
     try:
-        if args.v1_source is not None:
-            if args.model_dir is None:
-                raise ValueError("address_v1_model_required") from None
-            ok = evaluate_v1(args.v1_source, args.model_dir)
-        else:
-            ok = check()
-        return 0 if ok else 1
+        return 0 if check() else 1
     except Exception:
         print("address_check_failed", file=sys.stderr)
         return 1

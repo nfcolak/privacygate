@@ -1,16 +1,18 @@
 """Frozen paths, input hashes and shared reservation (TEST is text-hashing only)."""
+import os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-MAIN = Path('/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate')
-DATA = MAIN / '.cache/external/gretel-finance-7b844d1'
-ARTIFACTS = Path('/Users/necatifurkancolak/AI-Workplace/Artifacts/PrivacyGate')
+ROOT = Path(__file__).resolve().parents[3]
+LOCAL = ROOT / 'data/local'
+DATA = LOCAL / 'external/gretel-finance-7b844d1'
+# Owner's external artifact folder (train-v5 subset input and frozen scorer copy).
+ARTIFACTS = Path(os.environ.get('PRIVACYGATE_ARTIFACTS', str(LOCAL / 'artifacts')))
 V5 = ARTIFACTS / 'train-v5/train-v5.jsonl'
 SCORER = ARTIFACTS / 'external/gretel-results/evaluate_external.py'
 POLICY = ROOT / 'configs/privacy-policy-v1.json'
-MANIFEST = ROOT / 'artifacts/train-v6/manifest.json'
-OUTPUTS = {'train': ROOT / 'data/augmentation/train-v6.jsonl',
-           'dev': ROOT / 'data/augmentation/dev-v6-ext.jsonl'}
+MANIFEST = ROOT / 'data/manifests/train-v6.json'
+OUTPUTS = {'train': LOCAL / 'augmentation/train-v6.jsonl',
+           'dev': LOCAL / 'augmentation/dev-v6-ext.jsonl'}
 LANGUAGES = {'English': 'en', 'France': 'fr', 'German': 'de', 'Italian': 'it', 'Spanish': 'es'}
 SEED = 2026100506
 REVISION = '7b844d16738527a04264f50214cb426a4cea0897'

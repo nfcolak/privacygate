@@ -1,51 +1,16 @@
 """Shared data/alignment helpers for the mBERT BIO pipeline. Never prints text or values."""
-import hashlib
-import json
 import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MODEL_ID = "google-bert/bert-base-multilingual-cased"
 MODEL_REVISION = "3f076fdb1ab68d5b2880cb87a0886f315b8146f8"
-MICRO_REPO = "ai4privacy/openpii-masking-micro-100k"
-MICRO_REVISION = "f95b4e1539657c3d0047d9ad3f20f26675f22c7d"
-RAW_DIR = Path("/Users/necatifurkancolak/AI-Workplace/Projects/current/privacygate/data/raw/openpii-masking-micro-100k")
 MAX_LEN, STRIDE = 512, 128  # STRIDE = token overlap between consecutive windows
 IGNORE = -100
 
 
 def setup_hf_home():
     os.environ.setdefault("HF_HOME", str(ROOT / ".cache" / "hf"))
-
-
-def manifest(split):
-    return [json.loads(l) for l in (ROOT / "data/manifests/micro/{}.jsonl".format(split)).read_text().splitlines()]
-
-
-def load_rows(entries, raw_dir=RAW_DIR):
-    """Return {row_id: (text, [(start,end,label)], language)} read from raw artifacts by row ID
-    (SHA256(repo:revision:path:line_index), same as audit_dataset.py)."""
-    need = {e["row_id"]: e["language"] for e in entries}
-    source = json.loads((ROOT / "artifacts/data-audit/micro/source.json").read_text())
-    out = {}
-    for art in source["artifacts"]:
-        if "split" not in art:
-            continue
-        with open(raw_dir / art["path"], "rb") as handle:
-            for ordinal, line in enumerate(handle):
-                rid = hashlib.sha256("{}:{}:{}:{}".format(MICRO_REPO, MICRO_REVISION, art["path"], ordinal).encode()).hexdigest()
-                if rid in need:
-                    row = json.loads(line)
-                    spans = sorted((m["start"], m["end"], m["label"]) for m in row["privacy_mask"])
-                    out[rid] = (row["source_text"], spans, need[rid])
-    if len(out) != len(need):
-        raise ValueError("rows_missing_from_raw")
-    return out
-
-
-def label_list(train_rows):
-    names = sorted({s[2] for _, spans, _ in train_rows.values() for s in spans})
-    return ["O"] + ["{}-{}".format(p, n) for n in names for p in ("B", "I")]
 
 
 def encode(tok, text):

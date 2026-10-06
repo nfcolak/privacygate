@@ -1,8 +1,8 @@
 """Aggregate-only end-to-end masking evaluation, independent of detector labels.
 
-The historical scorer stays immutable. This adapter reuses its interval, character
-and span-classification functions, not its label-restricted Aggregate validator.
-Dataset text, identifiers and offsets are held in memory and never in reports.
+Reuses the interval, character and span-classification functions of
+privacygate.masking_metrics. Dataset text, identifiers and offsets are held in
+memory and never in reports. Retired v1-v6/dev2-dev4 loaders live in git history.
 """
 from collections import Counter
 from contextlib import contextmanager
@@ -19,28 +19,15 @@ from typing import Any
 
 from privacygate import masking_metrics as mm
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 SCORER_VERSION = "pipeline-masking-v1"
-VERSIONS = ("v1", "v2", "v4", "v5", "v6", "dev2", "dev3", "dev4")
-MANIFEST_PATHS = {
-    "v1": "artifacts/masking-stress/manifest.json",
-    "v2": "artifacts/masking-stress-v2/manifest.json",
-    "v4": "artifacts/masking-stress-v4/manifest.json",
-    "v5": "artifacts/masking-stress-v5/manifest.json",
-    "v6": "artifacts/masking-stress-v6/manifest.json",
-    "dev2": "artifacts/train-v2/manifest.json",
-    "dev3": "artifacts/train-v3/manifest.json",
-    "dev4": "artifacts/train-v4/manifest.json",
-}
-ROW_KEYS = frozenset({"case_id", "family", "gold", "language", "split", "text"})
+VERSIONS = ("v7",)
+MANIFEST_PATHS = {"v7": "data/manifests/masking-stress-v7.json"}
+# Receipts of every blind round stay readable so repeat arms keep being refused.
+BLIND_VERSIONS = ("v4", "v5", "v6", "v7")
 SPAN_KEYS = frozenset({"start", "end", "label"})
-LANGUAGES = frozenset({"en", "de", "fr", "it", "es"})
 CHECK_RECEIPTS_ENV = "PRIVACYGATE_EVAL_CHECK_RECEIPTS"
 MAX_BYTES = 128 * 1024 * 1024
-MAX_ROWS = 20000
-MAX_LINE_BYTES = 1024 * 1024
-MAX_CHARS = 65536
-V1_SHA = "b901873cbdd3715aaae2c78477193fecb3fd47410344fdb240ce75abdbfb6cbf"
 
 
 class EvaluationError(ValueError):
@@ -104,41 +91,6 @@ def _digest(value):
     return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
 
 
-def manifest_dataset(manifest, version, basename):
-    """Accept a dataset record or datasets/files mapping, selected by exact path.
-
-    Generators may nest train/dev records; only the requested dev dataset's hash
-    is admitted. Never accept a hash merely because it occurs somewhere in JSON.
-    """
-    if not isinstance(manifest, dict):
-        raise EvaluationError("eval_manifest_schema")
-    records = []
-
-    def visit(node, key="", depth=0):
-        if depth > 12:
-            raise EvaluationError("eval_manifest_schema")
-        if isinstance(node, dict):
-            if _digest(node.get("sha256")):
-                path = node.get("path", node.get("file", ""))
-                path_match = isinstance(path, str) and Path(path).name == basename
-                dev_match = (version in ("dev2", "dev3", "dev4") and not path and "rows" in node
-                             and key in ("dev", version, f"dev-v{version[-1]}", f"dev-v{version[-1]}.jsonl"))
-                single_match = version not in ("dev2", "dev3", "dev4") and key == "dataset" and not path
-                if path_match or dev_match or single_match:
-                    records.append(node)
-            for child_key, child in node.items():
-                if isinstance(child, (dict, list)):
-                    visit(child, child_key, depth + 1)
-        elif isinstance(node, list):
-            for child in node:
-                visit(child, key, depth + 1)
-
-    visit(manifest)
-    if len(records) != 1:
-        raise EvaluationError("eval_manifest_dataset_binding")
-    return records[0]
-
-
 def validate_spans(spans, n, gold=False):
     """Any nonempty label is admitted; values/offsets are never echoed."""
     if not isinstance(spans, list) or len(spans) > 4096:
@@ -158,78 +110,6 @@ def validate_spans(spans, n, gold=False):
         raise EvaluationError("eval_span_offsets") from None
     if gold and (pairs != sorted(pairs) or any(b > c for (_, b), (c, _) in zip(pairs, pairs[1:]))):
         raise EvaluationError("eval_gold_order_overlap")
-
-
-def load_dataset(path, version, root=ROOT):
-    if version not in VERSIONS:
-        raise EvaluationError("eval_dataset_version")
-    path, root = Path(path), Path(root)
-    # Prevent accidentally rebranding the consumed blind v3 as another version.
-    if version in ("dev3", "dev4") and path.name != f"dev-v{version[-1]}.jsonl":
-        raise EvaluationError("eval_dev_dataset_required")
-    if "v3" in path.name.lower() and version != "dev3":
-        raise EvaluationError("eval_consumed_v3_forbidden")
-    manifest_path = root / MANIFEST_PATHS[version]
-    manifest_raw = read_bounded(manifest_path, 4 * 1024 * 1024)
-    manifest = _json(manifest_raw)
-    record = manifest_dataset(manifest, version, path.name)
-    raw = read_bounded(path)
-    digest = hashlib.sha256(raw).hexdigest()
-    if digest != record["sha256"] or (version == "v1" and digest != V1_SHA):
-        raise EvaluationError("eval_dataset_hash_mismatch")
-    lines = [line for line in raw.split(b"\n") if line.strip()]
-    if not 0 < len(lines) <= MAX_ROWS or any(len(line) > MAX_LINE_BYTES for line in lines):
-        raise EvaluationError("eval_dataset_bounds")
-    rows = [_json(line) for line in lines]
-    ids = set()
-    for row in rows:
-        if not isinstance(row, dict) or row.keys() != ROW_KEYS:
-            raise EvaluationError("eval_row_schema")
-        if any(not isinstance(row[key], str) for key in ROW_KEYS - {"gold"}):
-            raise EvaluationError("eval_row_field_type")
-        expected_split = "blind" if version in ("v5", "v6") else "dev"
-        if row["split"] != expected_split:
-            raise EvaluationError("eval_blind_split_required" if version in ("v5", "v6") else "eval_dev_split_required")
-        # Only the in-memory grouping key changes; hash-bound source bytes do not.
-        if version == "v5":
-            row["language"] = row["language"].lower()
-        if row["language"] not in LANGUAGES:
-            raise EvaluationError("eval_language")
-        if not row["case_id"] or len(row["case_id"]) > 200 or row["case_id"] in ids:
-            raise EvaluationError("eval_case_id")
-        if not row["family"] or len(row["family"]) > 200:
-            raise EvaluationError("eval_family")
-        cap = 12000 if version in ("v1", "v2") else MAX_CHARS
-        if not row["text"].strip() or len(row["text"]) > cap:
-            raise EvaluationError("eval_text_bounds")
-        validate_spans(row["gold"], len(row["text"]), gold=True)
-        if version in ("v1", "v2"):
-            if row["family"] not in mm.STRESS_FAMILIES or len(row["gold"]) > 32:
-                raise EvaluationError("eval_legacy_row_bounds")
-            if (row["family"] == "clean") != (not row["gold"]):
-                raise EvaluationError("eval_legacy_clean_family")
-        ids.add(row["case_id"])
-    binding = {
-        "sha256": digest, "bytes": len(raw), "rows": len(rows),
-        "split": "blind" if version in ("v5", "v6") else "dev",
-        "positive_rows": sum(bool(r["gold"]) for r in rows),
-        "clean_rows": sum(not r["gold"] for r in rows),
-        "gold_spans": sum(len(r["gold"]) for r in rows),
-        "manifest_sha256": hashlib.sha256(manifest_raw).hexdigest(),
-        "manifest": MANIFEST_PATHS[version],
-    }
-    for key in ("rows", "bytes"):
-        if key in record and record[key] != binding[key]:
-            raise EvaluationError("eval_manifest_count_mismatch")
-    if version == "v1" and tuple(binding[k] for k in ("rows", "positive_rows", "clean_rows", "gold_spans", "bytes")) != (110, 100, 10, 370, 137089):
-        raise EvaluationError("eval_legacy_binding")
-    # A different filename containing the already-consumed v3 bytes is forbidden too.
-    old_manifest = root / "artifacts/masking-stress-v3/manifest.json"
-    if old_manifest.is_file():
-        old = _json(read_bounded(old_manifest, 4 * 1024 * 1024))
-        if digest == old.get("dataset", {}).get("sha256"):
-            raise EvaluationError("eval_consumed_v3_forbidden")
-    return rows, binding
 
 
 def wilson(successes, total):
@@ -374,9 +254,11 @@ class BlindCustody:
     so interruption cannot reopen the same blind arm. The check's override cannot
     be used by the CLI to redirect production custody.
     """
-    def __init__(self, root, profile, model_sha256, dataset_sha256, check=False, version="v4"):
-        if version not in ("v4", "v5", "v6"):
+    def __init__(self, root, profile, model_sha256, dataset_sha256, check=False, version="v7"):
+        if version not in BLIND_VERSIONS:
             raise EvaluationError("eval_dataset_version")
+        if not isinstance(profile, str) or not _digest(model_sha256) or not _digest(dataset_sha256):
+            raise EvaluationError("eval_blind_custody_binding")
         if CHECK_RECEIPTS_ENV in os.environ and not check:
             raise EvaluationError("eval_check_override_forbidden")
         self.path = Path(os.environ[CHECK_RECEIPTS_ENV]) if check else Path(root) / f"artifacts/runs/blind-{version}/RECEIPTS.jsonl"

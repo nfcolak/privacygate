@@ -16,16 +16,15 @@ import sys
 import time
 from types import SimpleNamespace
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from privacygate import pipeline, mbert_data
 from privacygate.model import hybrid, inference
 from privacygate.masking_metrics import interval_union, intersection, count_chars, count_alnum
-from privacygate.evaluation.masking_eval import quiet_libraries
+from evaluation.masking_eval import quiet_libraries
 
-MAIN = ROOT if not (ROOT.parent / 'privacygate-prep-1002').exists() else ROOT.parents[1]
-DATA = MAIN / '.cache/external/gretel-finance-7b844d1'
-MODELS = MAIN / '.worktrees/privacygate-prep-1002/models'
+DATA = ROOT / 'data/local/external/gretel-finance-7b844d1'
+MODELS = ROOT / 'models'
 CACHE = ROOT / '.cache/ext-step1-probabilities'
 LANGUAGES = ('English', 'France', 'German', 'Italian', 'Spanish')
 MAPPING = {
@@ -392,10 +391,10 @@ def grid(args):
 def v7(args, model, options):
     # Reuse the actual v7 validator and evaluate_pipeline aggregate scorer,
     # without its blind custody, now that the user designates v7 development.
-    from scripts.evaluation import evaluate_pipeline as runner
-    from privacygate.evaluation import masking_eval as ev
-    prep = Path(args.models).parent
-    rows, binding = runner.load_v7_dataset(prep / 'data/augmentation/masking-stress-v7.jsonl', prep)
+    from evaluation import evaluate_pipeline as runner
+    from evaluation import masking_eval as ev
+    from evaluation.checks.verify_frozen import V7_DATA
+    rows, binding = runner.load_v7_dataset(V7_DATA)
     original = rows
     adapted = [dict(text=r['text'], text_sha256=text_sha(r['text'])) for r in original]
     cache = ProbabilityCache(model_paths(model, options, args.models), args.cache)

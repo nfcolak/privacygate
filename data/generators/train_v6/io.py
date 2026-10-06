@@ -49,7 +49,7 @@ def frozen_inputs():
             record = file_record(path)
             require(record['sha256'] == expected, 'gretel_input_hash_mismatch')
             records[language + '_' + split] = record
-    code_paths = [ROOT / 'scripts/make_train_v6.py', *sorted((ROOT / 'scripts/train_v6').glob('*.py'))]
+    code_paths = [ROOT / 'data/generators/make_train_v6.py', *sorted((ROOT / 'data/generators/train_v6').glob('*.py'))]
     code_paths += [ROOT / 'privacygate/data/region_data.py', ROOT / 'privacygate/data/window_alignment.py',
                    ROOT / 'privacygate/mbert_data.py']
     code_records = {str(path.relative_to(ROOT)): file_record(path, True) for path in code_paths}

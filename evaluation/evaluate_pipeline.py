@@ -1,59 +1,34 @@
 #!/usr/bin/env python3
 """Offline, aggregate-only evaluation through the CLI's actual pipeline API."""
 import argparse
-from contextlib import contextmanager, nullcontext
-import hashlib
+from contextlib import contextmanager
 import importlib
-from importlib import metadata, util
-import json
+from importlib import metadata
 import os
 from pathlib import Path
 import sys
 import time
 from typing import Optional
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from privacygate.evaluation import masking_eval as ev
+from evaluation import masking_eval as ev
 
-PROFILES = ("legacy_union_refined", "structured", "structured_address_names", "full")
-
-# Admission is local to this runner; predecessor loaders/custody stay unchanged.
-ev.MANIFEST_PATHS["v7"] = "artifacts/masking-stress-v7/manifest.json"
+PROFILES = ("full",)
 
 
-def load_v7_dataset(dataset, root):
+def load_v7_dataset(dataset, root=ROOT):
+    """Frozen-generator replay of the (now development) v7 set; root is the repo."""
     try:
-        spec = util.spec_from_file_location("_blind_v7", root / "scripts/make_masking_stress_v7.py")
-        if spec is None or spec.loader is None or not hasattr(spec.loader, "exec_module"):
-            raise ev.EvaluationError("eval_v7_generator_unavailable")
-        generator = util.module_from_spec(spec)
-        spec.loader.exec_module(generator)
-        rows, manifest = generator.verify(dataset)
+        from evaluation.checks import verify_frozen
+        if Path(root).resolve() != verify_frozen.ROOT.resolve():
+            raise ev.EvaluationError("eval_v7_root")
+        rows, manifest = verify_frozen.load_v7_generator().verify(dataset)
         return rows, {"version": "v7", "path": manifest["dataset_path"],
                       "sha256": manifest["dataset_sha256"], "rows": manifest["counts"]["rows"],
                       "manifest_sha256": ev.sha256(root / ev.MANIFEST_PATHS["v7"])}
     except Exception:
         raise ev.EvaluationError("eval_v7_frozen_binding") from None
-
-
-class V7BlindCustody(ev.BlindCustody):
-    """v7-only constructor; retain the existing exclusive receipt/lock methods.
-
-    The shared constructor admits only v4-v6. This state matches its public
-    runtime contract, without reading or modifying the shared module's source.
-    No old version is used as an alias and no v4-v6 receipt is accessed.
-    """
-    def __init__(self, root, profile, model_sha256, dataset_sha256, check=False, version="v7"):
-        if version != "v7" or profile not in PROFILES:
-            raise ev.EvaluationError("eval_dataset_version")
-        if any(len(value) != 64 or any(c not in "0123456789abcdef" for c in value)
-               for value in (model_sha256, dataset_sha256)):
-            raise ev.EvaluationError("eval_v7_custody_binding")
-        self.path = Path(os.environ[ev.CHECK_RECEIPTS_ENV]) if check else Path(root) / "artifacts/runs/blind-v7/RECEIPTS.jsonl"
-        self.started = Path(str(self.path) + ".STARTED")
-        self.profile, self.model, self.dataset = profile, model_sha256, dataset_sha256
-        self.lock, self.finished = None, False
 
 
 class SafeParser(argparse.ArgumentParser):
@@ -64,12 +39,10 @@ class SafeParser(argparse.ArgumentParser):
 def parser():
     p = SafeParser(description=__doc__)
     p.add_argument("--dataset", required=True)
-    p.add_argument("--version", choices=(*ev.VERSIONS, "v7"), required=True)
-    p.add_argument("--profile", choices=PROFILES)
+    p.add_argument("--version", choices=ev.VERSIONS, required=True)
+    p.add_argument("--profile", choices=PROFILES, default="full")
     p.add_argument("--model-dir", required=True)
     p.add_argument("--out-dir", required=True)
-    p.add_argument("--predictions-from", choices=("pipeline", "inference"), default="pipeline")
-    p.add_argument("--dev", action="store_true", help="Evaluate development v5 outside artifacts/runs without blind custody")
     return p
 
 
@@ -90,22 +63,14 @@ def fingerprints(args, root):
     model_files = {p.name: ev.sha256(p) for p in sorted(model.iterdir())
                    if p.is_file() and p.suffix in (".json", ".txt", ".safetensors", ".bin")}
     source = {str(p.relative_to(root)): ev.sha256(p) for p in sorted((root / "privacygate").rglob("*.py"))}
-    source["scripts/training/train_mbert.py"] = ev.sha256(root / "scripts/training/train_mbert.py")
-    # The adapter/runner itself is also part of the frozen source binding.
-    evaluator = root / "scripts/evaluation/evaluate_pipeline.py"
-    if evaluator.is_file():
-        source["scripts/evaluation/evaluate_pipeline.py"] = ev.sha256(evaluator)
+    # The runner and its scorer are also part of the frozen source binding.
+    for relative in ("evaluation/evaluate_pipeline.py", "evaluation/masking_eval.py"):
+        source[relative] = ev.sha256(root / relative)
     config = root / "configs/pipeline-v1.json"
-    if args.predictions_from == "pipeline":
-        if not config.is_file():
-            raise ev.EvaluationError("eval_pipeline_config_unavailable")
-        config_hash = ev.sha256(config)
-        config_origin = "configs/pipeline-v1.json"
-    else:
-        # This exact legacy call has no dependency on the new pipeline config.
-        effective = {"engine": "hybrid", "policy": "union_refined", "confidence": None, "refine": False}
-        config_hash = hashlib.sha256(json.dumps(effective, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-        config_origin = "explicit_legacy_call"
+    if not config.is_file():
+        raise ev.EvaluationError("eval_pipeline_config_unavailable")
+    config_hash = ev.sha256(config)
+    config_origin = "configs/pipeline-v1.json"
     tokenizer_files = {}
     try:
         from privacygate import mbert_data
@@ -125,44 +90,16 @@ def fingerprints(args, root):
 
 @contextmanager
 def predictions(args):
-    """Lazy imports; legacy caching reuses real weights, never cached predictions."""
+    """Lazy import of the public pipeline API; real weights, never cached predictions."""
     with ev.quiet_libraries():
         try:
-            module = importlib.import_module("privacygate.pipeline" if args.predictions_from == "pipeline" else "privacygate.model.inference")
+            module = importlib.import_module("privacygate.pipeline")
         except Exception:
             raise ev.EvaluationError("eval_prediction_module_unavailable") from None
-    if args.predictions_from == "pipeline":
-        run = getattr(module, "run_pipeline", None)
-        if not callable(run):
-            raise ev.EvaluationError("eval_prediction_entrypoint_unavailable")
-        yield lambda text: run(text, profile=args.profile, model_dir=args.model_dir)
-        return
-    original = getattr(module, "_load_mbert", None)
-    cache = {}
-
-    def load_once(model_dir):
-        if not callable(original):
-            raise ev.EvaluationError("eval_prediction_entrypoint_unavailable")
-        if "model" not in cache:
-            cache["model"] = original(model_dir)
-        return cache["model"]
-
-    if callable(original):
-        setattr(module, "_load_mbert", load_once)
-
-    def legacy(text):
-        result = module.run(text, engine="hybrid", policy="union_refined", model_dir=args.model_dir)
-        if not isinstance(result, dict):
-            raise ev.EvaluationError("eval_pipeline_result")
-        return {**result, "status": "ok", "completion": {
-            "uncovered_chars": getattr(module, "LAST_UNCOVERED_CHARS", 0)}, "diagnostics": {}}
-
-    try:
-        yield legacy
-    finally:
-        if callable(original):
-            setattr(module, "_load_mbert", original)
-        cache.clear()
+    run = getattr(module, "run_pipeline", None)
+    if not callable(run):
+        raise ev.EvaluationError("eval_prediction_entrypoint_unavailable")
+    yield lambda text: run(text, profile=args.profile, model_dir=args.model_dir)
 
 
 def summary(report):
@@ -206,42 +143,26 @@ def summary(report):
 
 def execute(args, root=ROOT, check_receipts=False):
     root = Path(root)
-    dev = getattr(args, "dev", False)
-    if dev:
-        if args.version != "v5" or check_receipts:
-            raise ev.EvaluationError("eval_dev_v5_only")
-        # Reject reserved outputs before any dataset/model/custody access.
-        # Check both spelling and symlink resolution, including other worktrees.
-        for path in (Path(args.out_dir).absolute(), Path(args.out_dir).resolve()):
-            if any(path.parts[i:i + 2] == ("artifacts", "runs")
-                   for i in range(len(path.parts) - 1)):
-                raise ev.EvaluationError("eval_dev_reserved_output")
-    if args.profile is None:
-        args.profile = "legacy_union_refined" if args.predictions_from == "inference" else "full"
-    if args.profile not in PROFILES or args.predictions_from not in ("pipeline", "inference"):
+    if args.profile not in PROFILES or args.version not in ev.VERSIONS:
         raise ev.EvaluationError("eval_arguments")
-    if args.predictions_from == "inference" and args.profile != "legacy_union_refined":
-        raise ev.EvaluationError("eval_legacy_profile_required")
     if os.environ.get("HF_HUB_OFFLINE") != "1" or os.environ.get("TRANSFORMERS_OFFLINE") != "1" or not os.environ.get("HF_HOME"):
         raise ev.EvaluationError("eval_offline_required")
     if ev.CHECK_RECEIPTS_ENV in os.environ and not check_receipts:
         raise ev.EvaluationError("eval_check_override_forbidden")
     started_at, start = ev.utc_now(), time.perf_counter()
-    rows, binding = load_v7_dataset(args.dataset, root) if args.version == "v7" else ev.load_dataset(args.dataset, args.version, root=root)
+    rows, binding = load_v7_dataset(args.dataset, root)
     frozen = fingerprints(args, root)
     out = Path(args.out_dir)
     if out.exists():
         raise ev.EvaluationError("eval_output_exists")
-    custody_class = V7BlindCustody if args.version == "v7" else ev.BlindCustody
-    custody = custody_class(root, args.profile, frozen["model_sha256"], binding["sha256"],
-                            check=check_receipts, version=args.version) if args.version in ("v4", "v5", "v6", "v7") and not dev else nullcontext()
+    custody = ev.BlindCustody(root, args.profile, frozen["model_sha256"], binding["sha256"],
+                              check=check_receipts, version=args.version)
     with custody as blind:
         # Module availability is checked before custody is consumed; an inference
         # or scoring failure after reservation consumes this blind arm.
         with predictions(args) as predict:
             out.mkdir(parents=True, exist_ok=False)
-            if blind is not None:
-                blind.reserve()
+            blind.reserve()
             aggregate = ev.EvaluationAggregate()
             with ev.quiet_libraries():
                 try:
@@ -257,22 +178,20 @@ def execute(args, root=ROOT, check_receipts=False):
         scope = {"training": False, "test_evaluated": False, "synthetic_only": True, "aggregate_only": True}
         report = {**scope, "scorer_version": ev.SCORER_VERSION, "dataset_version": args.version,
                   "dataset_sha256": binding["sha256"], "model_sha256": frozen["model_sha256"],
-                  "profile": args.profile, "predictions_from": args.predictions_from,
+                  "profile": args.profile, "predictions_from": "pipeline",
                   "rows_evaluated": len(rows), **aggregate.report()}
         manifest = {**scope, **frozen, "scorer_version": ev.SCORER_VERSION,
                     "interval_functions_version": ev.mm.SCORER_VERSION,
                     "dataset_version": args.version, "dataset": binding,
                     "dataset_sha256": binding["sha256"], "profile": args.profile,
-                    "predictions_from": args.predictions_from, "runtime_versions": _runtime(),
+                    "predictions_from": "pipeline", "runtime_versions": _runtime(),
                     "started_at": started_at, "finished_at": ev.utc_now(), "wall_time_seconds": wall_time,
-                    "model_load_reused": args.predictions_from == "inference",
+                    "model_load_reused": False,
                     "predictions_cached": False, "human_review_performed": False,
-                    "blind": args.version in ("v4", "v5", "v6", "v7") and not dev,
-                    "development": dev, "threshold_selection": False}
+                    "blind": True, "development": False, "threshold_selection": False}
         ev.json_write(out / "metrics.json", report)
         ev.json_write(out / "manifest.json", manifest)
-        if blind is not None:
-            blind.finish(ev.sha256(out / "metrics.json"))
+        blind.finish(ev.sha256(out / "metrics.json"))
     return report
 
 

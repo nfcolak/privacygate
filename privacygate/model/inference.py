@@ -1,14 +1,12 @@
-"""Engine dispatch for the CLI: regex (stdlib only), mbert, hybrid. Never logs text, values or confidences.
+"""Engine dispatch for the CLI: regex (stdlib only) or mbert. Never logs text, values or confidences.
 
-mBERT/hybrid are imported lazily (torch/transformers) and run strictly offline with local assets.
+mBERT is imported lazily (torch/transformers) and run strictly offline with local assets.
 """
 import os
 from pathlib import Path
 from typing import NoReturn
 
-ENGINES = ("regex", "mbert", "hybrid")
-POLICIES = ("union", "rules_first", "rules_first_thr", "union_refined")
-DEFAULT_THR = 0.5  # rules_first_thr default (the dev-chosen value in the README)
+ENGINES = ("regex", "mbert")
 LAST_UNCOVERED_CHARS = 0  # value-free diagnostic for the most recent run; not thread-local
 
 
@@ -94,12 +92,10 @@ def _load_mbert(model_dir):
               "torch/transformers must be installed)")
 
 
-def run_with_completion(text, engine="regex", model_dir=None, policy="union", confidence=None,
-                        refine=False, _mbert=None):
-    """Legacy inference plus a per-call completion receipt (no global diagnostic reads).
+def run_with_completion(text, engine="regex", model_dir=None, confidence=None, refine=False):
+    """Non-staged inference plus a per-call completion receipt (no global diagnostic reads).
 
-    _mbert is an internal adapter for the pipeline's cached model. All detection,
-    policy, refinement and rendering operations retain the legacy ordering.
+    Detection, refinement and rendering retain the original ordering.
     """
     global LAST_UNCOVERED_CHARS
     LAST_UNCOVERED_CHARS = 0
@@ -107,12 +103,12 @@ def run_with_completion(text, engine="regex", model_dir=None, policy="union", co
     if engine == "regex":
         from privacygate.detect import mask
         return dict(mask(text), completion={"uncovered_chars": 0})
-    if engine not in ENGINES or policy not in POLICIES:
-        _fail("invalid engine or policy")
+    if engine not in ENGINES:
+        _fail("invalid engine")
     from privacygate.model import hybrid  # stdlib only at import time
     if model_dir is None:
         model_dir = hybrid.DEFAULT_MODEL_DIR
-    mb = _mbert if _mbert is not None else _load_mbert(model_dir)
+    mb = _load_mbert(model_dir)
     try:
         # Use the offsets returned by actual prediction, not a separate re-encoding.
         raw = mb.raw([text])[0]
@@ -121,26 +117,10 @@ def run_with_completion(text, engine="regex", model_dir=None, policy="union", co
         LAST_UNCOVERED_CHARS = uncovered_count
         coverage = [{"start": a, "end": b, "label": "UNCOVERED", "source": "coverage"}
                     for a, b in regions]
-        thr = confidence or 0.0
-        if engine == "hybrid" and policy == "rules_first_thr" and confidence is None:
-            thr = DEFAULT_THR
-        detected = mb.spans(raw, thr)
-        if engine == "mbert":
-            spans = detected + coverage
-            if refine:
-                from privacygate.rules.refine import refine as _refine
-                spans = _refine(text, spans)
-        else:
-            rx = hybrid.regex(text)
-            if policy in ("union", "union_refined"):
-                spans = hybrid.union(rx, detected)
-            else:
-                spans = hybrid.rules_first(rx, detected)
-            # Coverage must bypass rule precedence/confidence and survive final refinement/merge.
-            spans.extend(coverage)
-            if policy == "union_refined":
-                from privacygate.rules.refine import refine as _refine
-                spans = _refine(text, spans)
+        spans = mb.spans(raw, confidence or 0.0) + coverage
+        if refine:
+            from privacygate.rules.refine import refine as _refine
+            spans = _refine(text, spans)
     except InferenceError:
         raise
     except Exception:
@@ -150,13 +130,13 @@ def run_with_completion(text, engine="regex", model_dir=None, policy="union", co
     return result
 
 
-def run(text, engine="regex", model_dir=None, policy="union", confidence=None, refine=False):
-    """Legacy two-field result, with byte-identical masking and entity ordering.
+def run(text, engine="regex", model_dir=None, confidence=None, refine=False):
+    """Two-field result, with byte-identical masking and entity ordering.
 
     LAST_UNCOVERED_CHARS remains a backward-compatible, non-thread-local diagnostic.
     New callers should use the per-call receipt from run_with_completion instead.
     """
-    result = run_with_completion(text, engine, model_dir, policy, confidence, refine)
+    result = run_with_completion(text, engine, model_dir, confidence, refine)
     return {"masked_text": result["masked_text"], "entities": result["entities"]}
 
 
