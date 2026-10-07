@@ -148,6 +148,8 @@ def model_paths(model, options, models=MODELS):
         paths = [Path(models) / 'region-v4-2ep']
     elif model in ('v5', 'region-v5-2ep'):
         paths = [Path(models) / 'region-v5-2ep']
+    elif model in ('v6', 'region-v6-2ep-b8'):
+        paths = [Path(models) / 'region-v6-2ep-b8']
     elif model == 'ensemble':
         paths = [Path(models) / 'region-v4-2ep']
     else:
@@ -320,8 +322,8 @@ def provenance(cache, binding):
             'training': False, 'offline': True}
 
 
-def evaluate(rows, cache, model, options, receipts=None):
-    aggregate = Aggregate()
+def evaluate(rows, cache, model, options, receipts=None, aggregate_cls=Aggregate):
+    aggregate = aggregate_cls()
     started = time.perf_counter()
     handle = Path(receipts).open('x') if receipts else None
     try:
@@ -337,7 +339,7 @@ def evaluate(rows, cache, model, options, receipts=None):
             handle.close()
     report = aggregate.report()
     if receipts:
-        verified = Aggregate()
+        verified = aggregate_cls()
         saved = [json.loads(line) for line in Path(receipts).read_text().splitlines()]
         assert len(saved) == len(rows)
         for i, (row, result) in enumerate(zip(rows, saved)):
@@ -351,11 +353,17 @@ def evaluate(rows, cache, model, options, receipts=None):
 def grid(args):
     assert args.split == 'ext-dev'
     rows, binding = load_data('ext-dev', args.data)
-    paths = model_paths('ensemble', {}, args.models)
+    names = tuple(args.grid_models.split(','))
+    if names == ('v4', 'v5', 'ensemble'):
+        paths = model_paths('ensemble', {}, args.models)
+    else:
+        paths = []
+        for name in names:
+            paths += [p for p in model_paths(name, {'ensemble': name == 'ensemble'}, args.models) if p not in paths]
     cache = ProbabilityCache(paths, args.cache)
     cache.prepare(rows)
     settings = [(model, {'name_threshold': threshold, 'name_propagation_ext': prop, 'ensemble': model == 'ensemble'})
-                for model in ('v4', 'v5', 'ensemble') for threshold in (None, 0.4, 0.3, 0.2, 0.1) for prop in (False, True)]
+                for model in names for threshold in (None, 0.4, 0.3, 0.2, 0.1) for prop in (False, True)]
     aggregates = [Aggregate() for _ in settings]
     for i, row in enumerate(rows):
         windows = {str(p): cache.windows(p, row) for p in paths}
@@ -372,7 +380,10 @@ def grid(args):
     # Predetermined neutral tie break: lower excess, then stable grid order.
     chosen = max(eligible, key=lambda r: (r['coverage_pct'], -r['excess_pct']))
     out = Path(args.out)
-    save(out, {**provenance(cache, binding), 'selection_rule': 'Highest coverage subject to same-model all-options-off baseline excess + 1.0 percentage point; ties lower excess then grid order.',
+    comparison = []
+    if args.compare_grid:
+        comparison = [r for r in json.loads(Path(args.compare_grid).read_text())['results'] if r['model'] == 'v5']
+    save(out, {**provenance(cache, binding), 'comparison_v5_step1_rows': comparison, 'selection_rule': 'Highest coverage subject to same-model all-options-off baseline excess + 1.0 percentage point; ties lower excess then grid order.',
                'ensemble_baseline': 'Probability-averaged ensemble with threshold and propagation off.',
                'results': results, 'chosen': chosen})
     lines = ['# EXT-DEV inference-only grid', '', 'Selection only: 200 text-hash-sorted, TEST-deduplicated train rows per language; no training.',
@@ -382,6 +393,12 @@ def grid(args):
     for r in results:
         lines.append('| {} | {} | {} | {:.4f} | {:.4f} | {} | {:.4f} | {} |'.format(r['model'], r['options']['name_threshold'], r['options']['name_propagation_ext'],
                      r['coverage_pct'], r['excess_pct'], r['rows_exposed'], r['baseline_excess_pct'] + 1, r['eligible']))
+    if comparison:
+        lines.extend(['', 'For comparison: v5 rows repeated from the step-1 grid (artifacts/runs/ext-step1/ext-dev-grid.json), same EXT-DEV rows.', '',
+                      '| model | name threshold | propagation ext | coverage % | excess % | rows exposed |', '|---|---|---|---:|---:|---:|'])
+        for r in comparison:
+            lines.append('| {} | {} | {} | {:.4f} | {:.4f} | {} |'.format(r['model'], r['options']['name_threshold'], r['options']['name_propagation_ext'],
+                                                                      r['coverage_pct'], r['excess_pct'], r['rows_exposed']))
     lines.extend(['', 'Chosen: ' + chosen['model'] + ' ' + json.dumps(chosen['options'], sort_keys=True),
                   'TEST is not used for selection; its text hashes are used only to exclude duplicates.', ''])
     out.with_suffix('.md').write_text('\n'.join(lines))
@@ -417,6 +434,172 @@ def v7(args, model, options):
     print('V7_COMPLETE clean_masked={} exposed_alnum={}'.format(overall['clean_controls']['masked_rows'], overall['leaked_gold_alnum_chars']), flush=True)
 
 
+SECOND = {
+    'nemotron': dict(file='nemotron-pii-b70ffaf/test.parquet', language='English',
+                     sha='1a4b0512ecb5370f0992d29d0f9c07351e6de13f0d7ea33bb18cecb984780247'),
+    'ai4privacy': dict(file='ai4privacy-500k-506996d/test.jsonl',
+                       sha='4e908e60d8d88f90015301e1ab4a8b7899ec713f1fc903860e1d9e0b91677ebf'),
+}
+SECOND_LANGUAGES = ('en', 'de', 'fr', 'it', 'es')
+
+
+def second_row(name, language, ordinal, text, spans, mapping):
+    """Gold = mapped in-scope spans; every span (in or out of scope) counts as annotated."""
+    in_scope, out = mapping['in_scope'], set(mapping['out_of_scope'])
+    assert isinstance(text, str)
+    for s in spans:
+        assert s['label'] in in_scope or s['label'] in out
+        assert type(s['start']) is int and type(s['end']) is int and 0 <= s['start'] < s['end'] <= len(text)
+    gold = merge_per_label([dict(start=s['start'], end=s['end'], label=in_scope[s['label']])
+                            for s in spans if s['label'] in in_scope])
+    annotations = [dict(start=s['start'], end=s['end'], label=s['label']) for s in spans]
+    return dict(language=language, ordinal=ordinal, text=text, text_sha256=text_sha(text), gold=gold,
+                all_annotations=annotations, out_of_scope=[a for a in annotations if a['label'] in out])
+
+
+def load_second(name, root=None, mapping_path=None):
+    """5,000-document deterministic sample of a second external set (value-free metadata only)."""
+    root = Path(root) if root else ROOT / 'data/local/external'
+    spec = SECOND[name]
+    path = root / spec['file']
+    digest = sha(path)
+    assert digest == spec['sha']
+    mapping = json.loads(Path(mapping_path or ROOT / 'artifacts/runs/ext-v6/second-{}/mapping.json'.format(name)).read_text())
+    assert mapping['sha256'] == digest
+    if name == 'nemotron':
+        import ast
+        import pyarrow.parquet as pq
+        table = pq.read_table(path, columns=['text', 'spans'])
+        texts, raw = table['text'].to_pylist(), table['spans'].to_pylist()
+        assert len(texts) == 100000
+        order = sorted(range(len(texts)), key=lambda i: (text_sha(texts[i]), i))[:5000]
+        rows = [second_row(name, spec['language'], i, texts[i], ast.literal_eval(raw[i]), mapping) for i in order]
+        pool = len(texts)
+    else:
+        by_language = {language: [] for language in SECOND_LANGUAGES}
+        pool = 0
+        with path.open(encoding='utf-8') as handle:
+            for i, line in enumerate(handle):
+                record = json.loads(line)
+                pool += 1
+                if record['language'] in by_language:
+                    by_language[record['language']].append((text_sha(record['source_text']), i, record))
+        rows = []
+        for language in SECOND_LANGUAGES:
+            chosen = sorted(by_language[language], key=lambda r: (r[0], r[1]))[:1000]
+            assert len(chosen) == 1000
+            for _, i, record in chosen:
+                for m in record['privacy_mask']:
+                    assert record['source_text'][m['start']:m['end']] == m['value']
+                rows.append(second_row(name, language, i, record['source_text'], record['privacy_mask'], mapping))
+    assert len(rows) == 5000 and len({r['text_sha256'] for r in rows}) >= 4990
+    return rows, {'split': 'second-' + name, 'data_sha256s': {path.name: digest}, 'rows': len(rows), 'pool_rows': pool,
+                  'mapping_sha256': sha(Path(mapping_path or ROOT / 'artifacts/runs/ext-v6/second-{}/mapping.json'.format(name))),
+                  'sample_text_hashes_sha256': hashlib.sha256(''.join(sorted(r['text_sha256'] for r in rows)).encode()).hexdigest()}
+
+
+class SecondAggregate(Aggregate):
+    """Aggregate plus out-of-scope reporting: alphanumeric chars annotated out of scope (and not in-scope gold) that were masked."""
+    def __init__(self):
+        super().__init__()
+        self.out_total, self.out_labels = Counter(), defaultdict(Counter)
+
+    def add(self, row, result):
+        super().add(row, result)
+        n, text = len(row['text']), row['text']
+        mask = interval_union([(s['start'], s['end']) for s in result['entities']], n)
+        gold = interval_union([(s['start'], s['end']) for s in row['gold']], n)
+        groups = defaultdict(list)
+        for a in row['out_of_scope']:
+            groups[a['label']].append((a['start'], a['end']))
+        every = []
+        for label, pairs in list(groups.items()) + [(None, [p for v in groups.values() for p in v])]:
+            if not pairs:
+                continue
+            union = interval_union(pairs, n)
+            overlap = intersection(union, gold, n)
+            c = Counter(spans=len(pairs) if label else 0)
+            c['alnum_chars'] = count_alnum(text, union) - count_alnum(text, overlap)
+            c['masked_alnum_chars'] = (count_alnum(text, intersection(union, mask, n))
+                                       - count_alnum(text, intersection(overlap, mask, n)))
+            (self.out_labels[label] if label else self.out_total).update(c)
+
+    def report(self):
+        def part(c):
+            return {**dict(c), 'masked_pct': 100 * c['masked_alnum_chars'] / c['alnum_chars'] if c['alnum_chars'] else None}
+        return {**super().report(), 'out_of_scope': {**part(self.out_total),
+                'per_label': {k: part(v) for k, v in sorted(self.out_labels.items())}}}
+
+
+def multi(args):
+    """Each arm measured exactly once on TEST (Gretel) or a second set; one metrics.json with all arms."""
+    arms = json.loads(args.arms.read_text())['arms']
+    selection = json.loads(args.selection.read_text())
+    assert selection['split'] == 'ext-dev'
+    for arm in arms:
+        pipeline.normalize_options(arm['options'])
+        if arm['name'] == 'v6-chosen':
+            assert arm['model'] == selection['chosen']['model'] and arm['options'] == selection['chosen']['options']
+    assert not args.out.exists()
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    with args.out.with_suffix('.STARTED').open('x') as handle:
+        json.dump({'arms': [a['name'] for a in arms], 'selection_sha256': sha(args.selection), 'arms_sha256': sha(args.arms)}, handle)
+    if args.multi == 'gretel':
+        rows, binding = load_data('test', args.data)
+        aggregate_cls = Aggregate
+    else:
+        rows, binding = load_second(args.multi, args.second_root)
+        aggregate_cls = SecondAggregate
+    paths = []
+    for arm in arms:
+        paths += [p for p in model_paths(arm['model'], arm['options'], args.models) if p not in paths]
+    cache = ProbabilityCache(paths, args.cache)
+    cache.prepare(rows)
+    prov = provenance(cache, binding)
+    out = {}
+    for arm in arms:
+        name = arm['name']
+        receipts = args.receipts / (name + '.jsonl')
+        receipts.parent.mkdir(parents=True, exist_ok=True)
+        report = evaluate(rows, cache, arm['model'], arm['options'], receipts, aggregate_cls)
+        model_dir = model_paths(arm['model'], arm['options'], args.models)[0].name
+        out[name] = {**report, 'model_sha256': prov['model_sha256s'][model_dir], 'data_sha256s': prov['data_sha256s'],
+                     'code_commit': prov['code_commit']}
+        print('ARM_COMPLETE ' + json.dumps({'arm': name, **{k: report[k] for k in ('coverage_pct', 'excess_pct', 'rows_exposed')}}, sort_keys=True), flush=True)
+    save(args.out, {**prov, 'arms': out, 'runs': 1, 'selection_sha256': sha(args.selection), 'arms_sha256': sha(args.arms)})
+
+
+def v7_arms(args):
+    """Chosen-setting v7 development check for several arms in one metrics.json (not blind, no custody writes)."""
+    from evaluation import evaluate_pipeline as runner
+    from evaluation import masking_eval as ev
+    from evaluation.checks.verify_frozen import V7_DATA
+    assert 'blind-v7' not in args.v7_out.parts
+    arms = json.loads(args.arms.read_text())['arms']
+    rows, binding = runner.load_v7_dataset(V7_DATA)
+    adapted = [dict(text=r['text'], text_sha256=text_sha(r['text'])) for r in rows]
+    paths = []
+    for arm in arms:
+        pipeline.normalize_options(arm['options'])
+        paths += [p for p in model_paths(arm['model'], arm['options'], args.models) if p not in paths]
+    cache = ProbabilityCache(paths, args.cache)
+    cache.prepare(adapted)
+    prov = provenance(cache, {'data_sha256s': {'masking-stress-v7.jsonl': binding['sha256']}})
+    out = {}
+    for arm in arms:
+        aggregate = ev.EvaluationAggregate()
+        for row, adapted_row in zip(rows, adapted):
+            aggregate.add(row, cache.predict(adapted_row, arm['model'], arm['options']))
+        out[arm['name']] = {**aggregate.report(), 'model': arm['model'], 'options': arm['options'],
+                            'model_sha256': prov['model_sha256s'][model_paths(arm['model'], arm['options'], args.models)[0].name]}
+    save(args.v7_out / 'metrics.json', {**prov, 'arms': out, 'development': True, 'blind': False, 'dataset_version': 'v7',
+         'baseline_context': {'v4': {'clean_rows_masked': 21, 'clean_rows': 300, 'exposed_alnum': 111},
+                              'v5': {'clean_rows_masked': 19, 'clean_rows': 300, 'exposed_alnum': 334}}})
+    for name, report in out.items():
+        o = report['overall']
+        print('V7_ARM {} clean_masked={}/{} exposed_alnum={}'.format(name, o['clean_controls']['masked_rows'], o['clean_controls']['rows'], o['leaked_gold_alnum_chars']), flush=True)
+
+
 class SafeParser(argparse.ArgumentParser):
     def error(self, message):
         raise ValueError('external_arguments') from None
@@ -433,10 +616,23 @@ def main():
     parser.add_argument('--cache', type=Path, default=CACHE)
     parser.add_argument('--grid', action='store_true')
     parser.add_argument('--selection', type=Path, help='Use chosen entry from an EXT-DEV grid, without re-selection')
+    parser.add_argument('--grid-models', default='v4,v5,ensemble', help='comma list for --grid')
+    parser.add_argument('--compare-grid', type=Path, help='step-1 grid whose v5 rows are repeated in the --grid output')
+    parser.add_argument('--multi', choices=('gretel', 'nemotron', 'ai4privacy'), help='measure every arm of --arms once on this TEST/second set')
+    parser.add_argument('--arms', type=Path, help='JSON {"arms": [{name, model, options}]}')
+    parser.add_argument('--receipts', type=Path, help='directory for per-arm value-free entity-offset receipts')
+    parser.add_argument('--second-root', type=Path)
+    parser.add_argument('--v7-arms', action='store_true', help='with --v7-out and --arms: score arms on v7 development only')
     parser.add_argument('--v7-out', type=Path, help='Optional chosen-setting v7 development check before TEST')
     args = parser.parse_args()
     assert os.environ.get('HF_HUB_OFFLINE') == '1' and os.environ.get('HF_HOME')
     os.environ['TRANSFORMERS_OFFLINE'] = '1'
+    if args.v7_arms:
+        v7_arms(args)
+        return 0
+    if args.multi:
+        multi(args)
+        return 0
     if args.grid:
         grid(args)
         return 0
