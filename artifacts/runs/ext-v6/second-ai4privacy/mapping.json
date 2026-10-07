@@ -1,0 +1,45 @@
+{
+  "dataset": "ai4privacy/open-pii-masking-500k-ai4privacy validation split",
+  "in_scope": {
+    "AGE": "AGE",
+    "BUILDINGNUM": "ADDRESS",
+    "CREDITCARDNUMBER": "CREDITCARDNUMBER",
+    "DRIVERLICENSENUM": "DRIVERLICENSENUM",
+    "EMAIL": "EMAIL",
+    "GIVENNAME": "PERSONNAME",
+    "IDCARDNUM": "IDCARDNUM",
+    "PASSPORTNUM": "PASSPORTNUM",
+    "SOCIALNUM": "SOCIALNUM",
+    "STREET": "ADDRESS",
+    "SURNAME": "PERSONNAME",
+    "TAXNUM": "TAXNUM",
+    "TELEPHONENUM": "TELEPHONENUM"
+  },
+  "justification": {
+    "GIVENNAME/SURNAME": "natural-person names -> PERSONNAME",
+    "STREET/BUILDINGNUM": "street and house-number parts of the postal address -> ADDRESS (the dataset has no whole-address label)",
+    "other in-scope": "same-name policy label"
+  },
+  "label_source": "README: 20-class Open PII labelset; the 20 labels were confirmed from the validation file for the five kept languages (label counts only).",
+  "license": "CC-BY-4.0 (README: license other, name cc-by-4.0)",
+  "out_of_scope": [
+    "CITY",
+    "ZIPCODE",
+    "TIME",
+    "DATE",
+    "TITLE",
+    "SEX",
+    "GENDER"
+  ],
+  "out_of_scope_reasons": {
+    "CITY/ZIPCODE": "coarse geography alone (policy: public places in general are not masked); masking them as part of a full address region is neither rewarded nor penalised",
+    "DATE": "generic calendar date; the dataset has no date-of-birth label so birth dates cannot be separated (policy: generic dates are do-not-mask)",
+    "TIME": "generic time, do-not-mask",
+    "TITLE/SEX/GENDER": "salutation/title and demographic attributes without a policy label"
+  },
+  "policy_note": "Policy labels and their definitions come from configs/privacy-policy-v1.json. A source label is in scope only when it clearly is one of the 16 policy labels; everything else is out of scope (neither recall nor excess; the share that still got masked is reported). All annotated spans (in and out of scope) count as annotated for excess.",
+  "revision": "506996d",
+  "sample": "language in {en,de,fr,it,es}; per language sha256(source_text utf-8) ascending, first 1000 rows (5000 total); gold = privacy_mask start/end/label",
+  "sha256": "4e908e60d8d88f90015301e1ab4a8b7899ec713f1fc903860e1d9e0b91677ebf",
+  "synthetic": true
+}
