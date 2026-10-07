@@ -1,0 +1,35 @@
+{
+  "ai4privacy": {
+    "overlap_dev_v6_ext": 0,
+    "overlap_ext_dev": 0,
+    "overlap_gretel_train": 0,
+    "overlap_train_v6": 0,
+    "sample_texts": 4996
+  },
+  "dev_v6_ext_texts": 991,
+  "ext_dev_texts": 999,
+  "gretel_train_texts": 42231,
+  "nemotron": {
+    "overlap_dev_v6_ext": 0,
+    "overlap_ext_dev": 0,
+    "overlap_gretel_train": 0,
+    "overlap_train_v6": 0,
+    "sample_texts": 5000
+  },
+  "train_v6_family_prefix_counts": {
+    "boundary.name": 490,
+    "contact": 262,
+    "financial": 258,
+    "gretel_finance_train": 23279,
+    "grid": 1684,
+    "hard": 1717,
+    "official": 418,
+    "person": 1105,
+    "target.clean.near": 1181,
+    "target.person": 3534,
+    "v6_hard_negative_clean_no_cue": 2000,
+    "v6_hard_negative_clean_with_cue": 2000
+  },
+  "train_v6_texts": 46641,
+  "train_v6_texts_equal_to_gretel_train_texts": 23272
+}
