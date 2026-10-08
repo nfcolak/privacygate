@@ -202,7 +202,8 @@ def _address_union(text, cands):
 
 def _run(text, profile, model_dir, stages, modules, options=None):
     model = _get_mbert(model_dir)
-    if options and (options.get("ensemble") or options.get("name_threshold") is not None):
+    if options and (options.get("ensemble") or options.get("ensemble_pair")
+                    or options.get("name_threshold") is not None):
         windows = model.raw_probabilities([text])[0]
         if options.get("ensemble"):
             other_dir = ensemble_peer(model_dir)
@@ -210,7 +211,14 @@ def _run(text, profile, model_dir, stages, modules, options=None):
             if model.id2label != peer.id2label or model.tok.get_vocab() != peer.tok.get_vocab():
                 _fail("pipeline_ensemble_mismatch")
             windows = model.average_probabilities(windows, peer.raw_probabilities([text])[0])
-        raw = model.decode_probabilities(windows, model.id2label, options.get("name_threshold"))
+        if options.get("ensemble_pair"):
+            peer = _get_mbert(ensemble_pair_peer(model_dir))
+            if model.id2label != peer.id2label or model.tok.get_vocab() != peer.tok.get_vocab():
+                _fail("pipeline_ensemble_mismatch")
+            raw = combine_pair(windows, peer.raw_probabilities([text])[0], model.id2label,
+                               options["ensemble_pair"], options.get("name_threshold"))
+        else:
+            raw = model.decode_probabilities(windows, model.id2label, options.get("name_threshold"))
         batch = inference.mbert_candidates(text, model_dir=model_dir, _mbert=model, _raw=raw)
     else:
         batch = inference.mbert_candidates(text, model_dir=model_dir, _mbert=model)
@@ -291,10 +299,11 @@ def _finish(text, batch, stages, modules, options=None):
 
 
 def normalize_options(options=None):
-    """Value-free admission for three full-profile inference-only switches."""
+    """Value-free admission for the full-profile inference-only switches."""
     if options is None:
         return {}
-    if not isinstance(options, dict) or set(options) - {"name_threshold", "ensemble", "name_propagation_ext"}:
+    if not isinstance(options, dict) or set(options) - {"name_threshold", "ensemble", "name_propagation_ext",
+                                                         "ensemble_pair"}:
         _fail("pipeline_options_invalid")
     threshold = options.get("name_threshold")
     if threshold is not None and (type(threshold) not in (int, float) or not 0 < threshold <= 1):
@@ -302,8 +311,60 @@ def normalize_options(options=None):
     for key in ("ensemble", "name_propagation_ext"):
         if key in options and type(options[key]) is not bool:
             _fail("pipeline_options_invalid")
+    pair = options.get("ensemble_pair")
+    if pair is not None and pair is not False and pair not in PAIR_MODES:
+        _fail("pipeline_options_invalid")
+    if pair in PAIR_MODES and options.get("ensemble") is True:
+        _fail("pipeline_options_invalid")
     return {key: value for key, value in options.items()
             if value is not None and value is not False}
+
+
+PAIR_MODES = ("mean", "union")
+
+
+def ensemble_pair_peer(model_dir):
+    """ensemble_pair is explicitly the sibling frozen region-v5/region-v6 pair."""
+    if model_dir is None:
+        _fail("pipeline_ensemble_model_invalid")
+    path = Path(model_dir).expanduser().resolve()
+    peers = {"region-v5-2ep": "region-v6-2ep-b8", "region-v6-2ep-b8": "region-v5-2ep"}
+    if path.name not in peers:
+        _fail("pipeline_ensemble_model_invalid")
+    return path.parent / peers[path.name]
+
+
+def combine_pair(first, second, id2label, mode, name_threshold=None):
+    """Two aligned probability-window lists -> legacy raw windows (offs, labels, conf).
+
+    mean: probability average, then the ordinary decode. union: each model is
+    decoded on its own (with the same name_threshold); a token is personal when
+    either decoded label is not O, and when both are personal the label with the
+    higher confidence wins. Mismatched windows raise.
+    """
+    from privacygate.model.hybrid import Mbert
+    if mode == "mean":
+        return Mbert.decode_probabilities(Mbert.average_probabilities(first, second), id2label, name_threshold)
+    if mode != "union":
+        raise ValueError("ensemble_pair_mode") from None
+    Mbert.average_probabilities(first, second)  # alignment check only
+    raw = []
+    for (offs, names_a, conf_a), (_, names_b, conf_b) in zip(Mbert.decode_probabilities(first, id2label, name_threshold),
+                                                              Mbert.decode_probabilities(second, id2label, name_threshold)):
+        names, conf = [], []
+        for na, ca, nb, cb in zip(names_a, conf_a, names_b, conf_b):
+            if na == "O" and nb == "O":
+                pick = ("O", max(ca, cb))
+            elif na == "O":
+                pick = (nb, cb)
+            elif nb == "O" or ca >= cb:
+                pick = (na, ca)
+            else:
+                pick = (nb, cb)
+            names.append(pick[0])
+            conf.append(pick[1])
+        raw.append((offs, names, conf))
+    return raw
 
 
 def ensemble_peer(model_dir):

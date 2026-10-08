@@ -71,7 +71,41 @@ def profile_contracts():
     for options in ({"name_threshold": 0}, {"ensemble": 1}, {"unknown": True}):
         result = pipeline.run_pipeline("The invented panel is 3x5 cm.", options=options)
         _require(result["status"] == "blocked" and result["error"] == "pipeline_options_invalid")
+    for options in ({"ensemble_pair": "avg"}, {"ensemble_pair": True}, {"ensemble_pair": "mean", "ensemble": True}):
+        result = pipeline.run_pipeline("The invented panel is 3x5 cm.", options=options)
+        _require(result["status"] == "blocked" and result["error"] == "pipeline_options_invalid")
+    _require(pipeline.normalize_options({"ensemble_pair": "union", "name_threshold": 0.1})
+             == {"ensemble_pair": "union", "name_threshold": 0.1})
+    _require(pipeline.normalize_options({"ensemble_pair": None}) == {})
+    _require(pipeline.ensemble_pair_peer("x/region-v5-2ep").name == "region-v6-2ep-b8"
+             and pipeline.ensemble_pair_peer("x/region-v6-2ep-b8").name == "region-v5-2ep")
+    try:
+        pipeline.ensemble_pair_peer("x/region-v4-2ep")
+    except pipeline.PipelineError as error:
+        _require(str(error) == "pipeline_ensemble_model_invalid")
+    else:
+        _require(False)
     print("profile_contract=PASS")
+
+
+def pair_contracts():
+    """Invented probabilities: mean averages, union keeps either model's personal label."""
+    import numpy as np
+    labels = {0: "O", 1: "B-PERSONNAME", 2: "I-PERSONNAME", 3: "B-EMAIL"}
+    offs = [(0, 1), (2, 3), (4, 5), (6, 7)]
+    a = np.array([[.9, .05, .025, .025], [.6, .2, .1, .1], [.1, .05, .05, .8], [.3, .55, .1, .05]])
+    b = np.array([[.9, .05, .025, .025], [.3, .6, .05, .05], [.9, .05, .025, .025], [.3, .05, .05, .6]])
+    mean = pipeline.combine_pair([(offs, a)], [(offs, b)], labels, "mean")[0][1]
+    union = pipeline.combine_pair([(offs, a)], [(offs, b)], labels, "union")[0][1]
+    _require(mean == ["O", "O", "O", "B-EMAIL"])
+    _require(union == ["O", "B-PERSONNAME", "B-EMAIL", "B-EMAIL"])
+    try:
+        pipeline.combine_pair([(offs, a)], [(offs[:3], b[:3])], labels, "union")
+    except ValueError as error:
+        _require(str(error) == "ensemble_windows_mismatch")
+    else:
+        _require(False)
+    print("pair_contract=PASS")
 
 
 def main():
@@ -80,6 +114,7 @@ def main():
     args = parser.parse_args()
     invented_contracts()
     profile_contracts()
+    pair_contracts()
     # Specialist modules exist after integration; probe a genuinely missing module.
     with patch.dict(pipeline._REQUIRED, {"structured.detect": ("missing_pipeline_stage", "detect")}):
         missing = pipeline.run_pipeline("The invented panel is 3x5 cm.", profile="full", model_dir=args.model_dir)

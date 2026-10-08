@@ -152,6 +152,9 @@ def model_paths(model, options, models=MODELS):
         paths = [Path(models) / 'region-v6-2ep-b8']
     elif model == 'ensemble':
         paths = [Path(models) / 'region-v4-2ep']
+    elif model == 'v5v6':
+        assert options.get('ensemble_pair') in pipeline.PAIR_MODES
+        paths = [Path(models) / 'region-v5-2ep', Path(models) / 'region-v6-2ep-b8']
     else:
         paths = [Path(model).resolve()]
     if model == 'ensemble' or options.get('ensemble'):
@@ -231,9 +234,13 @@ class ProbabilityCache:
         paths = model_paths(model, options, self.paths[0].parent)
         windows = windows or {str(p): self.windows(p, row) for p in paths}
         probs = windows[str(paths[0])]
-        if len(paths) == 2:
-            probs = hybrid.Mbert.average_probabilities(probs, windows[str(paths[1])])
-        raw = hybrid.Mbert.decode_probabilities(probs, self.labels[str(paths[0])], options.get('name_threshold'))
+        if model == 'v5v6':
+            raw = pipeline.combine_pair(probs, windows[str(paths[1])], self.labels[str(paths[0])],
+                                        options['ensemble_pair'], options.get('name_threshold'))
+        else:
+            if len(paths) == 2:
+                probs = hybrid.Mbert.average_probabilities(probs, windows[str(paths[1])])
+            raw = hybrid.Mbert.decode_probabilities(probs, self.labels[str(paths[0])], options.get('name_threshold'))
         adapter = SimpleNamespace(spans_with_scores=hybrid.Mbert.spans_with_scores)
         batch = inference.mbert_candidates(row['text'], _mbert=adapter, _raw=raw)
         stages = pipeline._stages('full')
@@ -600,6 +607,72 @@ def v7_arms(args):
         print('V7_ARM {} clean_masked={}/{} exposed_alnum={}'.format(name, o['clean_controls']['masked_rows'], o['clean_controls']['rows'], o['leaked_gold_alnum_chars']), flush=True)
 
 
+def pair_grid(args):
+    """v5v6 option grid on Gretel EXT-DEV and v7 dev only (no TEST/second-set rows are read)."""
+    from evaluation import evaluate_pipeline as runner
+    from evaluation import masking_eval as ev
+    from evaluation.checks.verify_frozen import V7_DATA
+    rows, binding = load_data('ext-dev', args.data)
+    v7_rows, v7_binding = runner.load_v7_dataset(V7_DATA)
+    v7_adapted = [dict(text=r['text'], text_sha256=text_sha(r['text'])) for r in v7_rows]
+    settings = [dict(ensemble_pair=mode, name_threshold=threshold, name_propagation_ext=prop, ensemble=False)
+                for mode in pipeline.PAIR_MODES for threshold in (None, 0.3, 0.1) for prop in (False, True)]
+    paths = model_paths('v5v6', settings[0], args.models)
+    cache = ProbabilityCache(paths, args.cache)
+    cache.prepare(rows)
+    cache.prepare(v7_adapted)
+    reference = json.loads(Path(args.compare_grid).read_text())
+    step1 = [r for r in reference['comparison_v5_step1_rows']
+             if r['options']['name_threshold'] == 0.1 and r['options']['name_propagation_ext']]
+    assert len(step1) == 1
+    step1 = step1[0]
+    cap = step1['excess_pct'] + 1.0
+    ext = [Aggregate() for _ in settings]
+    dev = [ev.EvaluationAggregate() for _ in settings]
+    for i, row in enumerate(rows):
+        windows = {str(p): cache.windows(p, row) for p in paths}
+        for options, aggregate in zip(settings, ext):
+            aggregate.add(row, cache.predict(row, 'v5v6', options, windows))
+    for row, adapted in zip(v7_rows, v7_adapted):
+        windows = {str(p): cache.windows(p, adapted) for p in paths}
+        for options, aggregate in zip(settings, dev):
+            aggregate.add(row, cache.predict(adapted, 'v5v6', options, windows))
+    results = []
+    for options, a, b in zip(settings, ext, dev):
+        e, o = a.report(), b.report()['overall']
+        clean, leaked = o['clean_controls']['masked_rows'], o['leaked_gold_alnum_chars']
+        results.append(dict(options=options, ext_dev=dict(coverage_pct=e['coverage_pct'], excess_pct=e['excess_pct'],
+                            rows_exposed=e['rows_exposed'], exposed_gold_alnum_chars=e['exposed_gold_alnum_chars']),
+                            v7_dev=dict(clean_rows_masked=clean, clean_rows=o['clean_controls']['rows'], exposed_alnum=leaked),
+                            exposed_total=e['exposed_gold_alnum_chars'] + leaked,
+                            eligible=clean <= 21 and e['excess_pct'] <= cap))
+    eligible = [r for r in results if r['eligible']]
+    chosen = min(eligible, key=lambda r: (r['exposed_total'], r['ext_dev']['excess_pct']))
+    out = Path(args.out)
+    save(out, {**provenance(cache, binding), 'v7_data_sha256': v7_binding['sha256'], 'split': 'ext-dev', 'model': 'v5v6',
+               'selection_rule': 'Fewest exposed letters/digits summed over EXT-DEV and v7 dev, subject to v7 clean rows masked <= 21/300 '
+                                 'and EXT-DEV excess <= v5 + step-1 EXT-DEV excess + 1.0 point; ties lower EXT-DEV excess.',
+               'v5_step1_ext_dev': dict(coverage_pct=step1['coverage_pct'], excess_pct=step1['excess_pct'],
+                                        rows_exposed=step1['rows_exposed'], exposed_gold_alnum_chars=step1.get('exposed_gold_alnum_chars')),
+               'excess_cap_pct': cap, 'results': results, 'chosen': chosen})
+    lines = ['# v5v6 ensemble_pair dev grid', '',
+             'Selection data: Gretel EXT-DEV (1,000 rows) and v7 dev (not blind). No TEST, Nemotron or ai4privacy rows used; no training.',
+             'Rule: fewest exposed letters/digits (EXT-DEV + v7 dev) with v7 clean rows masked <= 21/300 and EXT-DEV excess <= {:.4f} '
+             '(v5 + step-1 EXT-DEV excess {:.4f} + 1.0); ties lower EXT-DEV excess.'.format(cap, step1['excess_pct']), '',
+             '| mode | name threshold | propagation ext | EXT-DEV coverage % | EXT-DEV excess % | EXT-DEV rows exposed | EXT-DEV exposed | v7 clean masked | v7 exposed | total exposed | eligible |',
+             '|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|']
+    for r in results:
+        x, v = r['ext_dev'], r['v7_dev']
+        lines.append('| {} | {} | {} | {:.4f} | {:.4f} | {} | {} | {}/{} | {} | {} | {} |'.format(
+            r['options']['ensemble_pair'], r['options']['name_threshold'], r['options']['name_propagation_ext'],
+            x['coverage_pct'], x['excess_pct'], x['rows_exposed'], x['exposed_gold_alnum_chars'],
+            v['clean_rows_masked'], v['clean_rows'], v['exposed_alnum'], r['exposed_total'], r['eligible']))
+    lines.extend(['', 'Chosen: v5v6 ' + json.dumps(chosen['options'], sort_keys=True), ''])
+    out.with_suffix('.md').write_text('\n'.join(lines))
+    print('SELECTED ' + json.dumps({'options': chosen['options'], 'exposed_total': chosen['exposed_total'],
+                                    'excess_pct': chosen['ext_dev']['excess_pct']}, sort_keys=True), flush=True)
+
+
 class SafeParser(argparse.ArgumentParser):
     def error(self, message):
         raise ValueError('external_arguments') from None
@@ -622,11 +695,15 @@ def main():
     parser.add_argument('--arms', type=Path, help='JSON {"arms": [{name, model, options}]}')
     parser.add_argument('--receipts', type=Path, help='directory for per-arm value-free entity-offset receipts')
     parser.add_argument('--second-root', type=Path)
+    parser.add_argument('--pair-grid', action='store_true', help='v5v6 ensemble_pair grid on EXT-DEV and v7 dev only')
     parser.add_argument('--v7-arms', action='store_true', help='with --v7-out and --arms: score arms on v7 development only')
     parser.add_argument('--v7-out', type=Path, help='Optional chosen-setting v7 development check before TEST')
     args = parser.parse_args()
     assert os.environ.get('HF_HUB_OFFLINE') == '1' and os.environ.get('HF_HOME')
     os.environ['TRANSFORMERS_OFFLINE'] = '1'
+    if args.pair_grid:
+        pair_grid(args)
+        return 0
     if args.v7_arms:
         v7_arms(args)
         return 0
