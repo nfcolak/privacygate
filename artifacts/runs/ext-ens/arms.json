@@ -1,0 +1,14 @@
+{
+  "arms": [
+    {
+      "name": "v5v6-chosen",
+      "model": "v5v6",
+      "options": {
+        "ensemble": false,
+        "ensemble_pair": "union",
+        "name_propagation_ext": false,
+        "name_threshold": 0.1
+      }
+    }
+  ]
+}

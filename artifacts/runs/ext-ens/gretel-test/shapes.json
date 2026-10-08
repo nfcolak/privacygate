@@ -1,0 +1,184 @@
+{
+  "arm": "v5v6-chosen",
+  "excess_alnum_by_entity_label": {
+    "ACCOUNTNUM": 1634,
+    "ADDRESS": 39622,
+    "AGE": 1370,
+    "CREDITCARDNUMBER": 137,
+    "DATEOFBIRTH": 4093,
+    "DRIVERLICENSENUM": 338,
+    "EMAIL": 23187,
+    "IBAN": 7802,
+    "IDCARDNUM": 47,
+    "PASSPORTNUM": 76,
+    "PERSONALREF": 30077,
+    "PERSONNAME": 75841,
+    "SOCIALNUM": 157,
+    "TAXNUM": 305,
+    "TELEPHONENUM": 54493,
+    "USERNAME": 246
+  },
+  "miss_alnum_by_label": {
+    "ACCOUNTNUM": 22,
+    "ADDRESS": 1641,
+    "CREDITCARDNUMBER": 0,
+    "DATEOFBIRTH": 117,
+    "EMAIL": 330,
+    "IBAN": 88,
+    "PASSPORTNUM": 41,
+    "PERSONALREF": 17,
+    "PERSONNAME": 2237,
+    "SOCIALNUM": 16,
+    "TELEPHONENUM": 278
+  },
+  "receipts": "v5v6-chosen.jsonl",
+  "set": "gretel",
+  "top_excess_shapes": [
+    {
+      "alnum_chars": 26433,
+      "label": "PERSONNAME",
+      "pieces": 2368,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 19122,
+      "label": "ADDRESS",
+      "pieces": 801,
+      "shape": "mixed-alnum"
+    },
+    {
+      "alnum_chars": 19089,
+      "label": "PERSONNAME",
+      "pieces": 2726,
+      "shape": "capitalised-words(n=1)"
+    },
+    {
+      "alnum_chars": 15701,
+      "label": "PERSONNAME",
+      "pieces": 1361,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 15307,
+      "label": "EMAIL",
+      "pieces": 708,
+      "shape": "email-like"
+    },
+    {
+      "alnum_chars": 13340,
+      "label": "PERSONALREF",
+      "pieces": 1598,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 11998,
+      "label": "TELEPHONENUM",
+      "pieces": 1586,
+      "shape": "digits5-9"
+    },
+    {
+      "alnum_chars": 11988,
+      "label": "TELEPHONENUM",
+      "pieces": 893,
+      "shape": "digits10+"
+    },
+    {
+      "alnum_chars": 11110,
+      "label": "ADDRESS",
+      "pieces": 1216,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 10665,
+      "label": "TELEPHONENUM",
+      "pieces": 2411,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 6339,
+      "label": "IBAN",
+      "pieces": 188,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 6281,
+      "label": "PERSONNAME",
+      "pieces": 491,
+      "shape": "capitalised-words(n=2)"
+    }
+  ],
+  "top_miss_shapes": [
+    {
+      "alnum_chars": 507,
+      "label": "PERSONNAME",
+      "pieces": 31,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 497,
+      "label": "ADDRESS",
+      "pieces": 53,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 456,
+      "label": "PERSONNAME",
+      "pieces": 40,
+      "shape": "lower"
+    },
+    {
+      "alnum_chars": 456,
+      "label": "PERSONNAME",
+      "pieces": 54,
+      "shape": "capitalised-words(n=1)"
+    },
+    {
+      "alnum_chars": 420,
+      "label": "ADDRESS",
+      "pieces": 19,
+      "shape": "mixed-alnum"
+    },
+    {
+      "alnum_chars": 309,
+      "label": "ADDRESS",
+      "pieces": 26,
+      "shape": "lower"
+    },
+    {
+      "alnum_chars": 302,
+      "label": "PERSONNAME",
+      "pieces": 28,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 270,
+      "label": "PERSONNAME",
+      "pieces": 13,
+      "shape": "mixed-alnum"
+    },
+    {
+      "alnum_chars": 246,
+      "label": "PERSONNAME",
+      "pieces": 17,
+      "shape": "capitalised-words(n=2)"
+    },
+    {
+      "alnum_chars": 229,
+      "label": "EMAIL",
+      "pieces": 71,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 226,
+      "label": "ADDRESS",
+      "pieces": 20,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 171,
+      "label": "TELEPHONENUM",
+      "pieces": 16,
+      "shape": "other"
+    }
+  ]
+}
