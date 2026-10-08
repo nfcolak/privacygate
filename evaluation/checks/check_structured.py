@@ -226,6 +226,115 @@ def _round4():
         raise RuntimeError('round4_structured_failed')
 
 
+def _steuer_id(body):
+    product = 10
+    for d in body:
+        total = (int(d) + product) % 10 or 10
+        product = (2 * total) % 11
+    return body + str((11 - product) % 11 % 10)
+
+
+def _round6():
+    """Cue-free ID detectors and cue-bound code shapes on invented strings and clean twins."""
+    from privacygate.rules import structured
+    dni = lambda body: body + "TRWAGMYFPDXBNJZSQVHLCKE"[int(body) % 23]
+    wrong = lambda value: value[:-1] + ("A" if value[-1] != "A" else "B")
+    nir_body = "2910443217650"
+    nir = nir_body + str(97 - int(nir_body) % 97).zfill(2)
+    nir_group = group(nir[:1] + nir[1:], (1, 2, 2, 2, 3, 3, 2), " ")
+    steuer = _steuer_id("4710382954")
+    steuer_bad = steuer[:-1] + str((int(steuer[-1]) + 1) % 10)
+    nino = "AB123456C"
+    ahv_body = "756381472916"
+    ahv = ahv_body + str(-sum(int(c) * (1 if i % 2 == 0 else 3) for i, c in enumerate(ahv_body)) % 10)
+    ahv_dotted = ahv[:3] + "." + ahv[3:7] + "." + ahv[7:11] + "." + ahv[11:]
+    cf = fiscal_code("VRXMQT75C12L219")
+    cases = (  # (detector, label, positive value, clean look-alike twins)
+        ("es_dni_nie", "IDCARDNUM", dni("38172946"), (wrong(dni("38172946")), "38172946", "Y381729", "38172946 EUR")),
+        ("es_dni_nie", "IDCARDNUM", "X" + "3817294"[:7] + "TRWAGMYFPDXBNJZSQVHLCKE"[int("0" + "3817294") % 23],
+         ("X3817294" + "!", "Q3817294R")),
+        ("it_codice_fiscale", "TAXNUM", cf, (wrong(cf), "VRXMQT75C12L219", "VRXMQT75C12L2199X")),
+        ("fr_nir", "SOCIALNUM", nir, (nir[:-2] + str((int(nir[-2:]) + 1) % 97).zfill(2), "3" + nir[1:], nir[:-1])),
+        ("fr_nir", "SOCIALNUM", nir_group, ("2 91 04 43 217 650 00",)),
+        ("de_steuer_idnr", "TAXNUM", steuer, (steuer_bad, "0" + steuer[1:], "12345678901", "11111111111")),
+        ("de_steuer_idnr", "TAXNUM", steuer[:2] + " " + steuer[2:5] + " " + steuer[5:8] + " " + steuer[8:],
+         ("+49 30 " + steuer[2:],)),
+        ("gb_nino", "SOCIALNUM", nino, ("BG123456C", "ZZ123456C", "AB123456E", "DA123456C")),
+        ("gb_nino", "SOCIALNUM", "AB 12 34 56 C", ("QQ 12 34 56 C",)),
+        ("us_ssn", "SOCIALNUM", "518-73-4294", ("000-73-4294", "666-73-4294", "918-73-4294", "518-00-4294", "518-73-0000")),
+        ("ch_ahv", "SOCIALNUM", ahv_dotted, (ahv_dotted[:-1] + str((int(ahv[-1]) + 1) % 10), "755.3814.7291.64")),
+    )
+    previous = structured.ENABLED
+    structured.ENABLED = frozenset(structured.ID_DETECTORS)
+    failures, twin_masked, twin_total, personal_rejected = Counter(), 0, 0, 0
+    leads = ("Notes: ", "Ich habe ", "Nota: ", "J'ai noté ", "He apuntado ")
+    try:
+        for index, (name, label, value, twins) in enumerate(cases):
+            lead = leads[index % len(leads)]
+            text = lead + value + ", and nothing else."
+            found = [c for c in detect(text) if (c["start"], c["end"], c["label"]) == (len(lead), len(lead) + len(value), label)]
+            if not found:
+                failures[name] += 1
+            personal_rejected += sum(decide(text, c, detect(text))[0] == "reject" for c in found)
+            for twin in twins:
+                twin_total += 1
+                text = lead + twin + ", and nothing else."
+                twin_masked += any(c["label"] == label and decide(text, c, detect(text))[0] != "reject"
+                                   for c in detect(text) if c["source"] == "structured"
+                                   and c["validation"] == "valid")
+        # Operational codes and plain business numbers never trigger the cue-free set.
+        for field in ("Order", "Invoice", "SKU", "Rechnung", "Bestellung", "Pedido"):
+            for value in (dni("38172946"), steuer, nir, nino, cf, ahv_dotted, "518-73-4294"):
+                twin_total += 1
+                text = field + " no.: " + value + "; paid."
+                twin_masked += any(decide(text, c, detect(text))[0] != "reject" for c in detect(text))
+        for text in ("Total 38172946 EUR, 12 pieces.", "Dimensions 3817 x 2946 mm.", "Date: 2031-04-05.",
+                     "Room 4710 is free on 2031-04-05.", "Price: 4,710.38 CHF.", "Ref 4710382954 shipped."):
+            twin_total += 1
+            twin_masked += bool(detect(text))
+    finally:
+        structured.ENABLED = previous
+    # Cue-bound shapes: a document-type cue is required; the same shape after an operational cue is not.
+    cued = (("PASSPORTNUM", "Passport number is ", "QZ2748162"), ("PASSPORTNUM", "Reisepass lautet ", "C01X00T47"),
+            ("PASSPORTNUM", "pasaporte nº ", "Q27481625"), ("IDCARDNUM", "Identity card no. ", "NX 274 816 253"),
+            ("IDCARDNUM", "Personalausweis: ", "L01X00T471"), ("DRIVERLICENSENUM", "driving licence number ", "QV27481625394"),
+            ("DRIVERLICENSENUM", "permis de conduire : ", "QV 2748-16253"), ("DRIVERLICENSENUM", "patente di guida ", "QV2748162539"),
+            ("SOCIALNUM", "Social insurance ", "SN 274 816 253"), ("SOCIALNUM", "Sozialversicherung: ", "SN-2748-16253"),
+            ("SOCIALNUM", "previdenza sociale ", "SN2748162539"), ("TAXNUM", "Tax identifier ", "TX 274 816 2539"),
+            ("TAXNUM", "Steuerkennung: ", "TX2748162539"), ("TAXNUM", "identificador fiscal ", "TX-274816-2539"),
+            ("PERSONALREF", "Patient reference ", "PAT 274 816 253"), ("PERSONALREF", "Patientenreferenz: ", "PAT-27481625"),
+            ("PERSONALREF", "medical record number ", "MR274816253"), ("PERSONALREF", "health plan number ", "HP 274 816 253"),
+            ("PERSONALREF", "référence patient ", "PAT 274 816 253"), ("PERSONALREF", "riferimento paziente: ", "PAT27481625"))
+    previous = structured.ENABLED
+    structured.ENABLED = frozenset(structured.ID_DETECTORS)
+    cued_failures = 0
+    try:
+        for label, key, value in cued:
+            text = "Synthetic record; " + key + value + "; end."
+            start = len("Synthetic record; " + key)
+            hit = [c for c in detect(text) if (c["start"], c["end"], c["label"]) == (start, start + len(value), label)]
+            cued_failures += not hit
+            personal_rejected += sum(decide(text, c, detect(text))[0] == "reject" for c in hit)
+        for key in ("Invoice number is ", "Order no. ", "Product reference ", "Artikelnummer: ", "Room ", "Quantity ",
+                    "Passport expires ", "Passport photo size ", "Driving licence valid for ", "Tax identifier changes in ",
+                    "Patient reference year "):
+            for value in ("QZ2748162", "PAT 274 816 253", "2031", "12 x 15", "4,710.38"):
+                twin_total += 1
+                text = "Synthetic record; " + key + value + "; end."
+                twin_masked += any(c["label"] in {"PASSPORTNUM", "IDCARDNUM", "DRIVERLICENSENUM", "TAXNUM", "PERSONALREF"}
+                                   and decide(text, c, detect(text))[0] != "reject" for c in detect(text))
+    finally:
+        structured.ENABLED = previous
+    total = len(cases) + len(cued)
+    print("round6_struct_complete=" + str(total - sum(failures.values()) - cued_failures) + "/" + str(total))
+    print("round6_clean_masked=" + str(twin_masked) + "/" + str(twin_total))
+    print("round6_personal_rejected=" + str(personal_rejected))
+    for name, count in sorted(failures.items()):
+        print("round6_incomplete_detector=" + name + " count=" + str(count))
+    if failures or cued_failures or twin_masked or personal_rejected or twin_total < 80:
+        raise RuntimeError("round6_structured_failed")
+
+
 def _legacy_extension_regression():
     from privacygate.rules.refine import refine, _word_completion
     base = '+49 (030) 684-2751'
@@ -448,6 +557,7 @@ def main():
         return 1
     _round3()
     _round4()
+    _round6()
     _legacy_extension_regression()
     return 0
 

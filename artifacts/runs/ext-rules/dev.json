@@ -1,0 +1,505 @@
+{
+  "arm": {
+    "model": "v5",
+    "name": "v5-step1",
+    "options": {
+      "ensemble": false,
+      "name_propagation_ext": true,
+      "name_threshold": 0.1
+    }
+  },
+  "chosen": [
+    "fr_nir",
+    "it_codice_fiscale"
+  ],
+  "data": "Gretel EXT-DEV (1,000 rows) + v7 development (600 rows); model v5 + step-1 options; probabilities cached, rules replayed",
+  "gate": {
+    "clean_rows_max": 21,
+    "excess_rise_max_pct_points": 0.3
+  },
+  "runs": {
+    "all": {
+      "enabled": [
+        "ch_ahv",
+        "cued_documents",
+        "cued_personalref",
+        "cued_social_tax",
+        "de_steuer_idnr",
+        "es_dni_nie",
+        "fr_nir",
+        "gb_nino",
+        "it_codice_fiscale",
+        "us_ssn"
+      ],
+      "exposed_total": 5507,
+      "gretel_dev": {
+        "coverage_pct": 88.1028495204802,
+        "excess_pct": 4.889559364799613,
+        "exposed_alnum": 5173,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 18
+        },
+        "rows_exposed": 189
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 23,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "ch_ahv": {
+      "enabled": [
+        "ch_ahv"
+      ],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "chosen": {
+      "enabled": [
+        "fr_nir",
+        "it_codice_fiscale"
+      ],
+      "exposed_total": 5507,
+      "gretel_dev": {
+        "coverage_pct": 88.1028495204802,
+        "excess_pct": 4.889043025678405,
+        "exposed_alnum": 5173,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 18
+        },
+        "rows_exposed": 189
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "cued_documents": {
+      "enabled": [
+        "cued_documents"
+      ],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "cued_personalref": {
+      "enabled": [
+        "cued_personalref"
+      ],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "cued_social_tax": {
+      "enabled": [
+        "cued_social_tax"
+      ],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.889301195239009,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "de_steuer_idnr": {
+      "enabled": [
+        "de_steuer_idnr"
+      ],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "es_dni_nie": {
+      "enabled": [
+        "es_dni_nie"
+      ],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "fr_nir": {
+      "enabled": [
+        "fr_nir"
+      ],
+      "exposed_total": 5539,
+      "gretel_dev": {
+        "coverage_pct": 88.02925415698812,
+        "excess_pct": 4.889043025678405,
+        "exposed_alnum": 5205,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 50
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "gb_nino": {
+      "enabled": [
+        "gb_nino"
+      ],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "it_codice_fiscale": {
+      "enabled": [
+        "it_codice_fiscale"
+      ],
+      "exposed_total": 5522,
+      "gretel_dev": {
+        "coverage_pct": 88.06835169384328,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5188,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 33
+        },
+        "rows_exposed": 189
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "off": {
+      "enabled": [],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 19,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    },
+    "us_ssn": {
+      "enabled": [
+        "us_ssn"
+      ],
+      "exposed_total": 5554,
+      "gretel_dev": {
+        "coverage_pct": 87.9947563303512,
+        "excess_pct": 4.888784856117801,
+        "exposed_alnum": 5220,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 24,
+          "PASSPORTNUM": 27,
+          "PERSONALREF": 54,
+          "SOCIALNUM": 65
+        },
+        "rows_exposed": 190
+      },
+      "v7_dev": {
+        "clean_rows": 300,
+        "clean_rows_masked": 23,
+        "exposed_alnum": 334,
+        "per_label_exposed_alnum": {
+          "DRIVERLICENSENUM": 0,
+          "IDCARDNUM": 0,
+          "PASSPORTNUM": 0,
+          "PERSONALREF": 0,
+          "SOCIALNUM": 0,
+          "TAXNUM": 0
+        }
+      }
+    }
+  },
+  "verdicts": {
+    "ch_ahv": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0,
+      "keep": false,
+      "lowers_exposed_by": 0,
+      "reason": "no exposed-character reduction on dev"
+    },
+    "cued_documents": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0,
+      "keep": false,
+      "lowers_exposed_by": 0,
+      "reason": "no exposed-character reduction on dev"
+    },
+    "cued_personalref": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0,
+      "keep": false,
+      "lowers_exposed_by": 0,
+      "reason": "no exposed-character reduction on dev"
+    },
+    "cued_social_tax": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0005163391212077428,
+      "keep": false,
+      "lowers_exposed_by": 0,
+      "reason": "no exposed-character reduction on dev"
+    },
+    "de_steuer_idnr": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0,
+      "keep": false,
+      "lowers_exposed_by": 0,
+      "reason": "no exposed-character reduction on dev"
+    },
+    "es_dni_nie": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0,
+      "keep": false,
+      "lowers_exposed_by": 0,
+      "reason": "no exposed-character reduction on dev"
+    },
+    "fr_nir": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0002581695606043155,
+      "keep": true,
+      "lowers_exposed_by": 15,
+      "reason": "kept"
+    },
+    "gb_nino": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0,
+      "keep": false,
+      "lowers_exposed_by": 0,
+      "reason": "no exposed-character reduction on dev"
+    },
+    "it_codice_fiscale": {
+      "clean_rows_masked": 19,
+      "excess_rise_points": 0.0,
+      "keep": true,
+      "lowers_exposed_by": 32,
+      "reason": "kept"
+    },
+    "us_ssn": {
+      "clean_rows_masked": 23,
+      "excess_rise_points": 0.0,
+      "keep": false,
+      "lowers_exposed_by": 0,
+      "reason": "clean rows above 21/300"
+    }
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "arm": "v6-chosen-rules",
+  "excess_alnum_by_entity_label": {
+    "ACCOUNTNUM": 12,
+    "ADDRESS": 279,
+    "AGE": 178,
+    "CREDITCARDNUMBER": 17,
+    "DATEOFBIRTH": 2,
+    "DRIVERLICENSENUM": 7,
+    "EMAIL": 15,
+    "PASSPORTNUM": 2,
+    "PERSONALREF": 1,
+    "PERSONNAME": 3681,
+    "SOCIALNUM": 15,
+    "TELEPHONENUM": 13,
+    "UNCOVERED": 0,
+    "USERNAME": 30
+  },
+  "miss_alnum_by_label": {
+    "ADDRESS": 2601,
+    "AGE": 318,
+    "CREDITCARDNUMBER": 76,
+    "DRIVERLICENSENUM": 542,
+    "IDCARDNUM": 1421,
+    "PASSPORTNUM": 367,
+    "PERSONNAME": 2923,
+    "SOCIALNUM": 418,
+    "TAXNUM": 512,
+    "TELEPHONENUM": 253
+  },
+  "receipts": "v6-chosen-rules.jsonl",
+  "set": "ai4privacy",
+  "top_excess_shapes": [
+    {
+      "alnum_chars": 1358,
+      "label": "PERSONNAME",
+      "pieces": 128,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 1078,
+      "label": "PERSONNAME",
+      "pieces": 194,
+      "shape": "capitalised-words(n=1)"
+    },
+    {
+      "alnum_chars": 900,
+      "label": "PERSONNAME",
+      "pieces": 432,
+      "shape": "lower"
+    },
+    {
+      "alnum_chars": 221,
+      "label": "PERSONNAME",
+      "pieces": 20,
+      "shape": "capitalised-words(n=2)"
+    },
+    {
+      "alnum_chars": 184,
+      "label": "ADDRESS",
+      "pieces": 55,
+      "shape": "lower"
+    },
+    {
+      "alnum_chars": 113,
+      "label": "AGE",
+      "pieces": 30,
+      "shape": "lower"
+    },
+    {
+      "alnum_chars": 87,
+      "label": "PERSONNAME",
+      "pieces": 12,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 65,
+      "label": "AGE",
+      "pieces": 13,
+      "shape": "capitalised-words(n=1)"
+    },
+    {
+      "alnum_chars": 47,
+      "label": "ADDRESS",
+      "pieces": 7,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 37,
+      "label": "PERSONNAME",
+      "pieces": 2,
+      "shape": "capitalised-words(n=3)"
+    },
+    {
+      "alnum_chars": 30,
+      "label": "USERNAME",
+      "pieces": 3,
+      "shape": "lower"
+    },
+    {
+      "alnum_chars": 28,
+      "label": "ADDRESS",
+      "pieces": 2,
+      "shape": "capitalised-words(n=3)"
+    }
+  ],
+  "top_miss_shapes": [
+    {
+      "alnum_chars": 2222,
+      "label": "PERSONNAME",
+      "pieces": 363,
+      "shape": "capitalised-words(n=1)"
+    },
+    {
+      "alnum_chars": 1384,
+      "label": "IDCARDNUM",
+      "pieces": 142,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 960,
+      "label": "ADDRESS",
+      "pieces": 47,
+      "shape": "other"
+    },
+    {
+      "alnum_chars": 528,
+      "label": "PERSONNAME",
+      "pieces": 43,
+      "shape": "capitalised-words(n=2)"
+    },
+    {
+      "alnum_chars": 473,
+      "label": "ADDRESS",
+      "pieces": 41,
+      "shape": "capitalised-words(n=2)"
+    },
+    {
+      "alnum_chars": 424,
+      "label": "DRIVERLICENSENUM",
+      "pieces": 36,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 410,
+      "label": "ADDRESS",
+      "pieces": 48,
+      "shape": "capitalised-words(n=1)"
+    },
+    {
+      "alnum_chars": 318,
+      "label": "AGE",
+      "pieces": 166,
+      "shape": "digits<=4"
+    },
+    {
+      "alnum_chars": 317,
+      "label": "ADDRESS",
+      "pieces": 119,
+      "shape": "digits<=4"
+    },
+    {
+      "alnum_chars": 295,
+      "label": "PASSPORTNUM",
+      "pieces": 33,
+      "shape": "upper"
+    },
+    {
+      "alnum_chars": 245,
+      "label": "TAXNUM",
+      "pieces": 23,
+      "shape": "digits10+"
+    },
+    {
+      "alnum_chars": 238,
+      "label": "ADDRESS",
+      "pieces": 14,
+      "shape": "capitalised-words(n=3)"
+    }
+  ]
+}
