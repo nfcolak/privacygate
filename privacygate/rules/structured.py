@@ -7,6 +7,7 @@ Validation is format/checksum evidence, NOT an existence/ownership assertion
 and NEVER a veto. Explicit personal fields retain invalid/unknown values.
 """
 import re
+from collections import Counter
 
 # Country length and BBAN grammar; national account checks are not required.
 _IBAN_SPECS = {
@@ -265,6 +266,193 @@ def _identifier_status(value, label):
     return "n/a"
 
 
+# --- Cue-free ID-code detectors (round 6) ---------------------------------
+# Public national formats that carry their own check evidence. Each function
+# yields (start, end, label, validation) on original offsets. Formats without a
+# checksum are only emitted next to a specific cue word (``cued_codes``).
+_NOT_ALNUM = r"(?<![A-Za-z0-9])"
+_NOT_ALNUM_AFTER = r"(?![A-Za-z0-9])"
+_DNI_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE"
+
+
+def _id_dni(text):
+    # 8 digits (optionally 2.3.3 dotted) or X/Y/Z + 7 digits, then the mod-23 letter.
+    pattern = re.compile(_NOT_ALNUM + r"((?:[XYZ][-. ]?[0-9]{7}|[0-9]{2}\.[0-9]{3}\.[0-9]{3}|[0-9]{8}))"
+                         r"[ -]?([A-Z])" + _NOT_ALNUM_AFTER)
+    for match in pattern.finditer(text):
+        body = re.sub(r"[-. ]", "", match.group(1))
+        if body[0] in "XYZ":
+            body = str("XYZ".index(body[0])) + body[1:]
+        if _DNI_LETTERS[int(body) % 23] == match.group(2):
+            yield match.start(), match.end(), "IDCARDNUM", "valid"
+
+
+def _id_codice_fiscale(text):
+    pattern = re.compile(_NOT_ALNUM + r"[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST]"
+                         r"[0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]" + _NOT_ALNUM_AFTER)
+    for match in pattern.finditer(text):
+        if _fiscal_status(match.group()) == "valid":
+            yield match.start(), match.end(), "TAXNUM", "valid"
+
+
+def _id_nir(text):
+    # sex, year, month, department (2A/2B Corsica), commune, order, key; separators optional.
+    s = r"[ .\u00a0\u202f]?"
+    pattern = re.compile(_NOT_ALNUM + r"([12])" + s + r"([0-9]{2})" + s + r"(0[1-9]|1[0-2]|[2-9][0-9])" + s +
+                         r"([0-9]{2}|2[AB])" + s + r"([0-9]{3})" + s + r"([0-9]{3})" + s + r"([0-9]{2})" +
+                         _NOT_ALNUM_AFTER)
+    for match in pattern.finditer(text):
+        g = match.groups()
+        dept = {"2A": "19", "2B": "18"}.get(g[3], g[3])
+        number = int(g[0] + g[1] + g[2] + dept + g[4] + g[5])
+        if 97 - number % 97 == int(g[6]):
+            yield match.start(), match.end(), "SOCIALNUM", "valid"
+
+
+def _id_steuer_idnr(text):
+    # Eleven digits, no leading zero, ISO 7064 MOD 11,10 check digit and the
+    # digit-multiplicity rule of the German tax identification number.
+    sep = r"[ .\u00a0]?"
+    pattern = re.compile(_NOT_ALNUM + r"(?<![0-9][-./ ])([1-9][0-9])" + sep + r"([0-9]{3})" + sep +
+                         r"([0-9]{3})" + sep + r"([0-9]{3})(?![0-9])(?![-/]?[0-9])" + _NOT_ALNUM_AFTER)
+    plain = re.compile(_NOT_ALNUM + r"[1-9][0-9]{10}(?![0-9])" + _NOT_ALNUM_AFTER)
+    for rx in (pattern, plain):
+        for match in rx.finditer(text):
+            digits = re.sub(r"\D", "", match.group())
+            first = digits[:10]
+            counts = Counter(first).values()
+            if max(counts) > 3 or sum(c > 1 for c in counts) != 1:
+                continue
+            if re.search(r"(.)\1\1", first):
+                continue
+            product = 10
+            for d in first:
+                total = (int(d) + product) % 10 or 10
+                product = (2 * total) % 11
+            check = (11 - product) % 11
+            if check == 10:
+                check = 0
+            if check == int(digits[10]):
+                yield match.start(), match.end(), "TAXNUM", "valid"
+
+
+_NINO_BAD = frozenset(("BG", "GB", "NK", "KN", "TN", "NT", "ZZ"))
+
+
+def _id_nino(text):
+    pattern = re.compile(_NOT_ALNUM + r"([A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z])[ \u00a0-]?[0-9]{2}[ \u00a0-]?"
+                         r"[0-9]{2}[ \u00a0-]?[0-9]{2}[ \u00a0-]?[A-D]" + _NOT_ALNUM_AFTER)
+    for match in pattern.finditer(text):
+        if match.group(1) not in _NINO_BAD:
+            yield match.start(), match.end(), "SOCIALNUM", "valid"
+
+
+def _id_ssn(text):
+    pattern = re.compile(r"(?<![A-Za-z0-9.\-/])([0-9]{3})-([0-9]{2})-([0-9]{4})(?![A-Za-z0-9\-/]|[.,][0-9])")
+    for match in pattern.finditer(text):
+        area, group, serial = match.groups()
+        if area not in ("000", "666") and int(area) < 900 and group != "00" and serial != "0000":
+            yield match.start(), match.end(), "SOCIALNUM", "valid"
+
+
+def _id_ahv(text):
+    pattern = re.compile(_NOT_ALNUM + r"756([.\u00a0 ])[0-9]{4}\1[0-9]{4}\1[0-9]{2}" + _NOT_ALNUM_AFTER)
+    for match in pattern.finditer(text):
+        core = re.sub(r"\D", "", match.group())
+        total = sum(int(c) * (1 if i % 2 == 0 else 3) for i, c in enumerate(core[:-1]))
+        if (total + int(core[-1])) % 10 == 0:
+            yield match.start(), match.end(), "SOCIALNUM", "valid"
+
+
+ID_DETECTORS = {
+    "es_dni_nie": _id_dni, "it_codice_fiscale": _id_codice_fiscale, "fr_nir": _id_nir,
+    "de_steuer_idnr": _id_steuer_idnr, "gb_nino": _id_nino, "us_ssn": _id_ssn, "ch_ahv": _id_ahv,
+}
+
+# Cue-bound shapes without a checksum. The cue must name the document type, may be
+# followed by a number word and a short copula; the value is a bounded digit-bearing
+# serial token run. Bare "number", "ID", "ref" or "pass" are never cues.
+_CUED = {
+    "cued_documents": {
+        "PASSPORTNUM": (r"reisepass(?:nummer)?|passnummer|passport|passeport|passaporto|pasaporte"),
+        "IDCARDNUM": (r"(?:personal)?ausweis(?:nummer)?|identity\s+(?:card|document)|id\s+card|"
+                      r"carte\s+(?:nationale\s+)?d['’]identité|carta\s+d['’]identità|"
+                      r"documento\s+(?:nacional\s+)?de\s+identidad|carnet\s+de\s+identidad|"
+                      r"identitätskarte|identitätsnachweis"),
+        "DRIVERLICENSENUM": (r"führerschein(?:nummer)?|driv(?:ing|er['’]?s?)\s+(?:licen[cs]e|permit)|"
+                             r"permis\s+de\s+conduire|patente\s+di\s+guida|patente|"
+                             r"(?:permiso|carnet)\s+de\s+conducir"),
+    },
+    "cued_social_tax": {
+        "SOCIALNUM": (r"social\s+(?:security|insurance)|sozialversicherung(?:snummer|sausweis)?|"
+                      r"sécurité\s+sociale|assurance\s+(?:maladie|sociale)|previdenza\s+sociale|"
+                      r"seguridad\s+social|seguro\s+social|national\s+insurance|"
+                      r"rentenversicherung(?:snummer)?"),
+        "TAXNUM": (r"tax\s+(?:id(?:entifier|entification)?|file|reference)|steuer(?:kennung|kennzeichen)|"
+                   r"identifiant\s+fiscal|codice\s+fiscale|identificador\s+fiscal|"
+                   r"(?:número|numero|numéro)\s+(?:de\s+)?(?:identificación\s+|identification\s+)?fiscal"),
+    },
+    "cued_personalref": {
+        "PERSONALREF": (r"patient(?:en)?[ -]*(?:reference|referenz|nummer|id|record)|"
+                        r"référence\s+patient|riferimento\s+paziente|referencia\s+(?:de\s+)?paciente|"
+                        r"medical\s+record|health[ -]*(?:plan|insurance)(?:\s+beneficiary)?|"
+                        r"krankenversicherung(?:snummer)?|versichertennummer|"
+                        r"numéro\s+d['’]assuré|tessera\s+sanitaria|afiliad[oa]|número\s+de\s+afiliación"),
+    },
+}
+_CUED_TAIL = (r"(?:[ \t]*(?:number|nummer|numéro|numero|número|no\.?|nr\.?|n[°º]\.?|id|code|ref\.?|"
+              r"reference|referenz|identifier|kennung))?")
+_CUED_LINK = r"(?:[ \t]*(?:is|ist|lautet|est|è|es|are|:|=|#|-|–))*[ \t:=#]*"
+_CUED_RES = {name: re.compile(r"(?<!\w)(?:" + "|".join("(?P<%s>%s)" % kv for kv in groups.items()) + r")" +
+                              _CUED_TAIL + _CUED_LINK, re.IGNORECASE)
+             for name, groups in _CUED.items()}
+_CUED_DATE = None
+
+
+def _cued_factory(name):
+    def detect_cued(text):
+        global _CUED_DATE
+        if _CUED_DATE is None:
+            from privacygate.rules.context import _DATE
+            _CUED_DATE = _DATE
+        for cue in _CUED_RES[name].finditer(text):
+            start = cue.end()
+            if start >= len(text) or not (text[start].isalnum()):
+                continue
+            if start > 0 and text[start - 1].isalpha() and text[start].isalpha():
+                continue  # cue was a word prefix, not a standalone field name
+            end = _value_end(text, start)
+            if end <= start:
+                continue
+            value = text[start:end]
+            core = _compact(value)
+            if len(core) < 5 or sum(c.isdigit() for c in core) < 3 or re.fullmatch(r"(?:19|20)[0-9]{2}", core):
+                continue
+            if _CUED_DATE.fullmatch(value) or re.fullmatch(r"[0-9]{1,3}(?:[.,][0-9]{2})", value):
+                continue
+            yield start, end, cue.lastgroup, "unknown"
+    return detect_cued
+
+
+for _name in _CUED:
+    ID_DETECTORS[_name] = _cued_factory(_name)
+# Dev gate (artifacts/runs/ext-rules/dev.md): only detectors that lowered exposed
+# letters/digits on Gretel EXT-DEV + v7 dev within the clean-row and excess limits
+# are on by default. The others stay registered, tested, and switchable via ENABLED.
+DEFAULT_ENABLED = frozenset(("it_codice_fiscale", "fr_nir"))
+ENABLED = DEFAULT_ENABLED
+
+
+def _id_candidates(text):
+    result = []
+    for name in sorted(ENABLED):
+        for start, end, label, status in ID_DETECTORS[name](text):
+            # A value directly after an order/invoice/SKU/date-type key is a business code.
+            if not _bound_key(text, start, clean=True):
+                result.append(_candidate(text, start, end, label, status))
+    return result
+
+
 def _phone_library():
     try:
         import phonenumbers
@@ -492,6 +680,7 @@ def detect(text):
             if end > start:
                 status = _identifier_status(text[start:end], label)
                 result.append(_candidate(text, start, end, label, status))
+        result.extend(_id_candidates(text))
         result.extend(_phone_candidates(text, fields, phones))
         # Same-label contained matches are library fragments, not extra values.
         # Cross-label overlaps are intentionally retained for pipeline union.

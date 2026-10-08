@@ -1,0 +1,22 @@
+{
+  "arms": [
+    {
+      "name": "v5-step1-rules",
+      "model": "v5",
+      "options": {
+        "ensemble": false,
+        "name_propagation_ext": true,
+        "name_threshold": 0.1
+      }
+    },
+    {
+      "name": "v6-chosen-rules",
+      "model": "v6",
+      "options": {
+        "ensemble": false,
+        "name_propagation_ext": false,
+        "name_threshold": 0.1
+      }
+    }
+  ]
+}
