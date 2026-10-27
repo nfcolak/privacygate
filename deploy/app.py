@@ -50,7 +50,7 @@ image = (
         "allow_patterns=['config.json', 'tokenizer.json', 'tokenizer_config.json', 'vocab.txt'])\""
     )
     .env({"HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1", "TRANSFORMERS_VERBOSITY": "error",
-          "TOKENIZERS_PARALLELISM": "false"})
+          "TOKENIZERS_PARALLELISM": "false", "OMP_NUM_THREADS": "4", "MKL_NUM_THREADS": "4"})
     .add_local_dir(HERE.parent / "privacygate", "/root/pg/privacygate", ignore=["**/__pycache__", "training"])
     .add_local_dir(HERE.parent / "configs", "/root/pg/configs")
     .add_local_dir(HERE / "web", "/root/web", ignore=[".env*", ".vercel", "vercel.json", ".gitignore", ".vercelignore"])
@@ -98,6 +98,11 @@ class Web:
     @modal.enter(snap=True)
     def load(self):
         import sys
+        import torch
+        # Fix the thread count before the first inference. Changing it after a
+        # forward pass (the old snap=False hook) could hang the container while
+        # Modal was creating the memory snapshot, so every request timed out.
+        torch.set_num_threads(4)
         sys.path.insert(0, "/root/pg")
         from privacygate.pipeline import run_pipeline
         self.run_pipeline = run_pipeline
@@ -106,11 +111,6 @@ class Web:
         result = run_pipeline("Contact Jane Example at jane@example.com.", "full", self.model_dir, OPTIONS)
         if result.get("status") != "ok":
             raise RuntimeError("warmup_failed")
-
-    @modal.enter(snap=False)
-    def threads(self):
-        import torch
-        torch.set_num_threads(4)
 
     @modal.asgi_app()
     def web(self):
