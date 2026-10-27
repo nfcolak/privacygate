@@ -83,7 +83,7 @@
                       background-size: 260% 100%; animation: scan 1.5s linear infinite; }
   @keyframes scan { from { background-position: 130% 0; } to { background-position: -30% 0; } }
   .body.busy textarea { color: var(--muted); }
-  .hint { position: absolute; z-index: 3; bottom: 14px; left: var(--x); transform: translateX(-50%); white-space: nowrap;
+  .hint { position: absolute; z-index: 3; bottom: 64px; left: clamp(90px, var(--x), calc(100% - 90px)); transform: translateX(-50%); white-space: nowrap;
           font-size: 12.5px; color: var(--ink); padding: 6px 11px; border-radius: 999px; pointer-events: none;
           transition: opacity .4s; }
   .hint.gone { opacity: 0; }
@@ -105,7 +105,7 @@
   .bar::selection { color: transparent; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: pre-wrap; }
   .stack { position: relative; min-height: 100%; }
-  .layer { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding-top: 62px; }
+  .layer { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding-top: 62px; padding-bottom: 72px; }
   .layer.before { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--x)) 0 0); background: var(--glass-2); }
   .layer.after { clip-path: inset(0 0 0 var(--x)); }
   .hl { border-radius: 5px; padding: 2px 2px; margin: 0 -2px; background: color-mix(in srgb, var(--c) 16%, transparent);
@@ -131,10 +131,10 @@
   .curtain { position: absolute; top: 0; bottom: 0; left: var(--x); width: 0; z-index: 2; pointer-events: none; }
   .curtain::before { content: ""; position: absolute; top: 0; bottom: 0; left: -0.5px; width: 1px;
                      background: linear-gradient(transparent, var(--ink) 18%, var(--ink) 82%, transparent); opacity: .35; }
-  .handle { position: absolute; z-index: 3; top: 28px; left: var(--x); transform: translate(-50%, -50%);
+  .handle { position: absolute; z-index: 3; bottom: 10px; left: clamp(26px, var(--x), calc(100% - 26px)); transform: translateX(-50%);
             width: 42px; height: 42px; border-radius: 50%; cursor: ew-resize; touch-action: none; display: grid; place-items: center;
             background: color-mix(in srgb, var(--bg) 88%, transparent) !important; transition: transform .15s; }
-  .handle:hover, .handle:active { transform: translate(-50%, -50%) scale(1.08); }
+  .handle:hover, .handle:active { transform: translateX(-50%) scale(1.08); }
   .handle::before { content: ""; width: 12px; height: 12px; border: solid var(--ink); border-width: 0 1.5px;
                     opacity: .7; }
   .tag { position: absolute; top: 14px; z-index: 3; font: 500 11px/1 "Geist Mono", ui-monospace, monospace; letter-spacing: .08em;
@@ -152,13 +152,17 @@
   .chip:hover { background: var(--soft); }
   .note { font: 12px "Geist Mono", ui-monospace, monospace; color: var(--muted); margin-left: auto; margin-right: 4px; }
   .note.err { color: var(--danger); }
-  .legend { display: flex; gap: 14px; overflow-x: auto; scrollbar-width: none; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .legend { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; font-size: 13px; color: var(--muted); white-space: nowrap; }
   .legend::-webkit-scrollbar { display: none; }
   .legend span { display: inline-flex; align-items: center; gap: 7px; }
   .legend span::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); }
   .legend i { font-style: normal; }
   .legend b { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
   .quiet { color: var(--muted); font-size: 14px; padding: 9px 12px; border-radius: 10px; }
+  .ico { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .ico svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .go.ico { padding-left: 16px; }
+  .tag.on { color: var(--ink); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
   .quiet:hover { background: var(--soft); color: var(--ink); }
   .go { background: var(--btn); color: var(--btn-ink); font-weight: 500; font-size: 14px; padding: 10px 20px;
         border-radius: 999px; min-width: 96px; transition: opacity .15s, transform .15s; }
@@ -189,8 +193,12 @@
     header { height: 60px; }
     .tools { padding: 0 8px 0 12px; }
     .legend { gap: 10px; font-size: 12px; }
-    .layer { padding-top: 56px; }
+    .layer { padding-top: 56px; padding-bottom: 66px; }
     .quiet { padding: 9px 8px; }
+    .group { gap: 0; }
+    #result-tools { flex-wrap: wrap; row-gap: 4px; padding-top: 12px; padding-bottom: 10px; }
+    #result-tools .legend { flex: 1 0 100%; flex-wrap: wrap; row-gap: 6px; }
+    #result-tools .group { margin-left: auto; }
     .go { min-width: 0; padding: 10px 16px; }
     footer { flex-direction: column; gap: 2px; height: 76px; }
   }
@@ -246,8 +254,9 @@
     <div class="tools" id="result-tools" hidden>
       <div class="legend" id="legend"></div>
       <div class="group">
-        <button class="quiet" id="copy" title="Copy the masked text">Copy</button>
-        <button class="go" id="back">Edit text</button>
+        <button class="quiet ico" id="copy" title="Copy the masked text"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg><span id="copy-label">Copy</span></button>
+        <button class="quiet ico" id="back" title="Change this text and mask it again (Esc)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg><span>Edit</span></button>
+        <button class="go ico" id="new" title="Start over with an empty box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span>New text</span></button>
       </div>
     </div>
   </div>
@@ -313,8 +322,8 @@
     x = Math.max(0, Math.min(100, v));
     body.style.setProperty("--x", x + "%");
     $("handle").setAttribute("aria-valuenow", String(Math.round(x)));
-    $("tag-l").style.opacity = x < 14 ? 0 : 1;
-    $("tag-r").style.opacity = x > 86 ? 0 : 1;
+    $("tag-l").classList.toggle("on", x >= 99);
+    $("tag-r").classList.toggle("on", x <= 1);
   }
 
   function showResult(on) {
@@ -430,6 +439,8 @@
   input.addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); mask(); } });
   run.onclick = mask;
   $("back").onclick = () => { showResult(false); update(); input.focus(); };
+  $("new").onclick = () => { input.value = ""; showResult(false); update(); input.focus(); };
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("result-tools").hidden) $("back").click(); });
   $("clear").onclick = () => { input.value = ""; update(); input.focus(); };
   copy.onclick = async () => {
     let ok = false;
@@ -440,8 +451,8 @@
       try { ok = document.execCommand("copy"); } catch (_) {}
       t.remove();
     }
-    copy.textContent = ok ? "Copied ✓" : "Copy failed";
-    setTimeout(() => copy.textContent = "Copy", 1500);
+    $("copy-label").textContent = ok ? "Copied ✓" : "Copy failed";
+    setTimeout(() => $("copy-label").textContent = "Copy", 1500);
   };
   // one click: load a one-line sample and mask it right away
   document.querySelectorAll(".chip").forEach(c => c.onclick = () => {
