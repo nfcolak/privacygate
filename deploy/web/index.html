@@ -69,7 +69,24 @@
              background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); transition: transform .4s; }
   [data-theme="dark"] .theme i { transform: rotate(180deg); }
 
-  main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-bottom: 7vh; }
+  main { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; padding-top: clamp(24px, 9vh, 96px); padding-bottom: 6vh; }
+  .hero { padding: 0 4px 22px; }
+  .hero h1 { text-wrap: balance; margin: 0 0 6px; font: 600 clamp(26px, 4.2vw, 36px)/1.15 "Geist", ui-sans-serif, sans-serif; letter-spacing: -0.035em; }
+  .hero p { margin: 0; color: var(--muted); font-size: 15.5px; }
+  .clear { position: absolute; top: 14px; right: 14px; z-index: 3; width: 32px; height: 32px; border-radius: 50%;
+           color: var(--muted); font-size: 18px; line-height: 1; display: grid; place-items: center; }
+  .clear:hover { color: var(--ink); background: var(--soft); }
+  .body.busy::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+                      background: linear-gradient(100deg, transparent 35%, color-mix(in srgb, var(--contact) 16%, transparent) 50%, transparent 65%);
+                      background-size: 260% 100%; animation: scan 1.5s linear infinite; }
+  @keyframes scan { from { background-position: 130% 0; } to { background-position: -30% 0; } }
+  .body.busy textarea { color: var(--muted); }
+  .hint { position: absolute; z-index: 3; bottom: 14px; left: var(--x); transform: translateX(-50%); white-space: nowrap;
+          font-size: 12.5px; color: var(--ink); padding: 6px 11px; border-radius: 999px; pointer-events: none;
+          transition: opacity .4s; }
+  .hint.gone { opacity: 0; }
+  .try { font-size: 13px; color: var(--muted); margin-right: 4px; white-space: nowrap; }
+  .short { display: none; }
   .card { border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; }
   .body { position: relative; height: min(54vh, 460px); min-height: 280px; display: flex; }
   textarea, .layer { padding: 26px 28px; font: 17.5px/1.85 "Geist", ui-sans-serif, sans-serif; color: var(--ink);
@@ -127,7 +144,8 @@
   .tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 64px;
            padding: 0 12px 0 18px; border-top: 1px solid var(--hair); }
   .group { display: flex; align-items: center; gap: 2px; }
-  .chip { font: 500 12px/1 "Geist Mono", ui-monospace, monospace; color: var(--muted); padding: 9px; border-radius: 9px; transition: color .15s, background .15s; }
+  .chip { font: 500 13px/1 "Geist", ui-sans-serif, sans-serif; color: var(--muted); padding: 9px 9px; border-radius: 9px; transition: color .15s, background .15s; }
+  .chip:disabled { opacity: .5; cursor: default; }
   .chip:hover, .chip.on { color: var(--ink); }
   .chip:hover { background: var(--soft); }
   .note { font: 12px "Geist Mono", ui-monospace, monospace; color: var(--muted); margin-left: auto; margin-right: 4px; }
@@ -152,19 +170,23 @@
   footer a:hover { color: var(--ink); }
 
   @media (prefers-reduced-motion: reduce) {
-    .orbs i, .reveal .bar, .dots::after { animation: none; }
+    .orbs i, .reveal .bar, .dots::after, .body.busy::after { animation: none; }
     .intro .curtain, .intro .handle, .intro .layer { transition: none; }
   }
   @media (max-width: 560px) {
     .wrap { padding: 0 14px; }
     header { height: 70px; }
     .card { border-radius: 22px; }
-    .body { height: 58vh; }
+    .body { height: 46vh; }
+    main { padding-top: 20px; }
+    .hero h1 { font-size: 27px; }
     textarea, .layer { font-size: 16px; padding: 20px; }
-    .chip { padding: 9px 7px; }
+    .chip { padding: 9px 7px; font: 500 12px/1 "Geist Mono", ui-monospace, monospace; }
+    .long { display: none; } .short { display: inline; }
+    .hero { padding-bottom: 16px; } .hero p { font-size: 14px; }
+    header { height: 60px; }
     .tools { padding: 0 8px 0 12px; }
     .legend { gap: 10px; font-size: 12px; }
-    .legend .n { display: none; }
     .layer { padding-top: 56px; }
     .quiet { padding: 9px 8px; }
     .go { min-width: 0; padding: 10px 16px; }
@@ -183,9 +205,14 @@
 </div>
 
 <main class="wrap">
+  <div class="hero">
+    <h1>Hide personal details in any text.</h1>
+    <p>Names, phone numbers, emails, addresses and bank numbers, in five languages.</p>
+  </div>
   <div class="card glass">
     <div class="body" id="body">
-      <textarea id="input" spellcheck="false" placeholder="Paste text to mask…" aria-label="Text to mask"></textarea>
+      <textarea id="input" spellcheck="false" placeholder="Paste or type some text, or try an example below." aria-label="Text to mask"></textarea>
+      <button class="clear" id="clear" hidden aria-label="Clear text" title="Clear">×</button>
       <div class="stage" id="stage" hidden>
         <div class="stack">
           <div class="layer after" id="after" aria-hidden="true"></div>
@@ -198,25 +225,27 @@
            aria-label="Before and after" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
       <button class="tag l glass" id="tag-l" hidden title="Show original">Before</button>
       <button class="tag r glass" id="tag-r" hidden title="Show masked">After</button>
+      <span class="hint glass gone" id="hint" aria-hidden="true">Drag or tap to compare</span>
     </div>
 
     <div class="tools" id="edit-tools">
-      <div class="group" aria-label="Try a sample">
-        <button class="chip" data-lang="en" title="Try an English sample">EN</button>
-        <button class="chip" data-lang="de" title="Try a German sample">DE</button>
-        <button class="chip" data-lang="fr" title="Try a French sample">FR</button>
-        <button class="chip" data-lang="it" title="Try an Italian sample">IT</button>
-        <button class="chip" data-lang="es" title="Try a Spanish sample">ES</button>
+      <div class="group" role="group" aria-label="Try an example">
+        <span class="try"><span class="long">Try an example</span><span class="short">Try</span></span>
+        <button class="chip" data-lang="en"><span class="long">English</span><span class="short">EN</span></button>
+        <button class="chip" data-lang="de"><span class="long">Deutsch</span><span class="short">DE</span></button>
+        <button class="chip" data-lang="fr"><span class="long">Français</span><span class="short">FR</span></button>
+        <button class="chip" data-lang="it"><span class="long">Italiano</span><span class="short">IT</span></button>
+        <button class="chip" data-lang="es"><span class="long">Español</span><span class="short">ES</span></button>
       </div>
       <span class="note" id="status"></span>
-      <button class="go" id="run" disabled title="⌘/Ctrl + Enter">Mask</button>
+      <button class="go" id="run" disabled title="⌘/Ctrl + Enter">Mask text</button>
     </div>
 
     <div class="tools" id="result-tools" hidden>
       <div class="legend" id="legend"></div>
       <div class="group">
-        <button class="quiet" id="copy">Copy</button>
-        <button class="go" id="back">Edit</button>
+        <button class="quiet" id="copy" title="Copy the masked text">Copy</button>
+        <button class="go" id="back">Edit text</button>
       </div>
     </div>
   </div>
@@ -257,7 +286,10 @@
   const ERRORS = { rate_limited: "Too many requests, wait a minute", too_long: "Over 8,000 characters", network: "Can't reach the server" };
   const $ = id => document.getElementById(id);
   const input = $("input"), run = $("run"), status = $("status"), copy = $("copy"), body = $("body");
-  let result = null, busy = false, x = 50;
+  let result = null, busy = false, x = 50, warm = false;
+
+  // Wake the model while the visitor reads or types, so the first mask is fast.
+  fetch("/api/health", { cache: "no-store" }).then(r => { if (r.ok) warm = true; }).catch(() => {});
 
   $("theme").onclick = () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
@@ -271,8 +303,9 @@
   function update() {
     const n = input.value.length;
     run.disabled = busy || !input.value.trim() || n > MAX;
-    if (!busy) say(n > MAX ? ERRORS.too_long : "", n > MAX);
-    document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", SAMPLES[c.dataset.lang] === input.value));
+    if (!busy) say(n > MAX ? ERRORS.too_long : n > MAX * 0.75 ? n.toLocaleString("en-US") + " / 8,000" : "", n > MAX);
+    document.querySelectorAll(".chip").forEach(c => { c.classList.toggle("on", SAMPLES[c.dataset.lang] === input.value); c.disabled = busy; });
+    $("clear").hidden = busy || !input.value || input.hidden;
   }
 
   function setX(v) {
@@ -288,6 +321,8 @@
     body.classList.toggle("result", on);
     ["stage", "curtain", "handle", "tag-l", "tag-r", "result-tools"].forEach(id => $(id).hidden = !on);
     $("edit-tools").hidden = on;
+    $("clear").hidden = on || !input.value;
+    if (!on) $("hint").classList.add("gone");
   }
 
   function render(text, entities) {
@@ -324,8 +359,9 @@
   async function mask() {
     if (run.disabled) return;
     busy = true; update();
+    body.classList.add("busy");
     run.replaceChildren(node("span", "dots", "Masking"));
-    const slow = setTimeout(() => say("Waking up the model…"), 3000);
+    const slow = setTimeout(() => say(warm ? "Still working…" : "Starting the model, about 30 s the first time…"), warm ? 4000 : 1200);
     const text = input.value;
     let error = null;
     try {
@@ -342,17 +378,27 @@
         requestAnimationFrame(() => setX(0));          // wipe: before -> after
         setTimeout(() => setX(50), 1150);              // settle mid-way so the curtain is discoverable
         setTimeout(() => body.classList.remove("intro"), 2100);
+        if (!hinted) { setTimeout(() => $("hint").classList.remove("gone"), 2100); setTimeout(dismissHint, 7000); }
+        warm = true;
       } else error = ERRORS[data.error] || "Something went wrong";
     } catch (_) { error = ERRORS.network; }
     clearTimeout(slow);
-    busy = false; run.textContent = "Mask"; update();
+    body.classList.remove("busy");
+    busy = false; run.textContent = "Mask text"; update();
     if (error) say(error, true);
   }
 
   // curtain drag
   const handle = $("handle");
+  let hinted = false;
+  try { hinted = localStorage.getItem("pg-hinted") === "1"; } catch (_) {}
+  function dismissHint() {
+    $("hint").classList.add("gone");
+    if (!hinted) { hinted = true; try { localStorage.setItem("pg-hinted", "1"); } catch (_) {} }
+  }
   handle.addEventListener("pointerdown", e => {
     e.preventDefault();
+    dismissHint();
     body.classList.remove("intro");
     handle.setPointerCapture(e.pointerId);
     const move = ev => { const r = body.getBoundingClientRect(); setX((ev.clientX - r.left) / r.width * 100); };
@@ -371,17 +417,30 @@
     body.classList.add("intro"); setX(v);
     clearTimeout(glideTimer); glideTimer = setTimeout(() => body.classList.remove("intro"), 950);
   }
-  $("tag-l").onclick = () => glide(100);
-  $("tag-r").onclick = () => glide(0);
+  $("tag-l").onclick = () => { dismissHint(); glide(100); };
+  $("tag-r").onclick = () => { dismissHint(); glide(0); };
+  // tap anywhere on the text to move the curtain there
+  $("stage").addEventListener("click", e => {
+    const r = body.getBoundingClientRect();
+    dismissHint(); glide((e.clientX - r.left) / r.width * 100);
+  });
 
   input.addEventListener("input", update);
   input.addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); mask(); } });
   run.onclick = mask;
   $("back").onclick = () => { showResult(false); update(); input.focus(); };
+  $("clear").onclick = () => { input.value = ""; update(); input.focus(); };
   copy.onclick = async () => {
-    try { await navigator.clipboard.writeText(result.masked_text); copy.textContent = "Copied"; }
-    catch (_) { copy.textContent = "Failed"; }
-    setTimeout(() => copy.textContent = "Copy", 1200);
+    let ok = false;
+    try { await navigator.clipboard.writeText(result.masked_text); ok = true; }
+    catch (_) {
+      const t = node("textarea", null, result.masked_text);
+      t.style.cssText = "position:fixed;opacity:0"; document.body.append(t); t.select();
+      try { ok = document.execCommand("copy"); } catch (_) {}
+      t.remove();
+    }
+    copy.textContent = ok ? "Copied ✓" : "Copy failed";
+    setTimeout(() => copy.textContent = "Copy", 1500);
   };
   // one click: load a one-line sample and mask it right away
   document.querySelectorAll(".chip").forEach(c => c.onclick = () => {
@@ -390,6 +449,7 @@
   });
   setX(50);
   update();
+  if (matchMedia("(pointer: fine)").matches) input.focus({ preventScroll: true });
 })();
 </script>
 </body>
