@@ -4,6 +4,8 @@ Offline multilingual PII masking research prototype for English, German, French,
 
 Synthetic data only. This is not a production privacy control and provides no privacy or legal guarantee. The external evaluation—not the near-perfect internal scores—is the honest headline: **87.09–88.71% of annotated personal letters/digits masked**, with **4.04–4.42% excess masking on non-annotated text**.
 
+**Web demo:** [privacygate.vercel.app](https://privacygate.vercel.app) — paste synthetic text only. It runs the `full` pipeline with the `ensemble_pair` union of region-v5 and region-v6 (name threshold 0.1) on a Modal CPU container; input is processed in memory and not stored. The first request after an idle period takes up to about a minute while the model loads. Code: `deploy/app.py` (Modal API) and `deploy/web/` (static page on Vercel, `/api` rewritten to Modal).
+
 ## How it works
 
 The full pipeline keeps candidate spans in original-text coordinates:
@@ -38,6 +40,7 @@ evaluation/
 ├── masking_eval.py              # aggregate scorer and blind custody
 └── checks/                      # regression checks and verify_frozen.py
 colab/train_region_v6.ipynb      # Colab GPU training notebook for region-v6
+deploy/                          # web demo: Modal API (app.py) and static page (web/, Vercel)
 configs/                         # pipeline and privacy policy configuration
 artifacts/                       # aggregate metrics, manifests and receipts; figures/results.png
 smoke.py                         # deterministic CLI smoke test
